@@ -1,10 +1,21 @@
 [
     {
-        "label": "History",
-        "menu_id": "history",
+        "label": "Documents",
+        "menu_id": "documents",
         "target": "main",
         "on_click":"top.restoreSession()",
-        "url": "../history/history.php",
+        "url": "../../../controller.php?document&list&patient_id=",
+        "pid":"true",
+        "children": [],
+        "requirement": 0,
+        "acl_req":[]
+    },
+    {
+        "label": "Referrals",
+        "menu_id": "transactions",
+        "target": "main",
+        "on_click":"top.restoreSession()",
+        "url": "../transaction/transactions.php",
         "pid":"false",
         "children": [],
         "requirement": 0,
@@ -19,40 +30,10 @@
         "pid":"false",
         "children": [],
         "requirement": 0,
-        "acl_req":[]
-    },
-    {
-        "label": "Documents",
-        "menu_id": "documents",
-        "target": "main",
-        "on_click":"top.restoreSession()",
-        "url": "../../../controller.php?document&list&patient_id=",
-        "pid":"true",
-        "children": [],
-        "requirement": 0,
-        "acl_req":[]
-    },
-    {
-        "label": "Transactions",
-        "menu_id": "transactions",
-        "target": "main",
-        "on_click":"top.restoreSession()",
-        "url": "../transaction/transactions.php",
-        "pid":"false",
-        "children": [],
-        "requirement": 0,
-        "acl_req":[]
-    },
-    {
-        "label": "Issues",
-        "menu_id": "issues",
-        "target": "main",
-        "on_click":"top.restoreSession()",
-        "url": "stats_full.php?active=all",
-        "pid":"false",
-        "children": [],
-        "requirement": 0,
-        "acl_req":[]
+        "acl_req": [
+          "admin",
+          "super"
+        ]
     },
     {
         "label": "Ledger",
@@ -63,18 +44,10 @@
         "pid":"true",
         "children": [],
         "requirement": 0,
-        "acl_req":[]
-    },
-    {
-        "label": "External Data",
-        "menu_id": "external_data",
-        "target": "main",
-        "on_click":"top.restoreSession()",
-        "url": "../../reports/external_data.php",
-        "pid":"false",
-        "children": [],
-        "requirement": 0,
-        "acl_req":[]
+        "acl_req": [
+          "admin",
+          "super"
+        ]
     },
     {
         "label": "Publish",

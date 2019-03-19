@@ -16,39 +16,15 @@ include_once("$srcdir/patient.inc");
 $template_file = $GLOBALS['OE_SITE_DIR'] . "/referral_template.html";
 
 $TEMPLATE_LABELS = array(
-  'label_clinic_id'             => htmlspecialchars(xl('Clinic ID')),
-  'label_client_id'             => htmlspecialchars(xl('Client ID')),
-  'label_control_no'            => htmlspecialchars(xl('Control No.')),
-  'label_date'                  => htmlspecialchars(xl('Date')),
   'label_webpage_title'         => htmlspecialchars(xl('Referral Form')),
-  'label_form1_title'           => htmlspecialchars(xl('Referral Form')),
+  'label_subhead_clinic'        => htmlspecialchars(xl('Clinic Copy')),
   'label_name'                  => htmlspecialchars(xl('Name')),
-  'label_age'                   => htmlspecialchars(xl('Age')),
   'label_gender'                => htmlspecialchars(xl('Gender')),
   'label_address'               => htmlspecialchars(xl('Address')),
   'label_postal'                => htmlspecialchars(xl('Postal')),
   'label_phone'                 => htmlspecialchars(xl('Phone')),
-  'label_ref_reason'            => htmlspecialchars(xl('Reference Reason')),
   'label_diagnosis'             => htmlspecialchars(xl('Diagnosis')),
-  'label_ref_class'             => htmlspecialchars(xl('Reference classification (risk level)')),
-  'label_dr_name_sig'           => htmlspecialchars(xl('Doctor\'s name and signature')),
-  'label_refer_to'              => htmlspecialchars(xl('Referred to')),
-  'label_clinic'                => htmlspecialchars(xl('Health centre/clinic')),
-  'label_history_summary'       => htmlspecialchars(xl('Client medical history summary')),
-  'label_bp'                    => htmlspecialchars(xl('Blood pressure')),
-  'label_ht'                    => htmlspecialchars(xl('Height')),
-  'label_wt'                    => htmlspecialchars(xl('Weight')),
-  'label_ref_name_sig'          => htmlspecialchars(xl('Referer name and signature')),
-  'label_special_name_sig'      => htmlspecialchars(xl('Specialist name and signature')),
-  'label_form2_title'           => htmlspecialchars(xl('Counter Referral Form')),
-  'label_findings'              => htmlspecialchars(xl('Findings')),
-  'label_final_diagnosis'       => htmlspecialchars(xl('Final Diagnosis')),
-  'label_services_provided'     => htmlspecialchars(xl('Services provided')),
-  'label_recommendations'       => htmlspecialchars(xl('Recommendations and treatment')),
-  'label_scripts_and_referrals' => htmlspecialchars(xl('Prescriptions and other referrals')),
-  'label_subhead_clinic'        => htmlspecialchars(xl('Clinic Copy')),
-  'label_subhead_patient'       => htmlspecialchars(xl('Client Copy')),
-  'label_subhead_referred'      => htmlspecialchars(xl('For Referred Organization/Practitioner'))
+  'label_form1_title'           => htmlspecialchars(xl('Referral Form'))
 );
 
 if (!is_file($template_file)) {
@@ -56,7 +32,7 @@ if (!is_file($template_file)) {
 }
 
 $transid = empty($_REQUEST['transid']) ? 0 : $_REQUEST['transid'] + 0;
-
+$PDF_OUTPUT = empty($_REQUEST['pdf']) ? 0 : $_REQUEST['pdf'] + 0;
 // if (!$transid) die("Transaction ID is missing!");
 
 if ($transid) {
@@ -84,66 +60,7 @@ if ($patient_id) {
     $patient_age = '';
 }
 
-if (empty($trow['refer_from'])) {
-    $trow['refer_from'] = 0;
-}
-
-if (empty($trow['refer_to'  ])) {
-    $trow['refer_to'  ] = 0;
-}
-
-$frrow = sqlQuery("SELECT * FROM users WHERE id = ?", array($trow['refer_from']));
-if (empty($frrow)) {
-    $frrow = array();
-}
-
-$torow = sqlQuery("SELECT * FROM users WHERE id = ?", array($trow['refer_to']));
-if (empty($torow)) {
-    $torow = array(
-    'organization' => '',
-    'street' => '',
-    'city' => '',
-    'state' => '',
-    'zip' => '',
-    'phone' => '',
-    );
-}
-
-$vrow = sqlQuery("SELECT * FROM form_vitals WHERE " .
-  "pid = ? AND date <= ? " .
-  "ORDER BY date DESC LIMIT 1", array($patient_id, $refer_date." 23:59:59"));
-if (empty($vrow)) {
-    $vrow = array(
-    'bps' => '',
-    'bpd' => '',
-    'weight' => '',
-    'height' => '',
-    );
-}
-
-// $facrow = sqlQuery("SELECT name, facility_npi FROM facility ORDER BY " .
-//   "service_location DESC, billing_location DESC, id ASC LIMIT 1");
-$facrow = getFacility(-1);
-
-// Make some items HTML-friendly if they are empty.
-if (empty($trow['id'])) {
-    $trow['id'] = '&nbsp;';
-}
-
-if (empty($patient_id)) {
-    $patient_id = '&nbsp;';
-}
-
-if (empty($facrow['facility_npi'])) {
-    $facrow['facility_npi'] = '&nbsp;';
-}
-
-// Generate link to MA logo if it exists.
-$logo = "<!-- '$ma_logo_path' does not exist. -->";
-$ma_logo_path = "sites/" . $_SESSION['site_id'] . "/images/ma_logo.png";
-if (is_file("$webserver_root/$ma_logo_path")) {
-    $logo = "<img src='$web_root/$ma_logo_path' style='height:" . round(9 * 5.14) . "pt' />";
-}
+$userQuery = sqlQuery("select * from users where username = ?", array($_SESSION['authUser']));
 
 $s = '';
 $fh = fopen($template_file, 'r');
@@ -153,14 +70,7 @@ while (!feof($fh)) {
 
 fclose($fh);
 
-$s = str_replace("{header1}", genFacilityTitle($TEMPLATE_LABELS['label_form1_title'], -1, $logo), $s);
-$s = str_replace("{header2}", genFacilityTitle($TEMPLATE_LABELS['label_form2_title'], -1, $logo), $s);
-
-$s = str_replace("{fac_name}", $facrow['name'], $s);
-$s = str_replace("{fac_facility_npi}", $facrow['facility_npi'], $s);
-$s = str_replace("{ref_id}", $trow['id'], $s);
-$s = str_replace("{ref_pid}", $patient_id, $s);
-$s = str_replace("{pt_age}", $patient_age, $s);
+$s = str_replace("{header1}", genFacilityTitle($TEMPLATE_LABELS['label_form1_title'], $trow['refer_facilities']), $s);
 
 $fres = sqlStatement("SELECT * FROM layout_options " .
   "WHERE form_id = 'LBTref' ORDER BY group_id, seq");
@@ -172,9 +82,15 @@ while ($frow = sqlFetchArray($fres)) {
         $currvalue = $trow[$field_id];
     }
 
+    if ($data_type == 25) {
+    	$newValue = parseTextboxListData($frow, $currvalue);
+    } else {
+    	$newValue = generate_display_field($frow, $currvalue);
+    }
+
     $s = str_replace(
         "{ref_$field_id}",
-        generate_display_field($frow, $currvalue),
+        $newValue,
         $s
     );
 }
@@ -182,28 +98,144 @@ while ($frow = sqlFetchArray($fres)) {
 foreach ($patdata as $key => $value) {
     if ($key == "sex") {
         $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'1','list_id'=>'sex'), $value), $s);
+    } else if ($key == "lawyer") {
+        $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'14'), $value), $s);    	
     } else {
         $s = str_replace("{pt_$key}", $value, $s);
     }
-}
-
-foreach ($frrow as $key => $value) {
-    $s = str_replace("{from_$key}", $value, $s);
-}
-
-foreach ($torow as $key => $value) {
-    $s = str_replace("{to_$key}", $value, $s);
-}
-
-foreach ($vrow as $key => $value) {
-    $s = str_replace("{v_$key}", $value, $s);
 }
 
 foreach ($TEMPLATE_LABELS as $key => $value) {
     $s = str_replace("{".$key."}", $value, $s);
 }
 
+$s = str_replace("{current_doctors_name}", $userQuery['fname'] . " " . $userQuery['lname'] . "&nbsp;&nbsp;&nbsp;&nbsp; NPI: " .$userQuery['npi'], $s);
+
+$signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $userQuery['username'] . ".png";
+if (is_file($signature_image)) {
+    $encoded_image = base64_encode(file_get_contents($signature_image));
+    $s = str_replace("{user_signature}", "<img class='signature' src='data:image/png;base64," . $encoded_image . "'>", $s);
+}
+
 // A final pass to clear any unmatched variables:
 $s = preg_replace('/\{\S+\}/', '', $s);
 
+if ($PDF_OUTPUT) {
+    $pdf = new mPDF(
+        $GLOBALS['pdf_language'],
+        $GLOBALS['pdf_size'],
+        '9', // default font size (pt)
+        '', // default_font.
+        $GLOBALS['pdf_left_margin'],
+        $GLOBALS['pdf_right_margin'],
+        $GLOBALS['pdf_top_margin'],
+        $GLOBALS['pdf_bottom_margin'],
+        '', // default header margin
+        '', // default footer margin
+        $GLOBALS['pdf_layout']
+    );
+
+    $pdf->shrink_tables_to_fit = 1;
+    $pdf->use_kwt = true;
+
+    $pdf->setDefaultFont('dejavusans');
+    $pdf->autoScriptToLang = true;
+    if ($_SESSION['language_direction'] == 'rtl') {
+        $pdf->SetDirectionality('rtl');
+    }
+
+    ob_start();
+}
+
 echo $s;
+
+if ($PDF_OUTPUT) {
+    $content = getContent();
+    $pdf->SetTitle('Referral Report');
+
+    try {
+        $pdf->writeHTML($content, false);
+        $content = $pdf->Output($fn, 'S');
+    } catch (MpdfException $exception) {
+        die($exception);
+    }
+
+    require_once ($GLOBALS['srcdir'] . "/classes/postmaster.php");
+    $mail = new MyMailer();
+    $mail->From = $GLOBALS['patient_reminder_sender_email'];
+    $mail->FromName = $GLOBALS['patient_reminder_sender_name'];
+    $mail->Body = "New patient referral for patient " . $patdata['fname'] . " ". $patdata['lname'];
+    $mail->Subject = "CIC: New Patient Referral - Ready to send - " . $patdata['fname'] . " " . $patdata['lname'] . " - " . $patdata['DOB'];
+    $mail->addStringAttachment($content, 'New Referral ' . $patdata['fname'] . " " . $patdata['lname'] . " - " . $patdata['DOB'] .'.pdf'); 
+    $mail->AddAddress($GLOBALS['practice_return_email_path'], "Marzban, Farzad");
+    $mail->AddAddress("schedule@cic.clinic", "CIC Schedule");
+    $mail->AddAddress("operations@cic.clinic", "CIC Operations");
+    $mail->AddAddress("monica@cic.clinic", "Lopez, Monica");
+    if(!$mail->Send()) {
+        error_log("There has been a mail error sending to " . $mail->ErrorInfo);
+    }
+
+    echo "<body onload=\"javascript:location.href='transactions.php';\"></body>";
+}
+
+function parseTextboxListData($frow, $currvalue) {
+    $data_type  = $frow['data_type'];
+    $field_id   = isset($frow['field_id']) ? $frow['field_id'] : null;
+    $list_id    = $frow['list_id'];
+    $backup_list = isset($frow['list_backup_id']) ? $frow['list_backup_id'] : null;
+
+    $s = '';
+
+    $tmp = explode('|', $currvalue);
+    $avalue = array();
+    foreach ($tmp as $value) {
+        if (preg_match('/^([^:]+):(.*)$/', $value, $matches)) {
+            $avalue[$matches[1]] = $matches[2];
+        }
+    }
+
+    $lres = sqlStatement("SELECT * FROM list_options " .
+    "WHERE list_id = ? AND activity = 1 ORDER BY seq, title", array($list_id));
+    $s .= "<table cellpadding='0' cellspacing='0'>";
+    while ($lrow = sqlFetchArray($lres)) {
+        $option_id = $lrow['option_id'];
+        $restype = substr($avalue[$option_id], 0, 1);
+        $resnote = substr($avalue[$option_id], 2);
+        if (empty($restype) && empty($resnote)) {
+            continue;
+        }
+
+        // Added 5-09 by BM - Translate label if applicable
+        $s .= "<tr><td class='bold' valign='top'>" . htmlspecialchars(xl_list_label($lrow['title']), ENT_NOQUOTES) . "&nbsp;</td>";
+
+        $s .= "<td class='text' valign='top'>" . htmlspecialchars($resnote, ENT_NOQUOTES) . "</td>";
+        $s .= "</tr>";
+    }
+
+    $s .= "</table>";
+
+    return $s;
+}
+
+function getContent()
+{
+    global $web_root, $webserver_root;
+    $content = ob_get_clean();
+  // Fix a nasty mPDF bug - it ignores document root!
+    $i = 0;
+    $wrlen = strlen($web_root);
+    $wsrlen = strlen($webserver_root);
+    while (true) {
+        $i = stripos($content, " src='/", $i + 1);
+        if ($i === false) {
+            break;
+        }
+
+        if (substr($content, $i+6, $wrlen) === $web_root &&
+        substr($content, $i+6, $wsrlen) !== $webserver_root) {
+            $content = substr($content, 0, $i + 6) . $webserver_root . substr($content, $i + 6 + $wrlen);
+        }
+    }
+
+    return $content;
+}

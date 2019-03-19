@@ -89,6 +89,24 @@
     .mainhead {
       vertical-align: top;
     }
+    .label {
+      vertical-align: bottom;
+      white-space: nowrap;
+    }
+    .signature {
+      max-height: 80px;
+    }
+
+    @media print {
+      .borderdiv {
+        height: 100%;
+        width: initial;
+      }
+
+      .bigtable, .linetable {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 
@@ -101,28 +119,12 @@
   <tr>
    <td class='mainhead' style="vertical-align:top">
     {header1}
-    <span class='subhead'>{label_subhead_clinic}</span>
    </td>
    <td style="text-align:right;width:10%;white-space:nowrap">
     <table border='1' style="padding:2px;border-spacing:0;border-collapse:collapse">
-     <!--
      <tr>
-      <td style="white-space:nowrap">{label_clinic_id}</td>
-      <td style='width:60pt;white-space:nowrap'>{fac_facility_npi}</td>
      </tr>
-     -->
      <tr>
-      <td style="white-space:nowrap">{label_client_id}</td>
-      <td style="white-space:nowrap">{pt_pubpid}&nbsp;</td>
-     </tr>
-     <!--
-     <tr>
-      <td style="white-space:nowrap">{label_control_no}</td>
-      <td style="white-space:nowrap">{ref_id}</td>
-     </tr>
-     -->
-     <tr>
-      <td style="white-space:nowrap">{label_date}</td>
       <td style="white-space:nowrap;min-width:54pt">{ref_refer_date}&nbsp;</td>
      </tr>
     </table>
@@ -130,288 +132,83 @@
   </tr>
  </table>
 
- <br />&nbsp;<br />{label_history_summary}:
-
- <table cellspacing='0' cellpadding='0' class='linetable'>
-  <tr>
-   <td width='1%' nowrap>{label_bp} &nbsp;</td>
-   <td class='under'>{v_bps}/{v_bpd}&nbsp;</td>
-   <td width='1%' nowrap>&nbsp; {label_ht} &nbsp;</td>
-   <td class='under'>{v_height}&nbsp;</td>
-   <td width='1%' nowrap>&nbsp; {label_wt} &nbsp;</td>
-   <td class='under'>{v_weight}&nbsp;</td>
-  </tr>
- </table>
+ <br />&nbsp;<br />Referral from Complete Injury Centers:
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_name} &nbsp;</td>
-   <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_age} &nbsp;</td>
-   <td class='under'>{pt_age}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">{label_name} &nbsp;</td>
+   <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td> 
+   <td width="1" style="white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
    <td class='under'>{pt_sex}&nbsp;</td>
   </tr>
  </table>
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_address} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">{label_address} &nbsp;</td>
    <td class='under'>{pt_street}, {pt_city} {pt_state}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_postal} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">&nbsp; {label_postal} &nbsp;</td>
    <td class='under'>{pt_postal_code}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_phone} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">&nbsp; {label_phone} &nbsp;</td>
    <td class='under'>{pt_phone_home}&nbsp;</td>
   </tr>
  </table>
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_ref_reason} &nbsp;</td>
-   <td class='under'>{ref_body}&nbsp;</td>
+   <td width="1" style="white-space:nowrap">Law Firm: &nbsp;</td>
+   <td class='under'>{pt_lawyer}&nbsp;</td>
   </tr>
  </table>
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_diagnosis} &nbsp;</td>
-   <td class='under'>{ref_refer_diag}&nbsp;</td>
+   <td width="1" style="white-space:nowrap">Allergies to Iodine &nbsp;</td>
+   <td>{ref_ref_allergies} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">Claustrophobic &nbsp;</td>
+   <td>{ref_ref_claustrophobic} &nbsp;</td>
+   <td width="1" style="white-space:nowrap">Metal in Body? &nbsp;</td>
+   <td>{ref_ref_metal} &nbsp;</td>
   </tr>
  </table>
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_ref_class} &nbsp;</td>
-   <td class='under'>{ref_refer_risk_level}&nbsp;</td>
+   <td width="1" style="white-space:nowrap">Refer to: &nbsp;</td>
+   <td>{ref_refer_to}&nbsp;</td>
+  </tr>
+ </table>
+ <table class='linetable'>
+  <tr>
+   <td width="1" style="white-space:nowrap">{label_diagnosis} &nbsp;</td>
+   <td class='under'>{ref_refer_diagnoses}&nbsp;</td>
+  </tr>
+  <tr>
+   <td width="1" style="white-space:nowrap"></td>
+   <td class='under'>&nbsp;</td>
+  </tr>
+  <tr>
+   <td width="1" style="white-space:nowrap"></td>
+   <td class='under'>&nbsp;</td>
+  </tr>
+  <tr>
+   <td width="1" style="white-space:nowrap">&nbsp;</td>
+   <td class='under'>&nbsp;</td>
   </tr>
  </table>
 
  <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_dr_name_sig} &nbsp;</td>
-   <td class='under'>{ref_refer_from}&nbsp;</td>
+   <td width="1" style="white-space:nowrap">Doctot's Name &nbsp;</td>
+    <td class="under">{current_doctors_name}</td>
   </tr>
  </table>
 
- <table class='linetable'>
+   <table class='linetable'>
   <tr>
-   <td style="width:1%;white-space:nowrap">{label_refer_to} &nbsp;</td>
-   <td class='under'>{ref_refer_to} / {to_organization}&nbsp;</td>
+   <td width="1" class="label">Signed: &nbsp;</td>
+   <td class='under'>{user_signature}</td>
+   <td width="1" class="label">Date: &nbsp;</td>
+   <td class="under label" width="15%">{ref_refer_date}</td>
   </tr>
  </table>
-
- <hr />
-
- <table class="bigtable">
-  <tr>
-   <td class='mainhead'>
-    {header1}
-    <span class='subhead'>{label_subhead_patient}</span>
-   </td>
-   <td style="text-align:right;vertical-align:top;width:10%;white-space:nowrap">
-    <table border='1' style="padding:2px;border-spacing:0;border-collapse:collapse">
-     <!--
-     <tr>
-      <td style="white-space:nowrap">{label_clinic_id}</td>
-      <td style='width:60pt;white-space:nowrap'>{fac_facility_npi}</td>
-     </tr>
-     -->
-     <tr>
-      <td style="white-space:nowrap">{label_client_id}</td>
-      <td style="white-space:nowrap">{pt_pubpid}&nbsp;</td>
-     </tr>
-     <!--
-     <tr>
-      <td style="white-space:nowrap">{label_control_no}</td>
-      <td style="white-space:nowrap">{ref_id}</td>
-     </tr>
-     -->
-     <tr>
-      <td style="white-space:nowrap">{label_date}</td>
-      <td style="white-space:nowrap;min-width:54pt">{ref_refer_date}&nbsp;</td>
-     </tr>
-    </table>
-   </td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_name} &nbsp;</td>
-   <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; Age &nbsp;</td>
-   <td class='under'>{pt_age}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
-   <td class='under'>{pt_sex}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_clinic} &nbsp;</td>
-   <td class='under'>{to_organization}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_address} &nbsp;</td>
-   <td class='under'>{to_street}, {to_city} {to_state}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_postal} &nbsp;</td>
-   <td class='under'>{to_zip}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_phone} &nbsp;</td>
-   <td class='under'>{to_phone}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_ref_reason} &nbsp;</td>
-   <td class='under'>{ref_body}&nbsp;</td>
-  </tr>
- </table>
-
- <br />&nbsp;<br />{label_history_summary}:
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_bp} &nbsp;</td>
-   <td class='under'>{v_bps}/{v_bpd}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_ht} &nbsp;</td>
-   <td class='under'>{v_height}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_wt} &nbsp;</td>
-   <td class='under'>{v_weight}&nbsp;</td>
-  </tr>
- </table>
-
- <p>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_ref_name_sig} &nbsp;</td>
-   <td class='under'>{ref_refer_from}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_special_name_sig} &nbsp;</td>
-   <td class='under'>{ref_refer_to}&nbsp;</td>
-  </tr>
- </table>
-
-</div></div>
-<br style="clear:both;" /><!-- kludge to fix bizarre Firefox problem with page breaks -->
-<p style='page-break-after: always'></p>
-<div class='borderdiv'><div class='paddingdiv'>
-
- <table class="bigtable">
-  <tr>
-   <td class='mainhead'>
-    {header2}
-    <span class='subhead'>{label_subhead_referred}</span>
-   </td>
-   <td style="text-align:right;vertical-align:top;width:10%;white-space:nowrap">
-    <table border='1' style="padding:2px;border-spacing:0;border-collapse:collapse">
-     <!--
-     <tr>
-      <td style="white-space:nowrap">{label_clinic_id}</td>
-      <td style='width:60pt;white-space:nowrap'>{fac_facility_npi}</td>
-     </tr>
-     -->
-     <tr>
-      <td style="white-space:nowrap">{label_client_id}</td>
-      <td style="white-space:nowrap">{pt_pubpid}&nbsp;</td>
-     </tr>
-     <!--
-     <tr>
-      <td style="white-space:nowrap">{label_control_no}</td>
-      <td style="white-space:nowrap">{ref_id}</td>
-     </tr>
-     -->
-     <tr>
-      <td style="white-space:nowrap">{label_date}</td>
-      <td style="white-space:nowrap;min-width:54pt">{ref_reply_date}&nbsp;</td>
-     </tr>
-    </table>
-   </td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_name} &nbsp;</td>
-   <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_age} &nbsp;</td>
-   <td class='under'>{pt_age}&nbsp;</td>
-   <td style="width:1%;white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
-   <td class='under'>{pt_sex}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_clinic} &nbsp;</td>
-   <td class='under'>{to_organization}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_diagnosis} &nbsp;</td>
-   <td class='under'>{ref_reply_init_diag}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_findings} &nbsp;</td>
-   <td class='under'>{ref_reply_findings}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_final_diagnosis} &nbsp;</td>
-   <td class='under'>{ref_reply_final_diag}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_services_provided} &nbsp;</td>
-   <td class='under'>{ref_reply_services}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_recommendations} &nbsp;</td>
-   <td class='under'>{ref_reply_recommend}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_scripts_and_referrals} &nbsp;</td>
-   <td class='under'>{ref_reply_rx_refer}&nbsp;</td>
-  </tr>
- </table>
-
- <table class='linetable'>
-  <tr>
-   <td style="width:1%;white-space:nowrap">{label_special_name_sig} &nbsp;</td>
-   <td class='under'>{ref_refer_to}&nbsp;</td>
-  </tr>
- </table>
-
-</div></div>
-
-<!-- This should really be in the onload handler but that seems to be unreliable and can crash Firefox 3. -->
-<script type="text/javascript">
- var win = top.printLogPrint ? top : opener.top;
- win.printLogPrint(window);
-</script>
-
-</body>
-</html>

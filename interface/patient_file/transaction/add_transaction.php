@@ -79,6 +79,10 @@ if ($mode) {
                 );
             }
         }
+
+        if ($field_id == "refer_referralstataus" && $value == "readytosend") {
+            $PDF_OUTPUT = true;
+        }
     }
 
     if (!$transid) {
@@ -98,7 +102,11 @@ if ($mode) {
         processAmcCall('send_sum_elec_amc', true, 'remove', $pid, 'transactions', $transid);
     }
 
-    $body_onload_code = "javascript:location.href='transactions.php';";
+    if ($PDF_OUTPUT) {
+	    $body_onload_code = "javascript:location.href='print_referral.php?transid=".$transid."&pdf=1';";
+    } else {
+	    $body_onload_code = "javascript:location.href='transactions.php';";
+    }
 }
 
 $CPR = 4; // cells per row
@@ -329,7 +337,7 @@ div.tab {
         </div>
     </div>
 
-    <table class="text">
+    <table class="text hidden">
         <tr><td>
         <?php echo xlt('Transaction Type'); ?>:&nbsp;</td><td>
 <?php
