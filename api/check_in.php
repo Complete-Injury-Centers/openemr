@@ -6,7 +6,7 @@ echo json_encode( checkInAppointment($payload["eventData"]) );
 function checkInAppointment($eventData) {
     global $conn;
 
-    if ($event['pc_recurrtype'] != '0') {
+    if ($eventData['pc_recurrtype'] != '0') {
 
 	    $strQuery = "INSERT INTO openemr_postcalendar_events 
 	            (pc_pid, pc_title, pc_hometext, pc_time, pc_eventDate, pc_endDate, pc_startTime, pc_endTime, pc_apptstatus, pc_catid, pc_aid, pc_facility, pc_billing_location, pc_duration, pc_multiple, pc_informant, pc_eventstatus, pc_sharing, pc_recurrtype, pc_recurrspec, pc_location) 
@@ -43,7 +43,7 @@ function checkInAppointment($eventData) {
 					        "event_state" => "",
 					        "event_postal" => ""
 	    				))) . "')";
-    } else if ($event['pc_apptstatus'] == "@") {
+    } else if ($eventData['pc_apptstatus'] == "@") {
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '>' WHERE pc_eid = '".$eventData["pc_eid"]."'";
     } else {
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '@' WHERE pc_eid = '".$eventData["pc_eid"]."'";
@@ -61,7 +61,7 @@ function checkInAppointment($eventData) {
 	$eventDate = strtotime($eventData["pc_eventDate"]);
 
     /** Add the current appointment to the exclusion list for the repeating events */
-    if ($event['pc_recurrtype'] != '0') {
+    if ($eventData['pc_recurrtype'] != '0') {
 
 		$pc_recurrspec = @unserialize($eventData["pc_recurrspec"]);
 		$exdate = explode(",", $pc_recurrspec["exdate"]);

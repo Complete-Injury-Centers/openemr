@@ -94,7 +94,6 @@ function fetchAppointments($from_date, $to_date, $patient_id = null, $facility_i
                     $occurance =& __increment($nd, $nm, $ny, $rfreq, $rtype);
                     list($ny,$nm,$nd) = explode('-', $occurance);
                 }
-                error_log($occurance);
                 while ($occurance <= $stopDate) {
                     $excluded = false;
                     if (isset($exdate)) {
