@@ -6,6 +6,8 @@ echo json_encode( checkInAppointment($payload["eventData"]) );
 function checkInAppointment($eventData) {
     global $conn;
 
+    $signin = true;
+
     if ($eventData['pc_recurrtype'] != '0') {
 
 	    $strQuery = "INSERT INTO openemr_postcalendar_events 
@@ -44,6 +46,8 @@ function checkInAppointment($eventData) {
 					        "event_postal" => ""
 	    				))) . "')";
     } else if ($eventData['pc_apptstatus'] == "@") {
+    	$signin = false;
+
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '>' WHERE pc_eid = '".$eventData["pc_eid"]."'";
     } else {
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '@' WHERE pc_eid = '".$eventData["pc_eid"]."'";
@@ -76,23 +80,26 @@ function checkInAppointment($eventData) {
     }
 
     /** Create a new encounter for the check in */
-    $todaysEncounters = runSQL("SELECT count(*) AS count FROM form_encounter WHERE pid = '" . $conn->real_escape_string($eventData["pid"]) . "' AND date = '".date("Y-m-d", $eventDate)." 00:00:00'");
-    if ($todaysEncounters["count"] == 0) {
+    $visitid = runSQL("SELECT encounter FROM form_encounter WHERE pid = '" . $conn->real_escape_string($eventData["pid"]) . "' AND date = '".date("Y-m-d", $eventDate)." 00:00:00'");
+    if (!$visitid) {
+    	$visitid = generateID();
 
     	$newEncounterSQL = "INSERT INTO form_encounter SET " .
 			"date = '".date("Y-m-d", $eventDate)." 00:00:00', " .
 			"onset_date = '".date("Y-m-d", $eventDate)." 00:00:00', " .
 			"reason = 'Front desk check in', " .
-			"encounter = '".generateID()."', " .
+			"encounter = '".$visitid."', " .
 			"provider_id = '".$conn->real_escape_string($eventData["uprovider_id"])."', " .
 			"facility = '".$conn->real_escape_string($eventData["name"])."', " .
 			"facility_id = '".$conn->real_escape_string($eventData["pc_facility"])."', " .
 			"pid = '" . $conn->real_escape_string($eventData["pid"]) . "'";
 
 		$result = runSQL($newEncounterSQL);
+    } else {
+    	$visitid = $visitid["encounter"];
     }
 
-    return array("status" => $status );
+    return array("status" => $status, "id" => $visitid, "signin" => $signin);
 }
 
 function generateID() {
