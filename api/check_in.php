@@ -49,6 +49,10 @@ function checkInAppointment($eventData) {
     	$signin = false;
 
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '>' WHERE pc_eid = '".$eventData["pc_eid"]."'";
+    } else if ($eventData['pc_apptstatus'] != ">") {
+    	http_response_code(400);
+		echo json_encode(array("error" => false, "reason" => "Check out already completed."));
+	    exit();
     } else {
     	$strQuery = "UPDATE openemr_postcalendar_events SET pc_apptstatus = '@' WHERE pc_eid = '".$eventData["pc_eid"]."'";
     }
