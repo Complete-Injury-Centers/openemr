@@ -2500,14 +2500,9 @@ function generate_plaintext_field($frow, $currvalue)
         }
     } // address book
     else if ($data_type == 14) {
-        $urow = sqlQuery("SELECT fname, lname, specialty FROM users " .
+        $urow = sqlQuery("SELECT organization FROM users " .
         "WHERE id = ?", array($currvalue));
-        $uname = $urow['lname'];
-        if ($urow['fname']) {
-            $uname .= ", " . $urow['fname'];
-        }
-
-        $s = $uname;
+        $s = $urow['organization'];
     } // insurance company list
     else if ($data_type == 16) {
         $insprovs = getInsuranceProviders();
