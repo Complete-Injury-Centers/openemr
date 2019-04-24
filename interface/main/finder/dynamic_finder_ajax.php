@@ -159,9 +159,10 @@ while ($row = sqlFetchArray($res)) {
         }
     }
 
-    $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$pid.' ORDER BY date desc');
-    $arow[] = sqlNumRows($encounters);
-    $arow[] = sqlFetchArray($encounters)['date'];
+    $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$row['pid'].' ORDER BY date desc');
+    $total = sqlNumRows($encounters);
+    $arow[] = $total;
+    $arow[] = $total ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
 
     $out['aaData'][] = $arow;
 }
