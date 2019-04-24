@@ -17,6 +17,8 @@ $popup = empty($_REQUEST['popup']) ? 0 : 1;
 // list_options to provide that.
 //
 $aColumns = explode(',', $_GET['sColumns']);
+array_pop($aColumns);
+array_pop($aColumns);
 
 // Paging parameters.  -1 means not applicable.
 //
@@ -156,6 +158,10 @@ while ($row = sqlFetchArray($res)) {
             $arow[] = isset($fieldsInfo[$colname]) ? attr(generate_plaintext_field($fieldsInfo[$colname], $row[$colname])) : attr($row[$colname]);
         }
     }
+
+    $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$pid.' ORDER BY date desc');
+    $arow[] = sqlNumRows($encounters);
+    $arow[] = sqlFetchArray($encounters)['date'];
 
     $out['aaData'][] = $arow;
 }

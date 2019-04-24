@@ -34,6 +34,9 @@ while ($row = sqlFetchArray($res)) {
     $coljson .= "{\"sName\": \"" . addcslashes($colname, "\t\r\n\"\\") . "\"}";
     ++$colcount;
 }
+
+$header .= "   <th>Visits</th>\n   <th>Last Visit</th>\n";
+$coljson .= ", {\"sName\": \"Visits\"}, {\"sName\": \"Last Visit\"}";
 ?>
 <html>
 <head>
@@ -92,7 +95,7 @@ $(document).ready(function() {
  $('#pt_table').on('click', 'tbody tr', function () {
   // ID of a row element is pid_{value}
   var newpid = this.id.substring(4);
-  // If the pid is invalid, then don't attempt to set 
+  // If the pid is invalid, then don't attempt to set
   // The row display for "No matching records found" has no valid ID, but is
   // otherwise clickable. (Matches this CSS selector).  This prevents an invalid
   // state for the PID to be set.
