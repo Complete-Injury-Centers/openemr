@@ -9,6 +9,7 @@
 
 require_once("../../globals.php");
 require_once($GLOBALS['srcdir']."/options.inc.php");
+require_once("../../../library/appointments.inc.php");
 
 $popup = empty($_REQUEST['popup']) ? 0 : 1;
 
@@ -17,6 +18,8 @@ $popup = empty($_REQUEST['popup']) ? 0 : 1;
 // list_options to provide that.
 //
 $aColumns = explode(',', $_GET['sColumns']);
+array_pop($aColumns);
+array_pop($aColumns);
 array_pop($aColumns);
 array_pop($aColumns);
 
@@ -160,9 +163,15 @@ while ($row = sqlFetchArray($res)) {
     }
 
     $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$row['pid'].' ORDER BY date desc');
-    $total = sqlNumRows($encounters);
+    $visits = sqlNumRows($encounters);
+    $arow[] = $visits;
+
+    $appointments = fetchAppointments("2019-01-01", date("Y-m-d"), $row['pid']);
+    $total = count($appointments);
     $arow[] = $total;
-    $arow[] = $total ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
+    $arow[] = $total ? round( ( $visits / $total ) * 100 ) . "%" : "";
+
+    $arow[] = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
 
     $out['aaData'][] = $arow;
 }
