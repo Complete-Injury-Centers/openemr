@@ -476,7 +476,7 @@ if (!$ckavail) {
         } else {
             //Someone is going to have to go over this with a fine-toothed comb because I couldn't really parse the original here
             if ($isProv) { ?>
-                if (confirm('<?php echo xls('Provider not available, use it anyway?'); ?>')) {
+                if (true || confirm('<?php echo xls('Provider not available, use it anyway?'); ?>')) {
             <?php
             } else { ?>
                 if (confirm('<?php echo xls('This appointment slot is already used, use it anyway?'); ?>')) {
