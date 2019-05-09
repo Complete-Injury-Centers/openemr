@@ -169,8 +169,11 @@ while ($row = sqlFetchArray($res)) {
     $appointments = fetchAppointments("2019-01-01", date("Y-m-d"), $row['pid']);
     $total = count($appointments);
     $arow[] = $total;
-    $arow[] = $total ? round( ( $visits / $total ) * 100 ) . "%" : "";
+    $compliance = $total ? round( ( $visits / $total ) * 100 ) : 0;
 
+    $compliance = $compliance > 100 ? 100 : $compliance;
+
+    $arow[] = $compliance . "%";
     $arow[] = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
 
     $out['aaData'][] = $arow;
