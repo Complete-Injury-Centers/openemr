@@ -237,7 +237,7 @@ $urlparms = "docid=$docid&orderid=$orderid";
     ?>
   </td>
  </tr>
- <tr>
+ <tr style="display:none">
   <td class='text'>
     <br/>
 
@@ -250,6 +250,7 @@ $urlparms = "docid=$docid&orderid=$orderid";
    <b><?php echo htmlspecialchars(xl('To'), ENT_NOQUOTES); ?>:</b>
    <select name='assigned_to'>
 <?php
+/**
 while ($urow = sqlFetchArray($ures)) {
     echo "    <option value='" . htmlspecialchars($urow['username'], ENT_QUOTES) . "'";
     if ($urow['username'] == $assigned_to) {
@@ -263,8 +264,9 @@ while ($urow = sqlFetchArray($ures)) {
 
     echo "</option>\n";
 }
+*/
 ?>
-   <option value=''><?php echo htmlspecialchars(xl('Mark Note as Completed'), ENT_NOQUOTES); ?></option>
+   <option value=' '><?php echo htmlspecialchars(xl('Mark Note as Completed'), ENT_NOQUOTES); ?></option>
    </select>
   </td>
  </tr>

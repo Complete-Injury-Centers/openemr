@@ -84,11 +84,11 @@ if (isset($_GET['docUpdateId'])) {
             $notes_count = 0;//number of notes so far displayed
             echo "<tr class='text' style='border-bottom:2px solid #000;' >\n";
             echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('From'), ENT_NOQUOTES) ."</b></td>\n";
-            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('To'), ENT_NOQUOTES) ."</b></td>\n";
+//            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('To'), ENT_NOQUOTES) ."</b></td>\n";
             echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Date'), ENT_NOQUOTES) ."</b></td>\n";
-            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Subject'), ENT_NOQUOTES) ."</b></td>\n";
+//            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Subject'), ENT_NOQUOTES) ."</b></td>\n";
             echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Content'), ENT_NOQUOTES) ."</b></td>\n";
-            echo "<td valign='top' class='text' ></td>\n";
+//            echo "<td valign='top' class='text' ></td>\n";
             echo "</tr>\n";
             foreach ($result as $iter) {
                 $has_note = 1;
@@ -99,15 +99,17 @@ if (isset($_GET['docUpdateId'])) {
                 echo " <tr class='text' id='".htmlspecialchars($iter['id'], ENT_QUOTES)."' style='border-bottom:1px dashed;height:30px;' >\n";
 
                 // Modified 6/2009 by BM to incorporate the patient notes into the list_options listings
-                echo "<td valign='top' class='text'>".htmlspecialchars($iter['user'], ENT_NOQUOTES)."</td>\n";
-                echo "<td valign='top' class='text'>".htmlspecialchars($iter['assigned_to'], ENT_NOQUOTES)."</td>\n";
+                $name = sqlFetchArray(sqlStatement("select fname, lname from users where username='".$iter['user']."'"));
+
+                echo "<td valign='top' class='text'>".htmlspecialchars($name['fname'] . " " . $name['lname'], ENT_NOQUOTES)."</td>\n";
+//                echo "<td valign='top' class='text'>".htmlspecialchars($iter['assigned_to'], ENT_NOQUOTES)."</td>\n";
                 echo "<td valign='top' class='text'>".htmlspecialchars(oeFormatDateTime(date('Y-m-d H:i', strtotime($iter['date']))), ENT_NOQUOTES)."</td>\n";
-                echo "  <td valign='top' class='text'><b>";
-                echo generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $iter['title']);
-                echo "</b></td>\n";
+//                echo "  <td valign='top' class='text'><b>";
+//                echo generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $iter['title']);
+//                echo "</b></td>\n";
 
                 echo "  <td valign='top' class='text'>" . text($body) . "</td>\n";
-                echo "<td valign='top' class='text'><button data-id='" . attr($iter['id']) . "' class='complete_btn'>" . xlt('Completed') . "</button></td>\n";
+//                echo "<td valign='top' class='text'><button data-id='" . attr($iter['id']) . "' class='complete_btn'>" . xlt('Completed') . "</button></td>\n";
                 echo " </tr>\n";
 
                 $notes_count++;
