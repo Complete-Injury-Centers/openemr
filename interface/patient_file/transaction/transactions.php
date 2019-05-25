@@ -9,7 +9,7 @@ require_once("$srcdir/options.inc.php");
 ?>
 <html>
 <head>
-    <title><?php echo xlt('Patient Transactions');?></title>
+    <title><?php echo xlt('Referral Summary');?></title>
     <?php Header::setupHeader('common'); ?>
 
 <script type="text/javascript">
@@ -29,7 +29,7 @@ require_once("$srcdir/options.inc.php");
 
 <body class="body_top">
     <div class="page-header">
-        <h1><?php echo xlt('Patient Transactions');?></h1>
+        <h1><?php echo xlt('Referral Summary');?></h1>
     </div>
     <div class="btn-group">
         <a href="../summary/demographics.php" class="btn btn-default btn-back" onclick="top.restoreSession()">
@@ -49,9 +49,11 @@ require_once("$srcdir/options.inc.php");
                 <tr>
                     <th>&nbsp;</th>
                     <th><?php echo xlt('Type'); ?></th>
-                    <th><?php echo xlt('Date'); ?></th>
-                    <th><?php echo xlt('User'); ?></th>
-                    <th><?php echo xlt('Details'); ?></th>
+                    <th><?php echo xlt('Status'); ?></th>
+                    <th><?php echo xlt('Referral Date'); ?></th>
+                    <th><?php echo xlt('Sent Date'); ?></th>
+                    <th><?php echo xlt('Affiliate'); ?></th>
+                    <th><?php echo xlt('Report Received'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -97,10 +99,12 @@ require_once("$srcdir/options.inc.php");
                                 <?php } ?>
                             </div>
                         </td>
-                        <td><?php echo generate_display_field(['data_type' => 1, 'list_id' => 'transactions'], $item['title']); ?></td>
+                        <td><?php echo generate_display_field(['data_type' => 1, 'list_id' => 'Referral_for'], $item['refer_to']); ?></td>
+                        <td><?php echo generate_display_field(['data_type' => 1, 'list_id' => 'Referral_Status'], $item['refer_referralstataus']); ?></td>
                         <td><?php echo text($date); ?></td>
-                        <td><?php echo text($item['user']); ?></td>
-                        <td><?php echo text($item['body']); ?></td>
+                        <td><?php echo text($item['refer_sentdate']); ?></td>
+                        <td><?php echo generate_display_field(['data_type' => 1, 'list_id' => 'Affiliate'], $item['refer_affiliate']); ?></td>
+                        <td><?php echo text($item['refer_reportreceived']) ?></td>
                     </tr>
                 <?php
                 }
