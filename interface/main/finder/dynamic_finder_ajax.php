@@ -10,6 +10,7 @@
 require_once("../../globals.php");
 require_once($GLOBALS['srcdir']."/options.inc.php");
 require_once("../../../library/appointments.inc.php");
+include_once("$srcdir/transactions.inc");
 
 $popup = empty($_REQUEST['popup']) ? 0 : 1;
 
@@ -18,6 +19,7 @@ $popup = empty($_REQUEST['popup']) ? 0 : 1;
 // list_options to provide that.
 //
 $aColumns = explode(',', $_GET['sColumns']);
+array_pop($aColumns);
 array_pop($aColumns);
 array_pop($aColumns);
 array_pop($aColumns);
@@ -174,6 +176,21 @@ while ($row = sqlFetchArray($res)) {
     $compliance = $compliance > 100 ? 100 : $compliance;
 
     $arow[] = $compliance . "%";
+
+    $referralData = getTransByPid($row['pid']);
+    $refSent = 0;
+    $refReceived = 0;
+    foreach ($referralData as $item) {
+        if ($item['refer_reportreceived'] === 'Yes') {
+            $refReceived++;
+        }
+
+        if ($item['refer_referralstataus'] === 'sentreferral') {
+            $refSent++;
+        }
+    }
+
+    $arow[] = $refSent . " sent / " . $refReceived . " received";
     $arow[] = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
 
     $out['aaData'][] = $arow;

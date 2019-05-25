@@ -35,8 +35,8 @@ while ($row = sqlFetchArray($res)) {
     ++$colcount;
 }
 
-$header .= "   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Last Visit</th>\n";
-$coljson .= ", {\"sName\": \"Visits\"}, {\"sName\": \"Scheduled\"}, {\"sName\": \"Compliance\"}, {\"sName\": \"Last Visit\"}";
+$header .= "   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Referrals (Sent/Received)</th>\n   <th>Last Visit</th>\n";
+$coljson .= ", {\"sName\": \"Visits\"}, {\"sName\": \"Scheduled\"}, {\"sName\": \"Compliance\"}, {\"sName\": \"Referrals (Sent/Received)\"}, {\"sName\": \"Last Visit\"}";
 ?>
 <html>
 <head>
