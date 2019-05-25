@@ -328,6 +328,17 @@ function expandcollapse(atr) {
   }
 }
 
+function revokeSignature(id) {
+  dlgopen('../deleter.php?signatureid=' + id, '_blank', 500, 200, '', '', {
+      buttons: [
+          {text: '<?php echo xla('Done'); ?>', close: true, style: 'primary btn-sm'}
+      ],
+      allowResize: false,
+      allowDrag: true,
+  });
+  return false;
+}
+
 function divtoggle(spanid, divid) {
     var ele = document.getElementById(divid);
     var text = document.getElementById(spanid);

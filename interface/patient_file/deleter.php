@@ -39,6 +39,7 @@ require_once($GLOBALS['srcdir'].'/sl_eob.inc.php');
  $payment     = $_REQUEST['payment'];
  $billing     = $_REQUEST['billing'];
  $transaction = $_REQUEST['transaction'];
+ $signatureid = $_REQUEST['signatureid'];
 
  $info_msg = "";
 
@@ -267,6 +268,12 @@ if ($_POST['form_submit']) {
         }
 
         row_delete("forms", "encounter = '" . add_escape_custom($encounterid) . "'");
+    } else if ($signatureid) {
+        if (!acl_check('admin', 'super')) {
+            die("Not authorized!");
+        }
+
+        row_delete("esign_signatures", "id = '" . add_escape_custom($signatureid) . "'");
     } else if ($formid) {
         if (!acl_check('admin', 'super')) {
             die("Not authorized!");
@@ -412,7 +419,9 @@ if ($_POST['form_submit']) {
   // Close this window and tell our opener that it's done.
   // Not sure yet if the callback can be used universally.
     echo "<script language='JavaScript'>\n";
-    if (!$encounterid) {
+    if ($signatureid) {
+        echo " dlgclose('refreshVisitDisplay',false);\n";
+    } else if (!$encounterid) {
         if ($info_msg) {
             echo " alert('" . addslashes($info_msg) . "');\n";
         }
@@ -429,7 +438,7 @@ if ($_POST['form_submit']) {
 }
 ?>
 
-<form method='post' name="deletefrm" action='deleter.php?patient=<?php echo attr($patient) ?>&encounterid=<?php echo attr($encounterid) ?>&formid=<?php echo attr($formid) ?>&issue=<?php echo attr($issue) ?>&document=<?php echo attr($document) ?>&payment=<?php echo attr($payment) ?>&billing=<?php echo attr($billing) ?>&transaction=<?php echo attr($transaction) ?>' onsubmit="javascript:alert('1');document.deleform.submit();">
+<form method='post' name="deletefrm" action='deleter.php?patient=<?php echo attr($patient) ?>&encounterid=<?php echo attr($encounterid) ?>&signatureid=<?php echo attr($signatureid) ?>&formid=<?php echo attr($formid) ?>&issue=<?php echo attr($issue) ?>&document=<?php echo attr($document) ?>&payment=<?php echo attr($payment) ?>&billing=<?php echo attr($billing) ?>&transaction=<?php echo attr($transaction) ?>' onsubmit="javascript:alert('1');document.deleform.submit();">
 
 <p class="lead">&nbsp;<br><?php echo xlt('Do you really want to delete'); ?>
 
@@ -438,6 +447,8 @@ if ($patient) {
     echo xlt('patient') . " " . text($patient);
 } else if ($encounterid) {
     echo xlt('encounter') . " " . text($encounterid);
+} else if ($signatureid) {
+    echo xlt('signature') . " " . text($signatureid);
 } else if ($formid) {
     echo xlt('form') . " " . text($formid);
 } else if ($issue) {
