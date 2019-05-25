@@ -45,6 +45,29 @@
         </div>
         
         <div class="esign-signature-form-element">
+			<table>
+			    <tr>
+			        <td nowrap="">
+			            <b>Date:</b>
+			        </td>
+			        <td nowrap="">
+			            <input type="date" size="12" class="datepicker input-sm" name="date" id="date" value="<?php echo date('Y-m-d') ?>" title="Signature date">
+			        </td>
+			        <td width="1%" nowrap="" id="tdallday2" style="color: rgb(0, 0, 0);">
+			            Time
+			        </td>
+			        <td width="1%" nowrap="" id="tdallday3" style="color: rgb(0, 0, 0);">
+			            <span>
+			                <input class="input-sm" type="text" size="2" name="hour" value="<?php echo date('H') ?>" title="Signature hour"> :
+			                <input class="input-sm" type="text" size="2" name="minute" value="<?php echo date('i') ?>" title="Signature minute"> :
+			                <input class="input-sm" type="text" size="2" name="second" value="<?php echo date('s') ?>" title="Signature second">
+			            </span>
+			        </td>
+			    </tr>
+			</table>
+        </div>
+
+        <div class="esign-signature-form-element">
               <input type='submit' value='<?php echo xla('Back'); ?>' id='esign-back-button' /> 
               <input type='button' value='<?php echo xla('Sign'); ?>' id='esign-sign-button-form' />
         </div>

@@ -82,6 +82,13 @@ class Form_Controller extends Abstract_Controller
         $formId = $this->getRequest()->getParam('formId', '');
         $formDir = $this->getRequest()->getParam('formDir', '');
         $encounterId = $this->getRequest()->getParam('encounterId', '');
+        $date = $this->getRequest()->getParam('date', date("Y-m-d"));
+        $hour = $this->getRequest()->getParam('hour', date("H"));
+        $minute = $this->getRequest()->getParam('minute', date("i"));
+        $second = $this->getRequest()->getParam('second', date("s"));
+
+        $date = $date . " " . $hour . ":" . $minute . ":" . $second;
+
         // Always lock, unless esign_lock_toggle option is enable in globals
         $lock = true;
         if ($GLOBALS['esign_lock_toggle']) {
@@ -99,7 +106,7 @@ class Form_Controller extends Abstract_Controller
         if ($valid) {
             $factory = new Form_Factory($formId, $formDir, $encounterId);
             $signable = $factory->createSignable();
-            if ($signable->sign($_SESSION['authUserID'], $lock, $amendment)) {
+            if ($signable->sign($_SESSION['authUserID'], $lock, $amendment, $date)) {
                 $message = xlt("Form signed successfully");
                 $status = self::STATUS_SUCCESS;
             } else {

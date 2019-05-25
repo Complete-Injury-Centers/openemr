@@ -118,10 +118,10 @@ abstract class DbRow_Signable implements SignableIF
         return false;
     }
 
-    public function sign($userId, $lock = false, $amendment = null)
+    public function sign($userId, $lock = false, $amendment = null, $date = null)
     {
         $statement = "INSERT INTO `esign_signatures` ( `tid`, `table`, `uid`, `datetime`, `is_lock`, `hash`, `amendment`, `signature_hash` ) ";
-        $statement .= "VALUES ( ?, ?, ?, NOW(), ?, ?, ?, ? ) ";
+        $statement .= "VALUES ( ?, ?, ?, ?, ?, ?, ?, ? ) ";
         
         // Make type string
         $isLock = SignatureIF::ESIGN_NOLOCK;
@@ -132,6 +132,10 @@ abstract class DbRow_Signable implements SignableIF
         // Create a hash of the signable object so we can verify it's integrity
         $hash = $this->_verification->hash($this->getData());
         
+        if (!$date) {
+            $date = date("Y-m-d H:i:s");
+        }
+
         // Crate a hash of the signature data itself. This is the same data as Signature::getData() method
         $signature = array(
             $this->_tableId,
@@ -141,6 +145,8 @@ abstract class DbRow_Signable implements SignableIF
             $hash,
             $amendment );
         $signatureHash = $this->_verification->hash($signature);
+
+        array_splice( $signature, 3, 0, $date );
         
         // Append the hash of the signature data to the insert array before we insert
         $signature[]= $signatureHash;
