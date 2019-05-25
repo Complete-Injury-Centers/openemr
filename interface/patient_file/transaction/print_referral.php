@@ -82,11 +82,7 @@ while ($frow = sqlFetchArray($fres)) {
         $currvalue = $trow[$field_id];
     }
 
-    if ($data_type == 25) {
-    	$newValue = parseTextboxListData($frow, $currvalue);
-    } else {
-    	$newValue = generate_display_field($frow, $currvalue);
-    }
+	$newValue = generate_display_field($frow, $currvalue);
 
     $s = str_replace(
         "{ref_$field_id}",
@@ -176,45 +172,6 @@ if ($PDF_OUTPUT) {
     }
 
     echo "<body onload=\"javascript:location.href='transactions.php';\"></body>";
-}
-
-function parseTextboxListData($frow, $currvalue) {
-    $data_type  = $frow['data_type'];
-    $field_id   = isset($frow['field_id']) ? $frow['field_id'] : null;
-    $list_id    = $frow['list_id'];
-    $backup_list = isset($frow['list_backup_id']) ? $frow['list_backup_id'] : null;
-
-    $s = '';
-
-    $tmp = explode('|', $currvalue);
-    $avalue = array();
-    foreach ($tmp as $value) {
-        if (preg_match('/^([^:]+):(.*)$/', $value, $matches)) {
-            $avalue[$matches[1]] = $matches[2];
-        }
-    }
-
-    $lres = sqlStatement("SELECT * FROM list_options " .
-    "WHERE list_id = ? AND activity = 1 ORDER BY seq, title", array($list_id));
-    $s .= "<table cellpadding='0' cellspacing='0'>";
-    while ($lrow = sqlFetchArray($lres)) {
-        $option_id = $lrow['option_id'];
-        $restype = substr($avalue[$option_id], 0, 1);
-        $resnote = substr($avalue[$option_id], 2);
-        if (empty($restype) && empty($resnote)) {
-            continue;
-        }
-
-        // Added 5-09 by BM - Translate label if applicable
-        $s .= "<tr><td class='bold' valign='top'>" . htmlspecialchars(xl_list_label($lrow['title']), ENT_NOQUOTES) . "&nbsp;</td>";
-
-        $s .= "<td class='text' valign='top'>" . htmlspecialchars($resnote, ENT_NOQUOTES) . "</td>";
-        $s .= "</tr>";
-    }
-
-    $s .= "</table>";
-
-    return $s;
 }
 
 function getContent()
