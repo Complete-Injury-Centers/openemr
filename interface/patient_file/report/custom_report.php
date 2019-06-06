@@ -68,6 +68,9 @@ if ($PDF_OUTPUT) {
         $pdf->SetDirectionality('rtl'); // direction from html will still be honored.
     }
 
+    $ptd = getPatientData($pid, "fname,lname,DOB,DOI");
+    $pdf->SetHTMLFooter('PATIENT: ' . $ptd['fname'] . ' ' . $ptd['lname'] . ' DOB: ' . $ptd['DOB'] . ' DOI: ' . $ptd['DOI']);
+
     ob_start();
 } // end pdf conditional.
 
@@ -833,7 +836,7 @@ if ($printable && ! $PDF_OUTPUT) {// Patched out of pdf 04/20/2017 sjpadgett
 <?php
 if ($PDF_OUTPUT) {
     $content = getContent();
-    $ptd = getPatientData($pid, "fname,lname,DOB,DOI");
+    $ptd = getPatientData($pid, "fname,lname");
     $fn = strtolower($ptd['fname'] . '_' . $ptd['lname'] . '_' . $pid . '_' . xl('report') . '.pdf');
     $pdf->SetTitle(ucfirst($ptd['fname']) . ' ' . $ptd['lname'] . ' ' . xl('Id') . ':' . $pid . ' ' . xl('Report'));
     $isit_utf8 = preg_match('//u', $content); // quick check for invalid encoding
@@ -845,8 +848,6 @@ if ($PDF_OUTPUT) {
             die($die_str);
         }
     }
-
-    $pdf->SetHTMLFooter('Name: ' . $ptd['fname'] . ' ' . $ptd['lname'] . ' DOB: ' . $ptd['DOB'] . ' DOI: ' . $ptd['DOI']);
 
     try {
         $pdf->writeHTML($content, false); // convert html
