@@ -49,13 +49,12 @@ if ($PDF_OUTPUT) {
         '', // default_font. will set explicitly in script.
         $GLOBALS['pdf_left_margin'],
         $GLOBALS['pdf_right_margin'],
-        $GLOBALS['pdf_top_margin'],
+        $GLOBALS['pdf_top_margin'] + 20,
         $GLOBALS['pdf_bottom_margin'],
         '', // default header margin
         '', // default footer margin
         $GLOBALS['pdf_layout']
     ); // Globals default is 'P'
-
       $pdf->shrink_tables_to_fit = 1;
       $keep_table_proportions = true;
       $pdf->use_kwt = true;
@@ -67,9 +66,6 @@ if ($PDF_OUTPUT) {
     if ($_SESSION['language_direction'] == 'rtl') {
         $pdf->SetDirectionality('rtl'); // direction from html will still be honored.
     }
-
-    $ptd = getPatientData($pid, "fname,lname,DOB,DOI");
-    $pdf->SetHTMLFooter('PATIENT: ' . $ptd['fname'] . ' ' . $ptd['lname'] . ' DOB: ' . $ptd['DOB'] . ' DOI: ' . $ptd['DOI']);
 
     ob_start();
 } // end pdf conditional.
@@ -202,7 +198,7 @@ if ($printable) {
   $titleres = getPatientData($pid, "fname,lname,providerID");
   $sql = "SELECT * FROM facility ORDER BY billing_location DESC LIMIT 1";
   *******************************************************************/
-    $titleres = getPatientData($pid, "fname,lname,providerID,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS");
+    $titleres = getPatientData($pid, "fname,lname,providerID,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
     $facility = null;
     if ($_SESSION['pc_facility']) {
         $facility = $facilityService->getById($_SESSION['pc_facility']);
@@ -210,11 +206,12 @@ if ($printable) {
         $facility = $facilityService->getPrimaryBillingLocation();
     }
 
+    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 70px" src="../../../sites/default/images/report-header.jpg">');
+    $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Center - 214-666-6651');
+
   /******************************************************************/
   // Setup Headers and Footers for mPDF only Download
   // in HTML view it's just one line at the top of page 1
-    echo '<page_header style="text-align:right;" class="custom-tag"> ' . xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' - ' . $titleres['DOB_TS'] . '</page_header>    ';
-    echo '<page_footer style="text-align:right;" class="custom-tag">' . xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - ' . text($facility['name']) . ' ' . text($facility['phone']) . '</page_footer>';
 
     // Use logo if it exists as 'practice_logo.gif' in the site dir
     // old code used the global custom dir which is no longer a valid
