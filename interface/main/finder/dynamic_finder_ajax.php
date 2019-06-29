@@ -83,11 +83,9 @@ for ($i = 0; $i < count($aColumns); ++$i) {
     if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == "true" && $_GET["sSearch_$i"] != '') {
         $where .= $where ? ' AND' : 'WHERE';
         $sSearch = add_escape_custom($_GET["sSearch_$i"]);
-        if ($colname == 'name') {
-            $where .= " ( " .
-            "lname LIKE '$sSearch%' OR " .
-            "fname LIKE '$sSearch%' OR " .
-            "mname LIKE '$sSearch%' )";
+        if ($colname == 'refer_facilities') {
+            $facilityId = sqlQuery("SELECT id FROM facility WHERE name = '$sSearch'");
+            $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$facilityId['id']. "'";
         } else {
             $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%'";
         }

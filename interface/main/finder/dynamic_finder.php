@@ -57,7 +57,6 @@ $coljson .= ", {\"sName\": \"Visits\"}, {\"sName\": \"Scheduled\"}, {\"sName\": 
 <script language="JavaScript">
 
 $(document).ready(function() {
-
  // Initializing the DataTable.
  //
  var oTable = $('#pt_table').dataTable( {
@@ -73,6 +72,24 @@ $(document).ready(function() {
   // See: http://datatables.net/usage/columns and
   // http://datatables.net/release-datatables/extras/ColReorder/server_side.html
   "columns": [ <?php echo $coljson; ?> ],
+  initComplete: function () {
+  	this.api().columns().every( function () {
+  	    var column = this;
+        console.log(column.header());
+  	    var select = $('<td><select><option value=""></option></select></td>')
+  	        .appendTo( $(".filters") );
+
+        select.find('select').on( 'change', function () {
+          column
+              .search( $(this).val() )
+              .draw();
+        } );
+
+  	    column.data().unique().sort().each( function ( d, j ) {
+  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' )
+  	    } );
+  	} );
+  },
   "lengthMenu": [ 10, 25, 50, 100 ],
   "pageLength": <?php echo empty($GLOBALS['gbl_pt_list_page_size']) ? '10' : $GLOBALS['gbl_pt_list_page_size']; ?>,
     <?php // Bring in the translations ?>
@@ -133,8 +150,7 @@ function openNewTopWindow(pid) {
 <!-- Class "display" is defined in demo_table.css -->
 <table cellpadding="0" cellspacing="0" border="0" class="display" id="pt_table">
  <thead>
-  <tr>
-<?php echo $header0; ?>
+  <tr class="filters">
   </tr>
   <tr class = "head">
 <?php echo $header; ?>
