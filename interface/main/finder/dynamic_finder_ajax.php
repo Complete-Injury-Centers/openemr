@@ -14,16 +14,13 @@ include_once("$srcdir/transactions.inc");
 
 $popup = empty($_REQUEST['popup']) ? 0 : 1;
 
+$specialItems = array("visits", "scheduled", "compliance", "referrals", "lastVisit");
+
 // With the ColReorder or ColReorderWithResize plug-in, the expected column
 // ordering may have been changed by the user.  So we cannot depend on
 // list_options to provide that.
 //
 $aColumns = explode(',', $_GET['sColumns']);
-array_pop($aColumns);
-array_pop($aColumns);
-array_pop($aColumns);
-array_pop($aColumns);
-array_pop($aColumns);
 
 // Paging parameters.  -1 means not applicable.
 //
@@ -45,10 +42,8 @@ if (isset($_GET['iSortCol_0'])) {
       // We are to sort on column # $iSortCol in direction $sSortDir.
             $orderby .= $orderby ? ', ' : 'ORDER BY ';
       //
-            if ($aColumns[$iSortCol] == 'name') {
-                    $orderby .= "lname $sSortDir, fname $sSortDir, mname $sSortDir";
-            } else {
-                    $orderby .= "`" . escape_sql_column_name($aColumns[$iSortCol], array('patient_data')) . "` $sSortDir";
+            if (!in_array($aColumns[$iSortCol], $specialItems)) {
+                $orderby .= "`" . escape_sql_column_name($aColumns[$iSortCol], array('patient_data')) . "` $sSortDir";
             }
         }
     }
@@ -61,12 +56,7 @@ if (isset($_GET['sSearch']) && $_GET['sSearch'] !== "") {
     $sSearch = add_escape_custom(trim($_GET['sSearch']));
     foreach ($aColumns as $colname) {
         $where .= $where ? "OR " : "WHERE ( ";
-        if ($colname == 'name') {
-            $where .=
-            "lname LIKE '$sSearch%' OR " .
-            "fname LIKE '$sSearch%' OR " .
-            "mname LIKE '$sSearch%' ";
-        } else {
+	    if (!in_array($colname, $specialItems)) {
             $where .= "`" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%' ";
         }
     }
@@ -80,16 +70,32 @@ if (isset($_GET['sSearch']) && $_GET['sSearch'] !== "") {
 //
 for ($i = 0; $i < count($aColumns); ++$i) {
     $colname = $aColumns[$i];
-    if (isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == "true" && $_GET["sSearch_$i"] != '') {
+    if (!in_array($colname, $specialItems) && isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == "true" && $_GET["sSearch_$i"] != '') {
         $where .= $where ? ' AND' : 'WHERE';
         $sSearch = add_escape_custom($_GET["sSearch_$i"]);
         if ($colname == 'refer_facilities') {
             $facilityId = sqlQuery("SELECT id FROM facility WHERE name = '$sSearch'");
             $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$facilityId['id']. "'";
-        } else {
+        } else if ($colname == 'lawyer') {
+            $lawyerId = sqlQuery("SELECT id FROM users WHERE organization = '$sSearch'");
+            $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$lawyerId['id']. "'";
+	    } else {
             $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%'";
         }
     }
+}
+
+// If no filtering is being done on the facility,
+// check if the user has permissions for all facilities.
+if (!isset($facilityId) && !acl_check('admin', 'super')) {
+	$facilities = array();
+    $facilityres = sqlStatement("SELECT facility_id as id FROM users_facility WHERE table_id = '".$_SESSION['authUserID']."'");
+	while ($row = sqlFetchArray($facilityres)) {
+		$facilities[] = $row['id'];
+	}
+
+	$where .= $where ? ' AND' : 'WHERE';
+	$where .= " `refer_facilities` IN (" . implode($facilities, ",") . ")";
 }
 
 // Compute list of column names for SELECT clause.
@@ -97,16 +103,11 @@ for ($i = 0; $i < count($aColumns); ++$i) {
 //
 $sellist = 'pid';
 foreach ($aColumns as $colname) {
-    if ($colname == 'pid') {
+    if ($colname == 'pid' || in_array($colname, $specialItems)) {
         continue;
     }
 
-    $sellist .= ", ";
-    if ($colname == 'name') {
-        $sellist .= "lname, fname, mname";
-    } else {
-        $sellist .= "`" . escape_sql_column_name($colname, array('patient_data')) . "`";
-    }
+    $sellist .= ", `" . escape_sql_column_name($colname, array('patient_data')) . "`";
 }
 
 // Get total number of rows in the table.
@@ -142,38 +143,35 @@ while ($row = sqlFetchArray($res)) {
   // Each <tr> will have an ID identifying the patient.
     $arow = array('DT_RowId' => 'pid_' . $row['pid']);
     foreach ($aColumns as $colname) {
-        if ($colname == 'name') {
-            $name = $row['lname'];
-            if ($name && $row['fname']) {
-                $name .= ', ';
-            }
-
-            if ($row['fname']) {
-                $name .= $row['fname'];
-            }
-
-            if ($row['mname']) {
-                $name .= ' ' . $row['mname'];
-            }
-
-            $arow[] = attr($name);
-        } else {
+		if (!in_array($colname, $specialItems)) {
             $arow[] = isset($fieldsInfo[$colname]) ? attr(generate_plaintext_field($fieldsInfo[$colname], $row[$colname])) : attr($row[$colname]);
         }
     }
 
     $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$row['pid'].' ORDER BY date desc');
     $visits = sqlNumRows($encounters);
+
+    if ($_GET["sSearch_10"] !== '' && $_GET["sSearch_10"] != $visits) {
+        continue;
+    } 
     $arow[] = $visits;
 
     $appointments = fetchAppointments("2019-01-01", date("Y-m-d"), $row['pid']);
     $total = count($appointments);
+
+    if ($_GET["sSearch_11"] !== '' && $_GET["sSearch_11"] != $total) {
+        continue;
+    } 
     $arow[] = $total;
     $compliance = $total ? round( ( $visits / $total ) * 100 ) : 0;
 
     $compliance = $compliance > 100 ? 100 : $compliance;
+    $compliance = $compliance . "%";
 
-    $arow[] = $compliance . "%";
+    if ($_GET["sSearch_12"] !== '' && $_GET["sSearch_12"] != $compliance) {
+        continue;
+    } 
+    $arow[] = $compliance;
 
     $referralData = getTransByPid($row['pid']);
     $refSent = 0;
@@ -188,8 +186,17 @@ while ($row = sqlFetchArray($res)) {
         }
     }
 
-    $arow[] = $refSent . " sent / " . $refReceived . " received";
-    $arow[] = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
+    $referralString = $refSent . " sent / " . $refReceived . " received";
+    if ($_GET["sSearch_13"] !== '' && $_GET["sSearch_13"] != $referralString) {
+        continue;
+    } 
+    $arow[] = $referralString;
+
+    $lastVisit = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
+    if ($_GET["sSearch_14"] !== '' && $_GET["sSearch_14"] != $lastVisit) {
+        continue;
+    } 
+    $arow[] = $lastVisit;
 
     $out['aaData'][] = $arow;
 }

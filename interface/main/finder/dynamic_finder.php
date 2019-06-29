@@ -39,7 +39,7 @@ $header .= "   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n 
 for ($i=0; $i < 5; $i++) {
 	$header0 .= "   <td align='center'><input type='text' size='10' value='' class='search_init' /></td>\n";
 }
-$coljson .= ", {\"sName\": \"Visits\"}, {\"sName\": \"Scheduled\"}, {\"sName\": \"Compliance\"}, {\"sName\": \"Referrals (Sent/Received)\"}, {\"sName\": \"Last Visit\"}";
+$coljson .= ", {\"sName\": \"visits\"}, {\"sName\": \"scheduled\"}, {\"sName\": \"compliance\"}, {\"sName\": \"referrals\"}, {\"sName\": \"lastVisit\"}";
 ?>
 <html>
 <head>
@@ -75,7 +75,6 @@ $(document).ready(function() {
   initComplete: function () {
   	this.api().columns().every( function () {
   	    var column = this;
-        console.log(column.header());
   	    var select = $('<td><select><option value=""></option></select></td>')
   	        .appendTo( $(".filters") );
 
@@ -86,7 +85,9 @@ $(document).ready(function() {
         } );
 
   	    column.data().unique().sort().each( function ( d, j ) {
-  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' )
+  	    	if (d) {
+	  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' ); 	    		
+  	    	}
   	    } );
   	} );
   },
