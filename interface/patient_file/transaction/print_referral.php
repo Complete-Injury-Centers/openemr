@@ -70,7 +70,7 @@ while (!feof($fh)) {
 
 fclose($fh);
 
-$s = str_replace("{header1}", genFacilityTitle($TEMPLATE_LABELS['label_form1_title'], $trow['refer_facilities']), $s);
+$s = str_replace("{header1}", referralGenFacilityTitle($TEMPLATE_LABELS['label_form1_title'], $trow['refer_facilities']), $s);
 
 $fres = sqlStatement("SELECT * FROM layout_options " .
   "WHERE form_id = 'LBTref' ORDER BY group_id, seq");
@@ -195,4 +195,57 @@ function getContent()
     }
 
     return $content;
+}
+
+function referralGenFacilityTitle($repname = '', $facid = 0)
+{
+    $s = '';
+    $s .= "<table class='ftitletable'>\n";
+    $s .= " <tr>\n";
+    if (empty($logo)) {
+        $s .= "  <td class='ftitlecell1'>$repname</td>\n";
+    } else {
+        $s .= "  <td class='ftitlecell1'>$logo</td>\n";
+        $s .= "  <td class='ftitlecellm'>$repname</td>\n";
+    }
+    $s .= "  <td class='ftitlecell2'>\n";
+    $r = getFacility($facid);
+    if (!empty($r)) {
+        $s .= "<b>COMPLETE INJURY CENTERS</b>\n";
+        if ($r['street']) {
+            $s .= "<br />" . htmlspecialchars($r['street'], ENT_NOQUOTES) . "\n";
+        }
+
+        if ($r['city'] || $r['state'] || $r['postal_code']) {
+            $s .= "<br />";
+            if ($r['city']) {
+                $s .= htmlspecialchars($r['city'], ENT_NOQUOTES);
+            }
+
+            if ($r['state']) {
+                if ($r['city']) {
+                    $s .= ", \n";
+                }
+
+                $s .= htmlspecialchars($r['state'], ENT_NOQUOTES);
+            }
+
+            if ($r['postal_code']) {
+                $s .= " " . htmlspecialchars($r['postal_code'], ENT_NOQUOTES);
+            }
+
+            $s .= "\n";
+        }
+
+        if ($r['country_code']) {
+            $s .= "<br />" . htmlspecialchars($r['country_code'], ENT_NOQUOTES) . "\n";
+        }
+
+        $s .= "<br />214-666-6651\n";
+    }
+
+    $s .= "  </td>\n";
+    $s .= " </tr>\n";
+    $s .= "</table>\n";
+    return $s;
 }
