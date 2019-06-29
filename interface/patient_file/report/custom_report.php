@@ -206,7 +206,7 @@ if ($printable) {
         $facility = $facilityService->getPrimaryBillingLocation();
     }
 
-    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 70px" src="../../../sites/default/images/report-header.jpg">');
+    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 40px" src="../../../sites/default/images/report-header.png	">');
     $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Center - 214-666-6651');
 
   /******************************************************************/
