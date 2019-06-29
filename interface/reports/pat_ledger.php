@@ -600,7 +600,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
 <div id="report_header">
 <table width="98%"  border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td class="title" ><?php echo text($facility{'name'}); ?></td>
+    <td class="title" >COMPLETE INJURY CENTERS</td>
   </tr>
   <tr>
     <td class="title" ><?php echo text($facility{'street'}); ?></td>
@@ -609,7 +609,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
     <td class="title" ><?php echo text($facility{'city'}).", ".text($facility{'state'})." ".text($facility{'postal_code'}); ?></td>
   </tr>
   <tr>
-    <td class="title" ><?php echo xlt('Phone').': ' .text($facility{'phone'}); ?></td>
+    <td class="title" ><?php echo xlt('Phone').': '; ?>214-666-6651</td>
   </tr>
   <tr>
     <td class="title" ><?php echo xlt('Tax Id').': ' .text($facility{'federal_ein'}); ?></td>
