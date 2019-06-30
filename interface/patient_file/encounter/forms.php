@@ -281,8 +281,8 @@ if (!isset($_GET['attachid'])) {
  }
 
  // Process click on copy me link.
- function copyme() {
-  console.log(document.getElementById("copyForwardSelect").value);
+ function copyme(id) {
+  console.log(id);
   return false;
  }
 
@@ -720,7 +720,8 @@ if ($postCalendarCategoryACO) {
 }
 
 if ($attendant_type == 'pid' && is_numeric($pid)) {
-    echo '<span class="title">' . text(oeFormatShortDate($encounter_date)) . " " . xlt("Encounter") . '</span>';
+    $signInNote = sqlQuery("SELECT DATE_FORMAT(`date`,'%I:%i %p') as `time` FROM forms WHERE formdir = 'LBFsignin' AND encounter = ". $GLOBALS['encounter'] . " ORDER BY id LIMIT 1");
+    echo '<span class="title">' . text(oeFormatShortDate($encounter_date)) . " " . ( $signInNote ? $signInNote['time'] : '' ) . " " . xlt("Encounter") . '</span>';
 
     // Check for no access to the patient's squad.
     $result = getPatientData($pid, "fname,lname,squad");
@@ -772,12 +773,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
     $index--;
     $previousEncounter = $encounters[$index];
 
-    $previousNotes = '';
-    $previousNotes_res = sqlStatement("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFInitialVisit', 'LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter);
-    while ($row = sqlFetchArray($previousNotes_res)) {
-      $previousNotes .= "<option value='".$row['id']."'>".$row['name']." - ".$row['date']."</option>";
-    }
-
+    $previousNote = sqlQuery("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFInitialVisit', 'LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter . " ORDER BY id LIMIT 1");
   }
 }
 ?>
@@ -787,9 +783,10 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 &nbsp;&nbsp;&nbsp;<a href="#" onClick='expandcollapse("expand");' style="font-size:80%;"><?php xl('Expand All', 'e'); ?></a>
 &nbsp;&nbsp;&nbsp;<a  style="font-size:80%;" href="#" onClick='expandcollapse("collapse");'><?php xl('Collapse All', 'e'); ?></a>
 </div>
-<?php if (isset($previousNotes) && $previousNotes != '') { ?>
-<div><select id="copyForwardSelect"><?php echo $previousNotes ?></select><a class="css_button" style="float:initial" onclick='return copyme()'><span>Copy Forward</span></a></div>
-<?php } ?>
+<?php
+if (isset($previousNote) && is_array($previousNote)) {
+  echo "<div><a class='css_button' style='margin-top:5px' onclick='return copyme(". $previousNote['id'] .")'><span>Copy ".$previousNote['name']." - ".$previousNote['date']."</span></a></div>";
+} ?>
 </div>
 
 <div class='encounter-summary-column'>
