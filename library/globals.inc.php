@@ -414,6 +414,7 @@ $GLOBALS_METADATA = array(
                 '25' => '25',
                 '50' => '50',
                 '100' => '100',
+                '1000' => '1000',
             ),
             '10',
             xl('Number of patients to display per page in the patient list.')

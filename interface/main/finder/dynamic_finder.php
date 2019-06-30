@@ -91,7 +91,7 @@ $(document).ready(function() {
   	    } );
   	} );
   },
-  "lengthMenu": [ 10, 25, 50, 100 ],
+  "lengthMenu": [ 10, 25, 50, 100, 1000 ],
   "pageLength": <?php echo empty($GLOBALS['gbl_pt_list_page_size']) ? '10' : $GLOBALS['gbl_pt_list_page_size']; ?>,
     <?php // Bring in the translations ?>
     <?php $translationsDatatablesOverride = array('search'=>(xla('Search all columns') . ':')) ; ?>
