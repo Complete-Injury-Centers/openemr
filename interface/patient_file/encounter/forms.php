@@ -280,6 +280,12 @@ if (!isset($_GET['attachid'])) {
   return false;
  }
 
+ // Process click on copy me link.
+ function copyme() {
+  console.log(document.getElementById("copyForwardSelect").value);
+  return false;
+ }
+
  // Called by the deleter.php window on a successful delete.
 function imdeleted(EncounterId) {
     top.window.parent.left_nav.removeOptionSelected(EncounterId);
@@ -754,6 +760,26 @@ $esign = $esignApi->createEncounterESign($encounter);
 if ($esign->isButtonViewable()) {
     echo $esign->buttonHtml();
 }
+if ($attendant_type == 'pid' && is_numeric($pid)) {
+  $encounters = array();
+  $encounters_res = sqlStatement("SELECT encounter as id FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
+  while ($row = sqlFetchArray($encounters_res)) {
+    $encounters[] = $row['id'];
+  }
+
+  $index = array_search($GLOBALS['encounter'], $encounters);
+  if ($index && $index > 0) {
+    $index--;
+    $previousEncounter = $encounters[$index];
+
+    $previousNotes = '';
+    $previousNotes_res = sqlStatement("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFInitialVisit', 'LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter);
+    while ($row = sqlFetchArray($previousNotes_res)) {
+      $previousNotes .= "<option value='".$row['id']."'>".$row['name']." - ".$row['date']."</option>";
+    }
+
+  }
+}
 ?>
 <?php if (acl_check('admin', 'super')) { ?>
     <a href='#' class='css_button' onclick='return deleteme()'><span><?php echo xl('Delete') ?></span></a>
@@ -761,6 +787,9 @@ if ($esign->isButtonViewable()) {
 &nbsp;&nbsp;&nbsp;<a href="#" onClick='expandcollapse("expand");' style="font-size:80%;"><?php xl('Expand All', 'e'); ?></a>
 &nbsp;&nbsp;&nbsp;<a  style="font-size:80%;" href="#" onClick='expandcollapse("collapse");'><?php xl('Collapse All', 'e'); ?></a>
 </div>
+<?php if (isset($previousNotes) && $previousNotes != '') { ?>
+<div><select id="copyForwardSelect"><?php echo $previousNotes ?></select><a class="css_button" style="float:initial" onclick='return copyme()'><span>Copy Forward</span></a></div>
+<?php } ?>
 </div>
 
 <div class='encounter-summary-column'>
