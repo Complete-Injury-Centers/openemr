@@ -3,12 +3,12 @@
 
 	$id = $_GET['id'];
 
-	$note = sqlQuery("SELECT `form_name`, `pid`, `user`, `groupname`, `authorized`, `formdir`, `issue_id`, `provider_id` from `forms` where form_id=".$id);
+	$note = sqlQuery("SELECT `form_name`, `pid`, `authorized`, `formdir`, `issue_id` from `forms` where form_id=".$id);
 
 	$newNoteId = sqlInsert("INSERT INTO lbf_data ( field_id, field_value ) VALUES ( '', '' )");
 	sqlQuery("DELETE FROM lbf_data WHERE form_id = '".$newNoteId."' AND field_id = ''");
 
-	sqlQuery("INSERT INTO `forms` (`date`, `encounter`, `form_name`, `form_id`, `pid`, `user`, `groupname`, `authorized`, `deleted`, `formdir`, `issue_id`, `provider_id`) VALUES (NOW(), ".$GLOBALS['encounter'].", '".$note['form_name']."', ".$newNoteId.", ".$note['pid'].", '".$note['user']."', '".$note['groupname']."', ".$note['authorized'].", 0, '".$note['formdir']."', ".$note['issue_id'].", ".$note['provider_id'].")");
+	sqlInsert("INSERT INTO `forms` (`date`, `encounter`, `form_name`, `form_id`, `pid`, `user`, `groupname`, `authorized`, `deleted`, `formdir`, `issue_id`, `provider_id`) VALUES (NOW(), ".$GLOBALS['encounter'].", '".$note['form_name']."', ".$newNoteId.", ".$note['pid'].", '".$_SESSION["authUser"]."', '".$_SESSION['authGroup']."', ".$note['authorized'].", 0, '".$note['formdir']."', ".$note['issue_id'].", ".$_SESSION['authUserID'].")");
 
 	$formValues = '';
 	$res = sqlStatement("SELECT field_id, field_value FROM lbf_data WHERE form_id = ".$id);
