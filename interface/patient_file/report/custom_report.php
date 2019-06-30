@@ -206,7 +206,7 @@ if ($printable) {
         $facility = $facilityService->getPrimaryBillingLocation();
     }
 
-    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 40px" src="../../../sites/default/images/report-header.png	">');
+    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />');
     $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Center - 214-666-6651');
 
   /******************************************************************/
@@ -230,10 +230,9 @@ if ($printable) {
         echo "</td><td>";
     }
     ?>
-    <h2><?php echo $facility['name'] ?></h2>
 <?php echo $facility['street'] ?><br>
 <?php echo $facility['city'] ?>, <?php echo $facility['state'] ?> <?php echo $facility['postal_code'] ?><br clear='all'>
-<?php echo $facility['phone'] ?><br>
+214-666-6651<br>
 
 <a href="javascript:window.close();"><span class='title'><?php echo $titleres['fname'] . " " . $titleres['lname']; ?></span></a><br>
 <span class='text'><?php xl('Generated on', 'e'); ?>: <?php echo text(oeFormatShortDate()); ?></span>
