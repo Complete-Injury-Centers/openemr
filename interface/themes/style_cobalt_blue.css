@@ -67,6 +67,16 @@ a:visited {
 a:hover {
     color: #ff5555;
 }
+a.ptName {
+    visibility: hidden;
+}
+a.ptName [data-bind*="pname"] {
+    visibility: initial;
+    background: #ffff9e;
+}
+a[data-bind*='clearPatient'] {
+    margin-left: -30px !important;
+}
 .menu {
     font-style: italic;
     font-size: 11pt;
