@@ -282,7 +282,9 @@ if (!isset($_GET['attachid'])) {
 
  // Process click on copy me link.
  function copyme(id) {
-  console.log(id);
+  fetch('copy_form.php?id='+id).then(function(data) {
+    refreshVisitDisplay();
+  });
   return false;
  }
 
@@ -773,7 +775,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
     $index--;
     $previousEncounter = $encounters[$index];
 
-    $previousNote = sqlQuery("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFInitialVisit', 'LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter . " ORDER BY id LIMIT 1");
+    $previousNote = sqlQuery("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter . " ORDER BY id LIMIT 1");
   }
 }
 ?>
