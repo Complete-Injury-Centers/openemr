@@ -765,17 +765,17 @@ if ($esign->isButtonViewable()) {
 }
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
-  $encounters_res = sqlStatement("SELECT encounter as id FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
+  $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
   while ($row = sqlFetchArray($encounters_res)) {
-    $encounters[] = $row['id'];
+    $encounters[] = array("id" => $row['id'], "date" => $row['date']);
   }
 
-  $index = array_search($GLOBALS['encounter'], $encounters);
+  $index = array_search($GLOBALS['encounter'], array_column($encounters, 'id'));
   if ($index && $index > 0) {
     $index--;
-    $previousEncounter = $encounters[$index];
+    $previousEncounter = $encounters[$index]['id'];
 
-    $previousNote = sqlQuery("SELECT form_id as id, form_name as name, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM forms WHERE formdir IN ('LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter . " ORDER BY id LIMIT 1");
+    $previousNote = sqlQuery("SELECT form_id as id, form_name as name FROM forms WHERE formdir IN ('LBFSOAP', 'LBFRe-Exam') AND encounter = ". $previousEncounter . " ORDER BY id LIMIT 1");
   }
 }
 ?>
@@ -787,7 +787,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 </div>
 <?php
 if (isset($previousNote) && is_array($previousNote)) {
-  echo "<div><a class='css_button' style='margin-top:5px' onclick='return copyme(". $previousNote['id'] .")'><span>Copy ".$previousNote['name']." - ".$previousNote['date']."</span></a></div>";
+  echo "<div><a class='css_button' style='margin-top:5px' onclick='return copyme(". $previousNote['id'] .")'><span>Copy ".$previousNote['name']." - ".$encounters[$index]['date']."</span></a></div>";
 } ?>
 </div>
 
