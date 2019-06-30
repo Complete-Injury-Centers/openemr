@@ -55,9 +55,9 @@ $where = '';
 if (isset($_GET['sSearch']) && $_GET['sSearch'] !== "") {
     $sSearch = add_escape_custom(trim($_GET['sSearch']));
     foreach ($aColumns as $colname) {
-        $where .= $where ? "OR " : "WHERE ( ";
 	    if (!in_array($colname, $specialItems)) {
-            $where .= "`" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%' ";
+	        $where .= $where ? "OR " : "WHERE ( ";
+            $where .= appendWhere($colname, $sSearch);
         }
     }
 
@@ -73,15 +73,7 @@ for ($i = 0; $i < count($aColumns); ++$i) {
     if (!in_array($colname, $specialItems) && isset($_GET["bSearchable_$i"]) && $_GET["bSearchable_$i"] == "true" && $_GET["sSearch_$i"] != '') {
         $where .= $where ? ' AND' : 'WHERE';
         $sSearch = add_escape_custom($_GET["sSearch_$i"]);
-        if ($colname == 'refer_facilities') {
-            $facilityId = sqlQuery("SELECT id FROM facility WHERE name = '$sSearch'");
-            $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$facilityId['id']. "'";
-        } else if ($colname == 'lawyer') {
-            $lawyerId = sqlQuery("SELECT id FROM users WHERE organization = '$sSearch'");
-            $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$lawyerId['id']. "'";
-	    } else {
-            $where .= " `" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%'";
-        }
+        $where .= appendWhere($colname, $sSearch);
     }
 }
 
@@ -153,7 +145,7 @@ while ($row = sqlFetchArray($res)) {
 
     if ($_GET["sSearch_10"] !== '' && $_GET["sSearch_10"] != $visits) {
         continue;
-    } 
+    }
     $arow[] = $visits;
 
     $appointments = fetchAppointments("2019-01-01", date("Y-m-d"), $row['pid']);
@@ -161,7 +153,7 @@ while ($row = sqlFetchArray($res)) {
 
     if ($_GET["sSearch_11"] !== '' && $_GET["sSearch_11"] != $total) {
         continue;
-    } 
+    }
     $arow[] = $total;
     $compliance = $total ? round( ( $visits / $total ) * 100 ) : 0;
 
@@ -170,7 +162,7 @@ while ($row = sqlFetchArray($res)) {
 
     if ($_GET["sSearch_12"] !== '' && $_GET["sSearch_12"] != $compliance) {
         continue;
-    } 
+    }
     $arow[] = $compliance;
 
     $referralData = getTransByPid($row['pid']);
@@ -189,13 +181,13 @@ while ($row = sqlFetchArray($res)) {
     $referralString = $refSent . " sent / " . $refReceived . " received";
     if ($_GET["sSearch_13"] !== '' && $_GET["sSearch_13"] != $referralString) {
         continue;
-    } 
+    }
     $arow[] = $referralString;
 
     $lastVisit = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
     if ($_GET["sSearch_14"] !== '' && $_GET["sSearch_14"] != $lastVisit) {
         continue;
-    } 
+    }
     $arow[] = $lastVisit;
 
     $out['aaData'][] = $arow;
@@ -207,3 +199,15 @@ while ($row = sqlFetchArray($res)) {
 //
 // Encoding with options for escaping a special chars - JSON_HEX_TAG (<)(>), JSON_HEX_AMP(&), JSON_HEX_APOS('), JSON_HEX_QUOT(").
 echo json_encode($out, 15);
+
+function appendWhere($colname, $sSearch) {
+    if ($colname == 'refer_facilities') {
+        $facilityId = sqlQuery("SELECT id FROM facility WHERE name LIKE '$sSearch%'");
+        return " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$facilityId['id']. "'";
+    } else if ($colname == 'lawyer') {
+        $lawyerId = sqlQuery("SELECT id FROM users WHERE organization LIKE '$sSearch%'");
+        return " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$lawyerId['id']. "'";
+    } else {
+        return " `" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%'";
+    }
+}
