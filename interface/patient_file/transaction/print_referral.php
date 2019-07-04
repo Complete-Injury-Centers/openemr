@@ -95,7 +95,7 @@ foreach ($patdata as $key => $value) {
     if ($key == "sex") {
         $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'1','list_id'=>'sex'), $value), $s);
     } else if ($key == "lawyer") {
-        $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'14'), $value), $s);    	
+        $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'14'), $value), $s);
     } else {
         $s = str_replace("{pt_$key}", $value, $s);
     }
@@ -162,11 +162,9 @@ if ($PDF_OUTPUT) {
     $mail->FromName = $GLOBALS['patient_reminder_sender_name'];
     $mail->Body = "New patient referral for patient " . $patdata['fname'] . " ". $patdata['lname'];
     $mail->Subject = "CIC: New Patient Referral - Ready to send - " . $patdata['fname'] . " " . $patdata['lname'] . " - " . $patdata['DOB'];
-    $mail->addStringAttachment($content, 'New Referral ' . $patdata['fname'] . " " . $patdata['lname'] . " - " . $patdata['DOB'] .'.pdf'); 
+    $mail->addStringAttachment($content, 'New Referral ' . $patdata['fname'] . " " . $patdata['lname'] . " - " . $patdata['DOB'] .'.pdf');
     $mail->AddAddress($GLOBALS['practice_return_email_path'], "Marzban, Farzad");
     $mail->AddAddress("schedule@cic.clinic", "CIC Schedule");
-    $mail->AddAddress("operations@cic.clinic", "CIC Operations");
-    $mail->AddAddress("monica@cic.clinic", "Lopez, Monica");
     if(!$mail->Send()) {
         error_log("There has been a mail error sending to " . $mail->ErrorInfo);
     }
