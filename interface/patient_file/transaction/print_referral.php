@@ -91,6 +91,8 @@ while ($frow = sqlFetchArray($fres)) {
     );
 }
 
+$s = str_replace("{ref_refer_diagnoses}", generateIssuesList(), $s);
+
 foreach ($patdata as $key => $value) {
     if ($key == "sex") {
         $s = str_replace("{pt_$key}", generate_display_field(array('data_type'=>'1','list_id'=>'sex'), $value), $s);
@@ -246,4 +248,16 @@ function referralGenFacilityTitle($repname = '', $facid = 0)
     $s .= " </tr>\n";
     $s .= "</table>\n";
     return $s;
+}
+
+function generateIssuesList() {
+    global $patient_id;
+
+    $list = "";
+
+    $pres = sqlStatement("SELECT title FROM lists WHERE type = 'medical_problem' AND pid = $patient_id ORDER BY begdate");
+    while ($prow = sqlFetchArray($pres)) {
+        $list .= $prow['title'].", ";
+    }
+    return rtrim($list,", ");
 }
