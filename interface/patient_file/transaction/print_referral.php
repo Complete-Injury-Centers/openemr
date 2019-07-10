@@ -71,6 +71,7 @@ while (!feof($fh)) {
 fclose($fh);
 
 $s = str_replace("{header1}", referralGenFacilityTitle($TEMPLATE_LABELS['label_form1_title'], $trow['refer_facilities']), $s);
+$s = str_replace("{ref_refer_diagnoses}", generateIssuesList(), $s);
 
 $fres = sqlStatement("SELECT * FROM layout_options " .
   "WHERE form_id = 'LBTref' ORDER BY group_id, seq");
@@ -90,8 +91,6 @@ while ($frow = sqlFetchArray($fres)) {
         $s
     );
 }
-
-$s = str_replace("{ref_refer_diagnoses}", generateIssuesList(), $s);
 
 foreach ($patdata as $key => $value) {
     if ($key == "sex") {
