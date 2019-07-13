@@ -437,21 +437,45 @@ ul.tabNav li.current a { background:#ffffff; }
 
  var aitypes = new Array(); // issue type attributes
  var aopts   = new Array(); // Option objects
+ var issue_subtypes = new Array(); // subtypes options objects
 <?php
- $i = 0;
+$issue_types = array();
+$qry = sqlStatement("SELECT option_id, title FROM list_options WHERE list_id = 'issue_subtypes' AND activity = 1");
+while ($res = sqlFetchArray($qry)) {
+	$issue_types[$res['option_id']] = $res['title'];
+}
+
+$i = 0;
 foreach ($ISSUE_TYPES as $key => $value) {
     echo " aitypes[$i] = " . attr($value[3]) . ";\n";
     echo " aopts[$i] = new Array();\n";
+	echo " aopts[$i][aopts[$i].length] = new Option('Choose issue', '', true);\n";
+
+	echo " issue_subtypes[$i] = new Array();\n";
+	echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('Choose subtype', '', true);\n";
+	$usedSubTypes = array();
+
     $qry = sqlStatement("SELECT * FROM list_options WHERE list_id = ? AND activity = 1", array($key."_issue_list"));
     while ($res = sqlFetchArray($qry)) {
+    	error_log(print_r($res, true));
         echo " aopts[$i][aopts[$i].length] = new Option('".attr(xl_list_label(trim($res['title'])))."', '".attr(trim($res['option_id']))."', false, false);\n";
         if ($res['codes']) {
             echo " aopts[$i][aopts[$i].length-1].setAttribute('data-code','".attr(trim($res['codes']))."');\n";
         }
+        if ($res['subtype']) {
+        	$usedSubTypes[] = $res['subtype'];
+            echo " aopts[$i][aopts[$i].length-1].setAttribute('data-subtype','".attr(trim($res['subtype']))."');\n";
+        }
     }
+
+    $usedSubTypes = array_unique($usedSubTypes);
+	foreach ($usedSubTypes as &$value) {
+		echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('".attr(trim($issue_types[$value]))."', '".attr(trim($value))."', false, false);\n";
+	}
 
     ++$i;
 }
+
 
 ///////////
 ActiveIssueCodeRecycleFn($thispid, $ISSUE_TYPES);
@@ -475,11 +499,18 @@ ActiveIssueCodeRecycleFn($thispid, $ISSUE_TYPES);
  // React to selection of an issue type.  This loads the associated
  // shortcuts into the selection list of titles, and determines which
  // rows are displayed or hidden.
- function newtype(index) {
+ function newtype(index, filter) {
   var f = document.forms[0];
+
+  var subtypes = f.issue_subtypes.options;
+  subtypes.length = 0;
+  for (var i = 0; i < issue_subtypes[index].length; ++i) {
+   subtypes[i] = issue_subtypes[index][i];
+  }
+
   var theopts = f.form_titles.options;
   theopts.length = 0;
-  var i = 0;
+  i = 0;
   for (i = 0; i < aopts[index].length; ++i) {
    theopts[i] = aopts[index][i];
   }
@@ -542,9 +573,26 @@ if ($ISSUE_TYPES['ippf_gcac'] && !$_POST['form_save']) {
  // If it has a code, add that too.
  function set_text() {
   var f = document.forms[0];
-  f.form_title.value = f.form_titles.options[f.form_titles.selectedIndex].text;
-  f.form_diagnosis.value = f.form_titles.options[f.form_titles.selectedIndex].getAttribute('data-code');
-  f.form_titles.selectedIndex = -1;
+  var selected = f.form_titles.options[f.form_titles.selectedIndex];
+
+  f.form_title.value = selected.value ? selected.text : "";
+  f.form_diagnosis.value = selected.getAttribute('data-code') || "";
+ }
+
+ function filter_titles(index, filter) {
+  var f = document.forms[0];
+
+  var theopts = f.form_titles.options;
+  theopts.length = 0;
+  var o = 0;
+  for (var i = 0; i < aopts[index].length; ++i) {
+  	if (!filter || !aopts[index][i].value || aopts[index][i].getAttribute('data-subtype') == filter) {
+	    theopts[o] = aopts[index][i];
+	    o++;
+  	}
+  }
+
+  f.form_titles.selectedIndex = 0;
  }
 
  // Process click on Delete link.
@@ -755,8 +803,9 @@ foreach ($ISSUE_TYPES as $key => $value) {
  <tr id='row_titles'>
   <td valign='top' nowrap>&nbsp;</td>
   <td valign='top'>
-   <select name='form_titles' size='4' onchange='set_text()'>
-   </select> <?php echo xlt('(Select one of these, or type your own title)'); ?>
+   <select name='issue_subtypes' onchange='filter_titles(<?php echo $type_index ?>, this.value)'></select>
+   <select name='form_titles' onchange='set_text()'></select>
+   <div><?php echo xlt('(Select one of these, or type your own title)'); ?></div>
   </td>
  </tr>
 
