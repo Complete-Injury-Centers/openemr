@@ -439,25 +439,37 @@ ul.tabNav li.current a { background:#ffffff; }
  var aopts   = new Array(); // Option objects
  var issue_subtypes = new Array(); // subtypes options objects
 <?php
-$issue_types = array();
-$qry = sqlStatement("SELECT option_id, title FROM list_options WHERE list_id = 'issue_subtypes' AND activity = 1");
+
+$issue_subtypes = array();
+$qry = sqlStatement("SELECT option_id, title, seq FROM list_options WHERE list_id = 'issue_subtypes' AND activity = 1");
 while ($res = sqlFetchArray($qry)) {
-	$issue_types[$res['option_id']] = $res['title'];
+	$issue_subtypes[$res['option_id']] = $res;
+}
+
+function sortSubtypes($a, $b) {
+	global $issue_subtypes, $type_index;
+
+	$a = $issue_subtypes[$a]['seq'];
+	$b = $issue_subtypes[$b]['seq'];
+
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a < $b) ? -1 : 1;
 }
 
 $i = 0;
 foreach ($ISSUE_TYPES as $key => $value) {
     echo " aitypes[$i] = " . attr($value[3]) . ";\n";
     echo " aopts[$i] = new Array();\n";
-	echo " aopts[$i][aopts[$i].length] = new Option('Choose issue', '', true);\n";
+	echo " aopts[$i][aopts[$i].length] = new Option('Select issue below...', '', true);\n";
 
 	echo " issue_subtypes[$i] = new Array();\n";
-	echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('Choose subtype', '', true);\n";
+	echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('Filter by subtype...', '', true);\n";
 	$usedSubTypes = array();
 
     $qry = sqlStatement("SELECT * FROM list_options WHERE list_id = ? AND activity = 1", array($key."_issue_list"));
     while ($res = sqlFetchArray($qry)) {
-    	error_log(print_r($res, true));
         echo " aopts[$i][aopts[$i].length] = new Option('".attr(xl_list_label(trim($res['title'])))."', '".attr(trim($res['option_id']))."', false, false);\n";
         if ($res['codes']) {
             echo " aopts[$i][aopts[$i].length-1].setAttribute('data-code','".attr(trim($res['codes']))."');\n";
@@ -469,8 +481,9 @@ foreach ($ISSUE_TYPES as $key => $value) {
     }
 
     $usedSubTypes = array_unique($usedSubTypes);
+    usort($usedSubTypes, "sortSubtypes");
 	foreach ($usedSubTypes as &$value) {
-		echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('".attr(trim($issue_types[$value]))."', '".attr(trim($value))."', false, false);\n";
+		echo " issue_subtypes[$i][issue_subtypes[$i].length] = new Option('".attr(trim($issue_subtypes[$value]['title']))."', '".attr(trim($value))."', false, false);\n";
 	}
 
     ++$i;
@@ -803,8 +816,10 @@ foreach ($ISSUE_TYPES as $key => $value) {
  <tr id='row_titles'>
   <td valign='top' nowrap>&nbsp;</td>
   <td valign='top'>
-   <select name='issue_subtypes' onchange='filter_titles(<?php echo $type_index ?>, this.value)'></select>
-   <select name='form_titles' onchange='set_text()'></select>
+  	<div style='display:grid;grid-template-columns:30% 70%'>
+	   <select size='6' name='issue_subtypes' onchange='filter_titles(<?php echo $type_index ?>, this.value)'></select>
+	   <select size='6' name='form_titles' onchange='set_text()'></select>
+  	</div>
    <div><?php echo xlt('(Select one of these, or type your own title)'); ?></div>
   </td>
  </tr>
