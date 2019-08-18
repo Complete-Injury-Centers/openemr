@@ -207,7 +207,7 @@ if ($printable) {
     }
 
     $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />');
-    $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Center - 214-666-6651');
+    $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651');
 
   /******************************************************************/
   // Setup Headers and Footers for mPDF only Download
