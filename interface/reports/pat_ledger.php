@@ -592,8 +592,8 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
             $form_facility = '3';
         }
 
-        $facility = $facilityService->getById($form_facility);
         $patient = sqlQuery("SELECT * from patient_data WHERE pid=?", array($form_patient));
+        $facility = $facilityService->getById($patient['refer_facilities']);
         $pat_dob = $patient['DOB'];
         $pat_name = $patient['fname']. ' ' . $patient['lname'];
 ?>
