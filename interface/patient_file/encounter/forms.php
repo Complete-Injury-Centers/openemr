@@ -722,7 +722,14 @@ if ($postCalendarCategoryACO) {
 }
 
 if ($attendant_type == 'pid' && is_numeric($pid)) {
-    $signInNote = sqlQuery("SELECT DATE_FORMAT(`date`,'%I:%i %p') as `time` FROM forms WHERE formdir = 'LBFsignin' AND encounter = ". $GLOBALS['encounter'] . " ORDER BY id LIMIT 1");
+    $mins = (new DateTime())->getOffset() / 60;
+    $sgn = ($mins < 0 ? "-" : "+");
+    $mins = abs($mins);
+    $hrs = floor($mins / 60);
+    $mins -= $hrs * 60;
+    $offset = sprintf('%s%02d:%02d', $sgn, $hrs, $mins);
+
+    $signInNote = sqlQuery("SELECT DATE_FORMAT(CONVERT_TZ(`date`, '+00:00', '". $offset ."'),'%I:%i %p') as `time` FROM forms WHERE formdir = 'LBFsignin' AND encounter = ". $GLOBALS['encounter'] . " ORDER BY id LIMIT 1");
     echo '<span class="title">' . text(oeFormatShortDate($encounter_date)) . " " . ( $signInNote ? $signInNote['time'] : '' ) . " " . xlt("Encounter") . '</span>';
 
     // Check for no access to the patient's squad.
