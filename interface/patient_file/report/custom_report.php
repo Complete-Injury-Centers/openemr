@@ -198,13 +198,8 @@ if ($printable) {
   $titleres = getPatientData($pid, "fname,lname,providerID");
   $sql = "SELECT * FROM facility ORDER BY billing_location DESC LIMIT 1";
   *******************************************************************/
-    $titleres = getPatientData($pid, "fname,lname,providerID,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
-    $facility = null;
-    if ($_SESSION['pc_facility']) {
-        $facility = $facilityService->getById($_SESSION['pc_facility']);
-    } else {
-        $facility = $facilityService->getPrimaryBillingLocation();
-    }
+    $titleres = getPatientData($pid, "fname,lname,providerID,refer_facilities,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
+    $facility = $facilityService->getById($titleres['refer_facilities']);
 
     $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />');
     $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651');
