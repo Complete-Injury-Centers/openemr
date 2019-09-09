@@ -2254,7 +2254,7 @@ function generate_display_field($frow, $currvalue)
         }
     } // a set of labeled checkboxes, each with a text field:
     else if ($data_type == 25) {
-        $tmp = explode('|', $currvalue);
+        $tmp = explode('|', str_replace("\n", '', $currvalue));
         $avalue = array();
         foreach ($tmp as $value) {
             if (preg_match('/^([^:]+):(.*)$/', $value, $matches)) {
