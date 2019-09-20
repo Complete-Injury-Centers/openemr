@@ -588,10 +588,23 @@ if (!empty($reg)) {
             } else {
                 $nickname = trim($entry['name']);
             }
+            if ($new_category == 'Administrative') {
+                if ($old_category != 'Administrative' && $old_category !== '') {
+                    $StringEcho .= "</table></div></li>";
+                }
+                $StringEcho .= "<li class=\"encounter-form-category-li\"><a onclick=\"openNewForm('" .
+                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($entry['directory']) .
+                "', '" . addslashes(xl_form_title($nickname)) . "')\" href='JavaScript:void(0);'>" .
+                text(xl_form_title($nickname)) . "</a></li>";
+                $old_category = $new_category;
+
+                continue;
+            }
+
             if ($old_category != $new_category) {
                 $new_category_ = $new_category;
                 $new_category_ = str_replace(' ', '_', $new_category_);
-                if ($old_category != '') {
+                if ($old_category != '' && $old_category != 'Administrative') {
                     $StringEcho .= "</table></div></li>";
                 }
                 $StringEcho .= "<li class=\"encounter-form-category-li\"><a href='JavaScript:void(0);' onClick=\"mopen('$DivId');\" >$new_category</a><div id='$DivId' ><table border='0' cellspacing='0' cellpadding='0'>";
@@ -604,7 +617,9 @@ if (!empty($reg)) {
                 text(xl_form_title($nickname)) . "</a></td></tr>";
         }
     }
-    $StringEcho.= '</table></div></li>';
+    if ($new_category != 'Administrative') {
+	    $StringEcho.= '</table></div></li>';
+    }
 }
 
 if ($StringEcho) {
