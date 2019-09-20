@@ -824,6 +824,16 @@ foreach ($ISSUE_TYPES as $key => $value) {
   </td>
  </tr>
 
+ <tr id='row_diagnosis'>
+  <td valign='top' nowrap><b>Search ICD10 Diagnosis:</b></td>
+  <td>
+   <input type='text' size='50' name='form_diagnosis'
+    value='<?php echo attr($irow['diagnosis']) ?>' onclick='sel_diagnosis()'
+    title='<?php echo xla('Click to select or change coding'); ?>'
+    style='width:100%' readonly />
+  </td>
+ </tr>
+
  <tr>
   <td valign='top' id='title_diagnosis' nowrap><b><?php echo xlt('Title'); ?>:</b></td>
   <td>
@@ -838,16 +848,6 @@ foreach ($ISSUE_TYPES as $key => $value) {
   <select name='form_codeSelect2' size='4' onchange="codeBoxFunction2()" style="max-width:100%;">
   </select>
  </td>
- </tr>
-
- <tr id='row_diagnosis'>
-  <td valign='top' nowrap><b><?php echo xlt('Coding'); ?>:</b></td>
-  <td>
-   <input type='text' size='50' name='form_diagnosis'
-    value='<?php echo attr($irow['diagnosis']) ?>' onclick='sel_diagnosis()'
-    title='<?php echo xla('Click to select or change coding'); ?>'
-    style='width:100%' readonly />
-  </td>
  </tr>
 
  <tr>
@@ -1004,10 +1004,8 @@ if ($ISSUE_TYPES['ippf_gcac']) {
 
 <input type='submit' name='form_save' value='<?php echo xla('Save'); ?>' />
 
-<?php if ($issue && acl_check('admin', 'super')) { ?>
 &nbsp;
 <input type='button' value='<?php echo xla('Delete'); ?>' style='color:red' onclick='deleteme()' />
-<?php } ?>
 
 &nbsp;
 <input type='button' value='<?php echo xla('Cancel'); ?>' onclick='closeme();' />
