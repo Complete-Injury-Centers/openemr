@@ -45,7 +45,7 @@
                 <div class="esign-log-element span4"><span><?php echo text($signature->getFirstName()); ?></span></div>
                 <div class="esign-log-element span4"><span><?php echo text($signature->getLastName()); ?></span></div>
                 <div class="esign-log-element span4"><span><?php echo text($signature->getDatetime()); ?></span></div>
-                <div class="esign-log-element span4"><span><a href="#" class="css_button" onclick="return revokeSignature('<?php echo $signature->getId(); ?>')"><span>Revoke</span></a></span></div>
+                <div class="esign-log-element span4"><span><a href="#" class="css_button" onclick="return revokeSignature('<?php echo $signature->getId(); ?>')"><span></span></a></span></div>
             </div>
 
         </div>
