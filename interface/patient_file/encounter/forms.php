@@ -397,6 +397,9 @@ function divtoggle(spanid, divid) {
         display:inline;
         margin-top:10px;
     }
+    a[onclick*='LBFsignin'], a[onclick*='LBFsignout'] {
+        display: none !important;
+    }
 </style>
 
 <!-- *************** -->
