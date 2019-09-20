@@ -75,6 +75,7 @@ $(document).ready(function() {
   initComplete: function () {
   	this.api().columns().every( function () {
   	    var column = this;
+
   	    var select = $('<td><select><option value=""></option></select></td>')
   	        .appendTo( $(".filters") );
 
@@ -86,9 +87,18 @@ $(document).ready(function() {
 
   	    column.data().unique().sort().each( function ( d, j ) {
   	    	if (d) {
-	  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' ); 	    		
+	  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' );
   	    	}
   	    } );
+
+  	    if ( column.index() === 4 ) {
+          setTimeout(function() {
+	          select.find('select').val('Active');
+	          column
+	              .search( 'Active' )
+	              .draw();
+	      }, 1);
+  	    }
   	} );
   },
   "lengthMenu": [ 10, 25, 50, 100, 1000 ],
@@ -116,7 +126,7 @@ $(document).ready(function() {
  $('#pt_table').on('click', 'tbody tr', function () {
   // ID of a row element is pid_{value}
   var newpid = this.id.substring(4);
-  // If the pid is invalid, then don't attempt to set 
+  // If the pid is invalid, then don't attempt to set
   // The row display for "No matching records found" has no valid ID, but is
   // otherwise clickable. (Matches this CSS selector).  This prevents an invalid
   // state for the PID to be set.
