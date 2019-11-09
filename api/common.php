@@ -11,7 +11,7 @@ if (isset($_SERVER['HTTP_ORIGIN'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
-        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");         
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 
     if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
         header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
@@ -27,6 +27,9 @@ $payload = json_decode(file_get_contents('php://input'),1);
 if ($payload["token"]) {
 	session_id($payload["token"]);
 }
+
+ini_set("session.gc_maxlifetime", 65535);
+session_set_cookie_params(65535);
 
 session_start();
 
@@ -51,7 +54,7 @@ $conn = new mysqli($sqlconf["host"], $sqlconf["login"], $sqlconf["pass"], $sqlco
 /** Quit if the connection fails as the API depends on it */
 if ($conn->connect_error) {
     die("Database connection failed");
-} 
+}
 
 if (!isset($disableAuthCheck) && !authCheckSession()) {
     http_response_code(401);
