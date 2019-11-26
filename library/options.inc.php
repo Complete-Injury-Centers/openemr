@@ -2962,6 +2962,9 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             } else {
                 if (isset($result1[$field_id])) {
                     $currvalue = $result1[$field_id];
+                    if ($frow['field_id'] == 'title' && empty($currvalue)) {
+                        $currvalue = ' ';
+                    }
                 }
             }
         } else {
@@ -3017,7 +3020,7 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             ++$item_count;
 
             // Added 5-09 by BM - Translate label if applicable
-            if ($frow['title']) {
+            if ($frow['title'] && $frow['field_id'] !== 'fname' && $frow['field_id'] !== 'mname' && $frow['field_id'] !== 'lname') {
                 $tmp = xl_layout_label($frow['title']);
                 echo text($tmp);
                 // Append colon only if label does not end with punctuation.
