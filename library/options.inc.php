@@ -3190,6 +3190,8 @@ function display_layout_tabs_data($formtype, $result1, $result2 = '')
                 echo "<span id='".attr($field_id_label)."'>";
                 if ($skip_this_field) {
                     // No label because skipping
+                } else if ($group_fields['field_id'] === 'fname' || $group_fields['field_id'] === 'mname' || $group_fields['field_id'] === 'lname') {
+                    echo " ";
                 } else if ($group_fields['title']) {
                     $tmp = xl_layout_label($group_fields['title']);
                     echo text($tmp);
@@ -3221,7 +3223,11 @@ function display_layout_tabs_data($formtype, $result1, $result2 = '')
 
                 ++$item_count;
                 if (!$skip_this_field) {
-                    echo generate_display_field($group_fields, $currvalue);
+					$text = generate_display_field($group_fields, $currvalue);
+                	if ($group_fields['field_id'] === 'lawyer') {
+                		$text = "<a href=\"javascript:dlgopen('../../usergroup/addrbook_edit.php?userid=".$currvalue."', '_blank', 650, (screen.availHeight * 75/100));\">".$text."</a>";
+                	}
+                	echo $text;
                 }
             }
 
