@@ -401,20 +401,12 @@ while ($result = sqlFetchArray($res)) {
             $html_strings[$form_name] = array();
         }
 
-        array_push($html_strings[$form_name], "<input type='checkbox' ".
-                                                " name='" . $result{"formdir"} . "_" . $result{"form_id"} . "'".
-                                                " id='" . $result{"formdir"} . "_" . $result{"form_id"} . "'".
-                                                " value='" . $result{"encounter"} . "'" .
-                                                " class='encounter_form' ".
-                                                ">" . xl_form_title($result{"form_name"}) . "<br>\n");
-    }
-}
-
-foreach ($registry_form_name as $var) {
-    if ($toprint = $html_strings[$var]) {
-        foreach ($toprint as $var) {
-            print $var;
-        }
+        print "<input type='checkbox' ".
+                " name='" . $result{"formdir"} . "_" . $result{"form_id"} . "'".
+                " id='" . $result{"formdir"} . "_" . $result{"form_id"} . "'".
+                " value='" . $result{"encounter"} . "'" .
+                " class='encounter_form' ".
+                ">" . xl_form_title($result{"form_name"}) . "<br>\n";
     }
 }
 ?>
