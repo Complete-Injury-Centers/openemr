@@ -163,6 +163,7 @@ function postToGet($arin)
     padding:0% 2% 0% 2.5%;
   }
   img { max-width:700px; }
+  .class_LBFsignin img, .class_LBFsignout img {max-width: 200px}
 </style>
 
 <?php if (!$PDF_OUTPUT) { ?>
