@@ -200,9 +200,15 @@ if ($printable) {
   *******************************************************************/
     $titleres = getPatientData($pid, "fname,lname,providerID,refer_facilities,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
     $facility = $facilityService->getById($titleres['refer_facilities']);
+    $main_header = xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />';
+    $main_footer = xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651';
 
-    $pdf->SetHTMLHeader(xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />');
-    $pdf->SetHTMLFooter(xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651');
+    if ($PDF_OUTPUT) {
+	    $pdf->SetHTMLHeader($main_header);
+	    $pdf->SetHTMLFooter($main_footer);
+    } else {
+    	echo $main_header;
+    }
 
   /******************************************************************/
   // Setup Headers and Footers for mPDF only Download
