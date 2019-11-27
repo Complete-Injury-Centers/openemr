@@ -641,11 +641,14 @@ foreach ($ar as $key => $val) {
                         $pdf->SetImportUse();
                         $pg_header = "<span>" . xl('Document') . " " . $fname ."</span>";
                         //$pdf->SetHTMLHeader ($pg_header,'left',false); // A header for imported doc, don't think we need but will keep.
-                        $pagecount = $pdf->setSourceFile($from_file);
-                        for ($i = 0; $i < $pagecount; ++$i) {
-                            $pdf->AddPage();
-                            $itpl = $pdf->importPage($i+1);
-                            $pdf->useTemplate($itpl);
+                        try {
+                            $pagecount = $pdf->setSourceFile($from_file);
+                            for ($i = 0; $i < $pagecount; ++$i) {
+                                $pdf->AddPage();
+                                $itpl = $pdf->importPage($i+1);
+                                $pdf->useTemplate($itpl);
+                            }
+                        } catch (Exception $e) {
                         }
 
                         // Make sure whatever follows is on a new page.
