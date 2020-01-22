@@ -727,8 +727,7 @@ foreach ($ar as $key => $val) {
             echo "<span class='issue_comments'> " . $irow['comments'] . "</span>\n";
             // Show issue's chief diagnosis and its description:
             if ($diagnosis) {
-                echo "<div class='text issue_diag'>";
-                echo "<span class='bold'>[".xl('Diagnosis')."]</span><br>";
+                echo "<span class='text'>";
                 $dcodes = explode(";", $diagnosis);
                 foreach ($dcodes as $dcode) {
                     echo "<span class='italic'>".$dcode."</span>: ";
@@ -736,7 +735,7 @@ foreach ($ar as $key => $val) {
                 }
 
                 //echo $diagnosis." -- ".lookup_code_descriptions($diagnosis)."\n";
-                echo "</div>";
+                echo "</span>";
             }
 
             // Supplemental data for GCAC or Contraception issues.

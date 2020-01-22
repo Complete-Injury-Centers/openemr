@@ -244,130 +244,137 @@ function ActiveIssueCodeRecycleFn($thispid2, $ISSUE_TYPES2)
 }
 
 // If we are saving, then save and close the window.
-//
 if ($_POST['form_save']) {
-    $i = 0;
-    $text_type = "unknown";
-    foreach ($ISSUE_TYPES as $key => $value) {
-        if ($i++ == $_POST['form_type']) {
-            $text_type = $key;
+    $titles = explode("/", $_POST['form_title']);
+    $diagnoses = explode("/", $_POST['form_diagnosis']);
+
+    for ($j=0; $j < count($titles); $j++) { 
+        $i = 0;
+        $text_type = "unknown";
+        foreach ($ISSUE_TYPES as $key => $value) {
+            if ($i++ == $_POST['form_type']) {
+                $text_type = $key;
+            }
         }
-    }
 
-    $form_begin = fixDate($_POST['form_begin'], '');
-    $form_end   = fixDate($_POST['form_end'], '');
+        $form_begin = fixDate($_POST['form_begin'], '');
+        $form_end   = fixDate($_POST['form_end'], '');
 
-    if ($text_type == 'football_injury') {
-        $form_injury_part = $_POST['form_injury_part'];
-        $form_injury_type = $_POST['form_injury_type'];
-    } else {
-        $form_injury_part = $_POST['form_medical_system'];
-        $form_injury_type = $_POST['form_medical_type'];
-    }
-
-    if ($issue) {
-        $query = "UPDATE lists SET " .
-        "type = '"        . add_escape_custom($text_type)                  . "', " .
-        "title = '"       . add_escape_custom($_POST['form_title'])        . "', " .
-        "comments = '"    . add_escape_custom($_POST['form_comments'])     . "', " .
-        "begdate = "      . QuotedOrNull($form_begin)   . ", "  .
-        "enddate = "      . QuotedOrNull($form_end)     . ", "  .
-        "returndate = "   . QuotedOrNull($form_return)  . ", "  .
-        "diagnosis = '"   . add_escape_custom($_POST['form_diagnosis'])    . "', " .
-        "occurrence = '"  . add_escape_custom($_POST['form_occur'])        . "', " .
-        "classification = '" . add_escape_custom($_POST['form_classification']) . "', " .
-        "reinjury_id = '" . add_escape_custom($_POST['form_reinjury_id'])  . "', " .
-        "referredby = '"  . add_escape_custom($_POST['form_referredby'])   . "', " .
-        "injury_grade = '" . add_escape_custom($_POST['form_injury_grade']) . "', " .
-        "injury_part = '" . add_escape_custom($form_injury_part)           . "', " .
-        "injury_type = '" . add_escape_custom($form_injury_type)           . "', " .
-        "outcome = '"     . add_escape_custom($_POST['form_outcome'])      . "', " .
-        "destination = '" . add_escape_custom($_POST['form_destination'])   . "', " .
-        "reaction ='"     . add_escape_custom($_POST['form_reaction'])     . "', " .
-        "severity_al ='"     . add_escape_custom($_POST['form_severity_id'])     . "', " .
-        "erx_uploaded = '0', " .
-        "modifydate = NOW() " .
-        "WHERE id = '" . add_escape_custom($issue) . "'";
-        sqlStatement($query);
-        if ($text_type == "medication" && enddate != '') {
-            sqlStatement('UPDATE prescriptions SET '
-            . 'medication = 0 where patient_id = ? '
-            . " and upper(trim(drug)) = ? "
-            . ' and medication = 1', array($thispid,strtoupper($_POST['form_title'])));
+        if ($text_type == 'football_injury') {
+            $form_injury_part = $_POST['form_injury_part'];
+            $form_injury_type = $_POST['form_injury_type'];
+        } else {
+            $form_injury_part = $_POST['form_medical_system'];
+            $form_injury_type = $_POST['form_medical_type'];
         }
-    } else {
-        $issue = sqlInsert("INSERT INTO lists ( " .
-        "date, pid, type, title, activity, comments, begdate, enddate, returndate, " .
-        "diagnosis, occurrence, classification, referredby, user, groupname, " .
-        "outcome, destination, reinjury_id, injury_grade, injury_part, injury_type, " .
-        "reaction, severity_al " .
-        ") VALUES ( " .
-        "NOW(), " .
-        "'" . add_escape_custom($thispid) . "', " .
-        "'" . add_escape_custom($text_type)                 . "', " .
-        "'" . add_escape_custom($_POST['form_title'])       . "', " .
-        "1, "                            .
-        "'" . add_escape_custom($_POST['form_comments'])    . "', " .
-        QuotedOrNull($form_begin)        . ", "  .
-        QuotedOrNull($form_end)        . ", "  .
-        QuotedOrNull($form_return)       . ", "  .
-        "'" . add_escape_custom($_POST['form_diagnosis'])   . "', " .
-        "'" . add_escape_custom($_POST['form_occur'])       . "', " .
-        "'" . add_escape_custom($_POST['form_classification']) . "', " .
-        "'" . add_escape_custom($_POST['form_referredby'])  . "', " .
-        "'" . add_escape_custom($$_SESSION['authUser'])     . "', " .
-        "'" . add_escape_custom($$_SESSION['authProvider']) . "', " .
-        "'" . add_escape_custom($_POST['form_outcome'])     . "', " .
-        "'" . add_escape_custom($_POST['form_destination']) . "', " .
-        "'" . add_escape_custom($_POST['form_reinjury_id']) . "', " .
-        "'" . add_escape_custom($_POST['form_injury_grade']) . "', " .
-        "'" . add_escape_custom($form_injury_part)          . "', " .
-        "'" . add_escape_custom($form_injury_type)          . "', " .
-        "'" . add_escape_custom($_POST['form_reaction'])         . "', " .
-        "'" . add_escape_custom($_POST['form_severity_id'])         . "' " .
-        ")");
+
+        if ($issue) {
+            $query = "UPDATE lists SET " .
+            "type = '"        . add_escape_custom($text_type)                  . "', " .
+            "title = '"       . add_escape_custom($titles[$j])        . "', " .
+            "comments = '"    . add_escape_custom($_POST['form_comments'])     . "', " .
+            "begdate = "      . QuotedOrNull($form_begin)   . ", "  .
+            "enddate = "      . QuotedOrNull($form_end)     . ", "  .
+            "returndate = "   . QuotedOrNull($form_return)  . ", "  .
+            "diagnosis = '"   . add_escape_custom($diagnoses[$j])    . "', " .
+            "occurrence = '"  . add_escape_custom($_POST['form_occur'])        . "', " .
+            "classification = '" . add_escape_custom($_POST['form_classification']) . "', " .
+            "reinjury_id = '" . add_escape_custom($_POST['form_reinjury_id'])  . "', " .
+            "referredby = '"  . add_escape_custom($_POST['form_referredby'])   . "', " .
+            "injury_grade = '" . add_escape_custom($_POST['form_injury_grade']) . "', " .
+            "injury_part = '" . add_escape_custom($form_injury_part)           . "', " .
+            "injury_type = '" . add_escape_custom($form_injury_type)           . "', " .
+            "outcome = '"     . add_escape_custom($_POST['form_outcome'])      . "', " .
+            "destination = '" . add_escape_custom($_POST['form_destination'])   . "', " .
+            "reaction ='"     . add_escape_custom($_POST['form_reaction'])     . "', " .
+            "severity_al ='"     . add_escape_custom($_POST['form_severity_id'])     . "', " .
+            "erx_uploaded = '0', " .
+            "modifydate = NOW() " .
+            "WHERE id = '" . add_escape_custom($issue) . "'";
+            sqlStatement($query);
+            if ($text_type == "medication" && enddate != '') {
+                sqlStatement('UPDATE prescriptions SET '
+                . 'medication = 0 where patient_id = ? '
+                . " and upper(trim(drug)) = ? "
+                . ' and medication = 1', array($thispid,strtoupper($titles[$j])));
+            }
+        } else {
+            $issue = sqlInsert("INSERT INTO lists ( " .
+            "date, pid, type, title, activity, comments, begdate, enddate, returndate, " .
+            "diagnosis, occurrence, classification, referredby, user, groupname, " .
+            "outcome, destination, reinjury_id, injury_grade, injury_part, injury_type, " .
+            "reaction, severity_al " .
+            ") VALUES ( " .
+            "NOW(), " .
+            "'" . add_escape_custom($thispid) . "', " .
+            "'" . add_escape_custom($text_type)                 . "', " .
+            "'" . add_escape_custom($titles[$j])       . "', " .
+            "1, "                            .
+            "'" . add_escape_custom($_POST['form_comments'])    . "', " .
+            QuotedOrNull($form_begin)        . ", "  .
+            QuotedOrNull($form_end)        . ", "  .
+            QuotedOrNull($form_return)       . ", "  .
+            "'" . add_escape_custom($diagnoses[$j])   . "', " .
+            "'" . add_escape_custom($_POST['form_occur'])       . "', " .
+            "'" . add_escape_custom($_POST['form_classification']) . "', " .
+            "'" . add_escape_custom($_POST['form_referredby'])  . "', " .
+            "'" . add_escape_custom($$_SESSION['authUser'])     . "', " .
+            "'" . add_escape_custom($$_SESSION['authProvider']) . "', " .
+            "'" . add_escape_custom($_POST['form_outcome'])     . "', " .
+            "'" . add_escape_custom($_POST['form_destination']) . "', " .
+            "'" . add_escape_custom($_POST['form_reinjury_id']) . "', " .
+            "'" . add_escape_custom($_POST['form_injury_grade']) . "', " .
+            "'" . add_escape_custom($form_injury_part)          . "', " .
+            "'" . add_escape_custom($form_injury_type)          . "', " .
+            "'" . add_escape_custom($_POST['form_reaction'])         . "', " .
+            "'" . add_escape_custom($_POST['form_severity_id'])         . "' " .
+            ")");
+        }
+
+      // For record/reporting purposes, place entry in lists_touch table.
+        setListTouch($thispid, $text_type);
+
+        if ($text_type == 'football_injury') {
+            issue_football_injury_save($issue);
+        }
+
+        if ($text_type == 'ippf_gcac') {
+            issue_ippf_gcac_save($issue);
+        }
+
+        if ($text_type == 'contraceptive') {
+            issue_ippf_con_save($issue);
+        }
+
+      // If requested, link the issue to a specified encounter.
+        if ($thisenc) {
+            $query = "INSERT INTO issue_encounter ( " .
+            "pid, list_id, encounter " .
+            ") VALUES ( ?,?,? )";
+            sqlStatement($query, array($thispid,$issue,$thisenc));
+        }
+
+        $tmp_title = addslashes($ISSUE_TYPES[$text_type][2] . ": $form_begin " .
+        substr($titles[$j], 0, 40));
+
+      // Close this window and redisplay the updated list of issues.
+      //
+        echo "<html><body><script language='JavaScript'>\n";
+        if ($info_msg) {
+            echo " alert('$info_msg');\n";
+        }
+
+        echo " var myboss = opener ? opener : parent;\n";
+        echo " if (myboss.refreshIssue) myboss.refreshIssue('" . attr($issue) . "','$tmp_title');\n";
+        echo " else if (myboss.reloadIssues) myboss.reloadIssues();\n";
+        echo " else myboss.location.reload();\n";
+        echo " dlgclose();\n";
+
+        echo "</script></body></html>\n";
+
+        unset($issue);
     }
-
-  // For record/reporting purposes, place entry in lists_touch table.
-    setListTouch($thispid, $text_type);
-
-    if ($text_type == 'football_injury') {
-        issue_football_injury_save($issue);
-    }
-
-    if ($text_type == 'ippf_gcac') {
-        issue_ippf_gcac_save($issue);
-    }
-
-    if ($text_type == 'contraceptive') {
-        issue_ippf_con_save($issue);
-    }
-
-  // If requested, link the issue to a specified encounter.
-    if ($thisenc) {
-        $query = "INSERT INTO issue_encounter ( " .
-        "pid, list_id, encounter " .
-        ") VALUES ( ?,?,? )";
-        sqlStatement($query, array($thispid,$issue,$thisenc));
-    }
-
-    $tmp_title = addslashes($ISSUE_TYPES[$text_type][2] . ": $form_begin " .
-    substr($_POST['form_title'], 0, 40));
-
-  // Close this window and redisplay the updated list of issues.
-  //
-    echo "<html><body><script language='JavaScript'>\n";
-    if ($info_msg) {
-        echo " alert('$info_msg');\n";
-    }
-
-    echo " var myboss = opener ? opener : parent;\n";
-    echo " if (myboss.refreshIssue) myboss.refreshIssue('" . attr($issue) . "','$tmp_title');\n";
-    echo " else if (myboss.reloadIssues) myboss.reloadIssues();\n";
-    echo " else myboss.location.reload();\n";
-    echo " dlgclose();\n";
-
-    echo "</script></body></html>\n";
+    
     exit();
 }
 
@@ -586,10 +593,16 @@ if ($ISSUE_TYPES['ippf_gcac'] && !$_POST['form_save']) {
  // If it has a code, add that too.
  function set_text() {
   var f = document.forms[0];
-  var selected = f.form_titles.options[f.form_titles.selectedIndex];
+  var selected = f.form_titles.selectedOptions;
 
-  f.form_title.value = selected.value ? selected.text : "";
-  f.form_diagnosis.value = selected.getAttribute('data-code') || "";
+  var title = "";
+  var diagnosis = "";
+  for (var i = 0; i <= selected.length - 1; i++) {
+      title += title == "" ? (selected[i].value ? selected[i].text : "") : (selected[i].value ? "/" + selected[i].text : "");
+      diagnosis += diagnosis == "" ? (selected[i].value ? selected[i].getAttribute('data-code') || " " : "") : (selected[i].value ? ("/" + (selected[i].getAttribute('data-code') || " ")) : "");
+  }
+  f.form_title.value = title;
+  f.form_diagnosis.value = diagnosis;
  }
 
  function filter_titles(index, filter) {
@@ -818,7 +831,7 @@ foreach ($ISSUE_TYPES as $key => $value) {
   <td valign='top'>
   	<div style='display:grid;grid-template-columns:30% 70%'>
 	   <select size='6' name='issue_subtypes' onchange='filter_titles(<?php echo $type_index ?>, this.value)'></select>
-	   <select size='6' name='form_titles' onchange='set_text()'></select>
+	   <select multiple="multiple" size='6' name='form_titles' onchange='set_text()'></select>
   	</div>
    <div><?php echo xlt('(Select one of these, or type your own title)'); ?></div>
   </td>
