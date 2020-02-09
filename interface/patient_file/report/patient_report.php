@@ -53,6 +53,23 @@ function checkAll(check) {
  return false;
 }
 
+function checkAllIssues(check) {
+ var f = document.forms['report_form'];
+ for (var i = 0; i < f.elements.length; ++i) {
+  if (f.elements[i].className == 'issuecheckbox' || f.elements[i].className == 'encounter_form') f.elements[i].checked = check;
+ }
+ return false;
+}
+
+function checkPreferred() {
+  checkAll(false);
+  checkAllIssues(true);
+
+  var dem = document.getElementById("include_demographics");
+  dem.checked = true;
+  return false;
+}
+
 function show_date_fun(){
   if(document.getElementById('show_date').checked == true){
     document.getElementById('date_div').style.display = '';
@@ -238,6 +255,11 @@ function show_date_fun(){
   <td class='text'>
   <div class="issues">
   <span class='bold'><?php xl('Issues', 'e'); ?>:</span>
+  <a class="link_submit" href="#" onclick="return checkAllIssues(true)"><?php xl('Check All', 'e'); ?></a>
+  |
+  <a class="link_submit" href="#" onclick="return checkPreferred()"><?php xl('Check Preferred', 'e'); ?></a>
+  |
+  <a class="link_submit" href="#" onclick="return checkAllIssues(false)"><?php xl('Clear All', 'e'); ?></a>
    <br>
    <br>
 
@@ -707,13 +729,13 @@ var SelectForms = function (selectedEncounter) {
             });
         });
     }
-    else {
+    /*else {
         $(selectedEncounter).parent().children().each(function(i, obj) {
             $(this).children().each(function(i, obj) {
                 $(this).removeAttr("checked");
             });
         });
-    }
+    }*/
 }
 
 // When an issue is checked, auto-check all the related encounters and forms
