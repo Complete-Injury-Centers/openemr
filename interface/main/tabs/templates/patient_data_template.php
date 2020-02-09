@@ -76,7 +76,7 @@
             </div>
             <!-- ko if: encounterArray().length > 0 -->
             <br>
-            <div class="btn-group dropdown">
+            <span class="btn-group dropdown">
                 <button class="btn btn-default btn-sm dropdown-toggle"
                         type="button" id="pastEncounters"
                         data-toggle="dropdown"
@@ -99,7 +99,13 @@
                     </li>
                     <!-- /ko -->
                 </ul>
-            </div>
+            </span>
+            <!-- ko if:selectedEncounter() -->
+            <span class="btn-group" style="margin-left: 40px;">
+                <a class="css_button" href="#" data-bind="click:previousEncounterEvent(encounterArray().indexOf(selectedEncounter()))">Previous</a>
+                <a class="css_button" href="#" data-bind="click:nextEncounterEvent(encounterArray().indexOf(selectedEncounter()))">Next</a>
+            </span>
+            <!-- /ko -->
             <!-- /ko -->
         <!-- /ko -->
         <!-- /ko -->

@@ -173,6 +173,24 @@ function chooseEncounterEvent(data,evt)
     goToEncounter(data.id());
 }
 
+function previousEncounterEvent(index)
+{
+    if (index > 0) {
+        var prev = app_view_model.application_data[attendant_type]().encounterArray()[index-1];
+        setEncounter(prev.id());
+        goToEncounter(prev.id());
+    }
+}
+
+function nextEncounterEvent(index)
+{
+    if (index < app_view_model.application_data[attendant_type]().encounterArray().length - 1) {
+        var next = app_view_model.application_data[attendant_type]().encounterArray()[index+1];
+        setEncounter(next.id());
+        goToEncounter(next.id());
+    }
+}
+
 function goToEncounter(encId)
 {
     var url=webroot_url+'/interface/patient_file/encounter/encounter_top.php?set_encounter=' + encId;
