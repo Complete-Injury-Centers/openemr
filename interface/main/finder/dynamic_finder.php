@@ -76,8 +76,13 @@ $(document).ready(function() {
   	this.api().columns().every( function () {
   	    var column = this;
 
-  	    var select = $('<td><select><option value=""></option></select></td>')
-  	        .appendTo( $(".filters") );
+  	    if ( column.index() === 4 ) {
+          var select = $('<td><select><option value=""></option><option value="%Release">Release and Auto Release</option></select></td>')
+              .appendTo( $(".filters") );
+        } else {
+          var select = $('<td><select><option value=""></option></select></td>')
+              .appendTo( $(".filters") );
+        }
 
         select.find('select').on( 'change', function () {
           column
