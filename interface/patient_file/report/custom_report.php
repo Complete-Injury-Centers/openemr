@@ -201,7 +201,7 @@ if ($printable) {
   *******************************************************************/
     $titleres = getPatientData($pid, "fname,lname,providerID,refer_facilities,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
     $facility = $facilityService->getById($titleres['refer_facilities']);
-    $main_header = xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: 110px; height: 60px" src="../../../sites/default/images/report-header.png	"><hr />';
+    $main_header = xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: ' . ($titleres['refer_facilities'] == 23 ? '40' : '110') . 'px; height: 60px" src="../../../sites/default/images/' . ($titleres['refer_facilities'] == 23 ? 'report-header-pi.png' : 'report-header.png') . '	"><hr />';
     $main_footer = xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651';
 
     if ($PDF_OUTPUT) {
@@ -728,6 +728,7 @@ foreach ($ar as $key => $val) {
             // Show issue's chief diagnosis and its description:
             if ($diagnosis) {
                 echo "<span class='text'>";
+                //echo "<span class='bold'>[".xl('Diagnosis')."]</span><br>";
                 $dcodes = explode(";", $diagnosis);
                 foreach ($dcodes as $dcode) {
                     echo "<span class='italic'>".$dcode."</span>: ";
