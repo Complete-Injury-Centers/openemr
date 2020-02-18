@@ -175,8 +175,8 @@ function chooseEncounterEvent(data,evt)
 
 function previousEncounterEvent(index)
 {
-    if (index > 0) {
-        var prev = app_view_model.application_data[attendant_type]().encounterArray()[index-1];
+    if (index < app_view_model.application_data[attendant_type]().encounterArray().length - 1) {
+        var prev = app_view_model.application_data[attendant_type]().encounterArray()[index+1];
         setEncounter(prev.id());
         goToEncounter(prev.id());
     }
@@ -184,8 +184,8 @@ function previousEncounterEvent(index)
 
 function nextEncounterEvent(index)
 {
-    if (index < app_view_model.application_data[attendant_type]().encounterArray().length - 1) {
-        var next = app_view_model.application_data[attendant_type]().encounterArray()[index+1];
+    if (index > 0) {
+        var next = app_view_model.application_data[attendant_type]().encounterArray()[index-1];
         setEncounter(next.id());
         goToEncounter(next.id());
     }
