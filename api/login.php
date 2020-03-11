@@ -74,7 +74,7 @@ function validate_user_password($username, $password, $provider)
             $valid=false;
         }
     }
-    return $valid ? json_encode( array( "token" => session_id(), "facility_id" => $userInfo["facility_id"] ) ) : false;
+    return $valid ? json_encode( array( "token" => session_id(), "facilityID" => $userInfo['facility_id'] ) ) : false;
 }
 
 /**
