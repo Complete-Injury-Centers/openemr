@@ -13,12 +13,10 @@ define('REPEAT_DAYS_EVERY_WEEK', 6);
 $global = runSQL("SELECT gl_value FROM globals WHERE gl_name = 'weekend_days'");
 $GLOBALS['weekend_days'] = explode(',', $global["gl_value"]);
 
-echo json_encode( fetchAppointments($payload["from"], $payload["to"], $payload["pid"]) );	
+echo json_encode( fetchAppointments($payload["from"], $payload["to"], $payload["pid"], $payload["facility_id"]));
 
 /**
- * @param type $fname
- * @param type $lname
- * @param type $dob
+ * @param type $pid
  */
 function get_appointments($pid)
 {
@@ -44,6 +42,12 @@ function get_appointments($pid)
 	return runSQL($queryAppointmentsSQL);
 }
 
+/**
+ * @param type $from
+ * @param type $to
+ * @param type $pid
+ * @param type $facility_id
+ */
 function fetchAppointments($from_date, $to_date, $patient_id = null, $facility_id = null)
 {
     global $conn;
