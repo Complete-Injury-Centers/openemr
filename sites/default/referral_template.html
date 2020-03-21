@@ -1,204 +1,233 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-  <title>{label_webpage_title}</title>
-  <style type="text/css">
-    body, td {
-      font-family: sans-serif;
-      font-weight: normal;
-      font-size: 9pt;
-      background-color: #fff;
-    }
-    .borderdiv {
-      width: 524pt;
-      height: 668pt;
-      padding: 0;
-      border-style: solid;
-      border-width: 1px;
-      border-color: #000000;
-    }
-    .paddingdiv {
-      padding: 10pt;
-    }
-    .bigtable{
-      padding: 0px;
-      border-spacing: 0;
-      border-collapse: collapse;
-    }
-    .bigtable, .linetable {
-      width: 504pt;
-    }
-    .linetable {
-      margin: 11pt 0 0 0;
-      padding: 0px;
-      border-spacing: 0;
-      border-collapse: collapse;
-    }
-    .mainhead {
-      font-weight: bold;
-      font-size: 14pt;
-      text-align: left;
-    }
-    .subhead {
-      font-weight: bold;
-      font-size: 8pt;
-    }
-    .under {
-      border-style: solid;
-      border-width: 0 0 1px 0;
-      border-color: #999999;
-    }
-    .ftitletable {
-      width: 100%;
-      margin: 0 0 0 0;
-    }
-    .ftitlecell1 {
-      width: 33%;
-      vertical-align: top;
-      text-align: left;
-      font-size: 14pt;
-      font-weight: bold;
-    }
-    .ftitlecell2 {
-      width: 33%;
-      vertical-align: top;
-      text-align: right;
-      font-size: 9pt;
-    }
-    .ftitlecellm {
-      width: 34%;
-      vertical-align: top;
-      text-align: center;
-      font-size: 14pt;
-      font-weight: bold;
-    }
-    hr {
-      border: 0;
-      height: 6pt;
-      color: #999999;
-      background-color: #999999;
-      margin: 12pt 0 12pt 0;
-    }
-    .tdLabelContainer {
-      text-align: right;
-      width: 10%;
-      vertical-align: top;
-      white-space: nowrap;
-    }
-    .mainhead {
-      vertical-align: top;
-    }
-    .label {
-      vertical-align: bottom;
-      white-space: nowrap;
-    }
-    .signature {
-      max-height: 80px;
-    }
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>{label_webpage_title}</title>
+    <style type="text/css">
+        body,
+        td {
+            font-family: sans-serif;
+            font-weight: normal;
+            font-size: 9pt;
+            background-color: #fff;
+        }
 
-    @media print {
-      .borderdiv {
-        height: 100%;
-        width: initial;
-      }
+        .borderdiv {
+            width: 524pt;
+            height: 668pt;
+            padding: 0;
+            border-style: solid;
+            border-width: 1px;
+            border-color: #000000;
+        }
 
-      .bigtable, .linetable {
-        width: 100%;
-      }
-    }
-  </style>
+        .paddingdiv {
+            padding: 10pt;
+        }
+
+        .bigtable {
+            padding: 0px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .bigtable,
+        .linetable {
+            width: 504pt;
+        }
+
+        .linetable {
+            margin: 11pt 0 0 0;
+            padding: 0px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .mainhead {
+            font-weight: bold;
+            font-size: 14pt;
+            text-align: left;
+        }
+
+        .subhead {
+            font-weight: bold;
+            font-size: 8pt;
+        }
+
+        .under {
+            border-style: solid;
+            border-width: 0 0 1px 0;
+            border-color: #999999;
+        }
+
+        .ftitletable {
+            width: 100%;
+            margin: 0 0 0 0;
+        }
+
+        .ftitlecell1 {
+            width: 33%;
+            vertical-align: top;
+            text-align: left;
+            font-size: 14pt;
+            font-weight: bold;
+        }
+
+        .ftitlecell2 {
+            width: 33%;
+            vertical-align: top;
+            text-align: right;
+            font-size: 9pt;
+        }
+
+        .ftitlecellm {
+            width: 34%;
+            vertical-align: top;
+            text-align: center;
+            font-size: 14pt;
+            font-weight: bold;
+        }
+
+        hr {
+            border: 0;
+            height: 6pt;
+            color: #999999;
+            background-color: #999999;
+            margin: 12pt 0 12pt 0;
+        }
+
+        .tdLabelContainer {
+            text-align: right;
+            width: 10%;
+            vertical-align: top;
+            white-space: nowrap;
+        }
+
+        .mainhead {
+            vertical-align: top;
+        }
+
+        .label {
+            vertical-align: bottom;
+            white-space: nowrap;
+        }
+
+        .signature {
+            max-height: 80px;
+        }
+
+        @media print {
+            .borderdiv {
+                height: 100%;
+                width: initial;
+            }
+
+            .bigtable,
+            .linetable {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- The double div resolves a difference between Firefox and IE in treatment of padding. -->
-<div class='borderdiv'><div class='paddingdiv'>
+    <!-- The double div resolves a difference between Firefox and IE in treatment of padding. -->
+    <div class='borderdiv'>
+        <div class='paddingdiv'>
 
- <table class="bigtable">
-  <tr>
-   <td class='mainhead' style="vertical-align:top">
-    {header1}
-   </td>
-   <td style="text-align:right;width:10%;white-space:nowrap">
-    <table border='1' style="padding:2px;border-spacing:0;border-collapse:collapse">
-     <tr>
-     </tr>
-     <tr>
-      <td style="white-space:nowrap;min-width:54pt">{ref_refer_date}&nbsp;</td>
-     </tr>
-    </table>
-   </td>
-  </tr>
- </table>
+            <table class="bigtable">
+                <tr>
+                    <td class='mainhead' style="vertical-align:top">
+                        {header1}
+                    </td>
+                    <td style="text-align:right;width:10%;white-space:nowrap">
+                        <table border='1' style="padding:2px;border-spacing:0;border-collapse:collapse">
+                            <tr>
+                            </tr>
+                            <tr>
+                                <td style="white-space:nowrap;min-width:54pt">{ref_refer_date}&nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
 
- <br />&nbsp;<br />Referral from Complete Injury Centers:
+            <br />&nbsp;<br />Referral from Complete Injury Centers:
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">{label_name} &nbsp;</td>
-   <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td>
-   <td width="1" style="white-space:nowrap">&nbsp; DOB &nbsp;</td>
-   <td class='under'>{pt_DOB}&nbsp;</td>
-   <td width="1" style="white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
-   <td class='under'>{pt_sex}&nbsp;</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">{label_name} &nbsp;</td>
+                    <td class='under'>{pt_title} {pt_fname} {pt_mname} {pt_lname}&nbsp;</td>
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">{label_address} &nbsp;</td>
-   <td class='under'>{pt_street}, {pt_city} {pt_state}&nbsp;</td>
-   <td width="1" style="white-space:nowrap">&nbsp; {label_postal} &nbsp;</td>
-   <td class='under'>{pt_postal_code}&nbsp;</td>
-   <td width="1" style="white-space:nowrap">&nbsp; {label_phone} &nbsp;</td>
-   <td class='under'>{pt_phone_home}&nbsp;</td>
-  </tr>
- </table>
+                </tr>
+            </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">DOB &nbsp;</td>
+                    <td class='under'>{pt_DOB}&nbsp;</td>
+                    <td width="1" style="white-space:nowrap">&nbsp; DOI &nbsp;</td>
+                    <td class='under'>{pt_doi}&nbsp;</td>
+                    <td width="1" style="white-space:nowrap">&nbsp; {label_gender} &nbsp;</td>
+                    <td class='under'>{pt_sex}&nbsp;</td>
+                </tr>
+            </table>
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">Law Firm: &nbsp;</td>
-   <td class='under'>{pt_lawyer}&nbsp;</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">{label_address} &nbsp;</td>
+                    <td class='under'>{pt_street}, {pt_city} {pt_state}&nbsp;</td>
+                    <td width="1" style="white-space:nowrap">&nbsp; {label_postal} &nbsp;</td>
+                    <td class='under'>{pt_postal_code}&nbsp;</td>
+                    <td width="1" style="white-space:nowrap">&nbsp; {label_phone} &nbsp;</td>
+                    <td class='under'>{pt_phone_home}&nbsp;</td>
+                </tr>
+            </table>
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">Allergies to Iodine &nbsp;</td>
-   <td>{ref_ref_allergies} &nbsp;</td>
-   <td width="1" style="white-space:nowrap">Claustrophobic &nbsp;</td>
-   <td>{ref_ref_claustrophobic} &nbsp;</td>
-   <td width="1" style="white-space:nowrap">Metal in Body? &nbsp;</td>
-   <td>{ref_ref_metal} &nbsp;</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">Law Firm: &nbsp;</td>
+                    <td class='under'>{pt_lawyer}&nbsp;</td>
+                </tr>
+            </table>
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">Refer to: &nbsp;</td>
-   <td>{ref_refer_to} - {ref_refer_reason}</td>
-  </tr>
- </table>
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">{label_diagnosis} &nbsp;</td>
-   <td class='under'>{ref_refer_diagnoses}&nbsp;</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">Allergies to Iodine &nbsp;</td>
+                    <td>{ref_ref_allergies} &nbsp;</td>
+                    <td width="1" style="white-space:nowrap">Claustrophobic &nbsp;</td>
+                    <td>{ref_ref_claustrophobic} &nbsp;</td>
+                    <td width="1" style="white-space:nowrap">Metal in Body? &nbsp;</td>
+                    <td>{ref_ref_metal} &nbsp;</td>
+                </tr>
+            </table>
 
- <table class='linetable'>
-  <tr>
-   <td width="1" style="white-space:nowrap">Doctor's Name &nbsp;</td>
-    <td class="under">{current_doctors_name}</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">Refer to: &nbsp;</td>
+                    <td>{ref_refer_to} - {ref_refer_reason}</td>
+                </tr>
+            </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">{label_diagnosis} &nbsp;</td>
+                    <td class='under'>{ref_refer_diagnoses}&nbsp;</td>
+                </tr>
+            </table>
 
-   <table class='linetable'>
-  <tr>
-   <td width="1" class="label">Signed: &nbsp;</td>
-   <td class='under'>{user_signature}</td>
-   <td width="1" class="label">Date: &nbsp;</td>
-   <td class="under label" width="15%">{ref_refer_date}</td>
-  </tr>
- </table>
+            <table class='linetable'>
+                <tr>
+                    <td width="1" style="white-space:nowrap">Doctor's Name &nbsp;</td>
+                    <td class="under">{current_doctors_name}</td>
+                </tr>
+            </table>
+
+            <table class='linetable'>
+                <tr>
+                    <td width="1" class="label">Signed: &nbsp;</td>
+                    <td class='under'>{user_signature}</td>
+                    <td width="1" class="label">Date: &nbsp;</td>
+                    <td class="under label" width="15%">{ref_refer_date}</td>
+                </tr>
+            </table>
