@@ -40,14 +40,15 @@ if (isset($_GET['iSortCol_0'])) {
         if ($_GET["bSortable_$iSortCol"] == "true") {
             $sSortDir = escape_sort_order($_GET["sSortDir_$i"]); // ASC or DESC
       // We are to sort on column # $iSortCol in direction $sSortDir.
-            $orderby .= $orderby ? ', ' : 'ORDER BY ';
       //
             if (!in_array($aColumns[$iSortCol], $specialItems)) {
+                $orderby .= $orderby ? ', ' : 'ORDER BY ';
                 $orderby .= "`" . escape_sql_column_name($aColumns[$iSortCol], array('patient_data')) . "` $sSortDir";
             }
         }
     }
 }
+
 
 // Global filtering.
 //
@@ -193,6 +194,8 @@ while ($row = sqlFetchArray($res)) {
     $out['aaData'][] = $arow;
 }
 
+orderBySpecialItems($out,$specialItems,$aColumns[$iSortCol]);
+
 // error_log($query); // debugging
 
 // Dump the output array as JSON.
@@ -209,5 +212,21 @@ function appendWhere($colname, $sSearch) {
         return " `" . escape_sql_column_name($colname, array('patient_data')) . "` = '" .$lawyerId['id']. "'";
     } else {
         return " `" . escape_sql_column_name($colname, array('patient_data')) . "` LIKE '$sSearch%'";
+    }
+}
+
+//orderBy $specialItems
+function orderBySpecialItems(&$out,$specialItems,$iSortCol){
+    if (in_array($iSortCol, $specialItems)) {
+       $sSortDir = escape_sort_order($_GET["sSortDir_0"]); // ASC or DESC
+        if($sSortDir=="asc"){
+            usort($out['aaData'], function($a, $b) {
+                return $a[$_GET["iSortCol_0"]] - $b[$_GET["iSortCol_0"]];
+            });
+        }else{
+            usort($out['aaData'], function($a, $b) {
+                return $b[$_GET["iSortCol_0"]] - $a[$_GET["iSortCol_0"]];
+            });
+        }
     }
 }
