@@ -1063,7 +1063,7 @@ if ($pass_sens_squad &&
         echo "<a href='#' onclick='divtoggle(\"spanid_$divnos\",\"divid_$divnos\");' class='small' id='aid_$divnos'>" .
           "<div class='formname'>" . text($form_name) . "</div> " .
           xlt('by') . " " . text($form_author) . " " .
-          "(<span id=spanid_$divnos class=\"indicator\">" . ($divnos == 1 ? xlt('Collapse') : xlt('Expand')) . "</span>)</a>";
+          "(<span id=spanid_$divnos class=\"indicator\">" .  xlt('Collapse') . "</span>)</a>";
         echo "</div>";
 
         // a link to edit the form
@@ -1118,7 +1118,7 @@ if ($pass_sens_squad &&
         echo "</tr>";
         echo "<tr>";
         echo "<td valign='top' class='formrow'><div class='tab' id='divid_$divnos' ";
-        echo "style='display:" . ($divnos == 1 ? 'block' : 'none') . "'>";
+        echo "style='display:block'>";
 
         // Use the form's report.php for display.  Forms with names starting with LBF
         // are list-based forms sharing a single collection of code.
