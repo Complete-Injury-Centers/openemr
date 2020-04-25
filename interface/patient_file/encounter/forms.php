@@ -642,6 +642,7 @@ if ($encounterLocked === false) {
         }
         $StringEcho.= "<li class=\"encounter-form-category-li\"><a href='JavaScript:void(0);' onClick=\"mopen('lbf');\" >" .
         xl('Visit Type') . "</a><div id='lbf' ><table border='0' cellspacing='0' cellpadding='0'>";
+        $user = sqlFetchArray(sqlStatement("SELECT * FROM users WHERE id=".$_SESSION['authId']));
         while ($lrow = sqlFetchArray($lres)) {
             $option_id = $lrow['option_id']; // should start with LBF
             $title = $lrow['title'];
@@ -652,10 +653,19 @@ if ($encounterLocked === false) {
                     continue;
                 }
             }
-            $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
-                "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
-                text(xl_form_title($title)) . "</a></td></tr>";
+            if($user['facility_id']!=23) {
+                $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
+                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
+                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
+                    text(xl_form_title($title)) . "</a></td></tr>";
+            } else {
+                if($title == "Medical Visit") {
+                    $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
+                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
+                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
+                    text(xl_form_title($title)) . "</a></td></tr>";
+                }
+            }
         }
     }
 }
