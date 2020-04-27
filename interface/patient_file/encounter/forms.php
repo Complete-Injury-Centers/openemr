@@ -785,7 +785,9 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 <?php
 // ESign for entire encounter
 $esign = $esignApi->createEncounterESign($encounter);
-
+if ($esign->isButtonViewable()) {
+    echo $esign->buttonHtml();
+}
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
   $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
@@ -815,15 +817,9 @@ if (isset($previousNote) && is_array($previousNote)) {
 </div>
 
 <div class='encounter-summary-column'>
-<?php
-    if ($esign->isLogViewable()) {
-        $esign->renderLog();
-    }
-
-    if ($esign->isButtonViewable()) {
-        echo '<div style="float:right;">' . $esign->buttonHtml() . "</div>";
-    }
-?>
+<?php if ($esign->isLogViewable()) {
+    $esign->renderLog();
+} ?>
 </div>
 
 <div class='encounter-summary-column'>
@@ -1063,7 +1059,7 @@ if ($pass_sens_squad &&
         echo "<a href='#' onclick='divtoggle(\"spanid_$divnos\",\"divid_$divnos\");' class='small' id='aid_$divnos'>" .
           "<div class='formname'>" . text($form_name) . "</div> " .
           xlt('by') . " " . text($form_author) . " " .
-          "(<span id=spanid_$divnos class=\"indicator\">" .  xlt('Collapse') . "</span>)</a>";
+          "(<span id=spanid_$divnos class=\"indicator\">" . ($divnos == 1 ? xlt('Collapse') : xlt('Expand')) . "</span>)</a>";
         echo "</div>";
 
         // a link to edit the form
@@ -1085,7 +1081,11 @@ if ($pass_sens_squad &&
             }
         }
 
-
+        if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
+            if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
+                echo $esign->buttonHtml();
+            }
+        }
 
         if (substr($formdir, 0, 3) == 'LBF') {
           // A link for a nice printout of the LBF
@@ -1118,7 +1118,7 @@ if ($pass_sens_squad &&
         echo "</tr>";
         echo "<tr>";
         echo "<td valign='top' class='formrow'><div class='tab' id='divid_$divnos' ";
-        echo "style='display:block'>";
+        echo "style='display:" . ($divnos == 1 ? 'block' : 'none') . "'>";
 
         // Use the form's report.php for display.  Forms with names starting with LBF
         // are list-based forms sharing a single collection of code.
