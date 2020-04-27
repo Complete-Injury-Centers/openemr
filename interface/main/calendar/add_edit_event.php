@@ -1517,21 +1517,25 @@ if ($_GET['prov']==true) {
       $qsql = sqlStatement("SELECT * FROM facility WHERE service_location != 0");
       ***************************************************************/
         $facils = getUserFacilities($_SESSION['authId']);
-        $qsql = sqlStatement("SELECT id, name FROM facility WHERE service_location != 0");
+        $qsql = sqlStatement("SELECT users.id, users.username, users.facility_id as default_facility_id, users.facility as default_facility, facility.name as facility_name, users_facility.facility_id as facility_id FROM users LEFT JOIN users_facility ON users_facility.table_id=users.id LEFT JOIN facility ON facility.id=users_facility.facility_id WHERE users.id=".$_SESSION['authId']);
       /**************************************************************/
+        $index = 0;
         while ($facrow = sqlFetchArray($qsql)) {
             /*************************************************************
           $selected = ( $facrow['id'] == $e2f ) ? 'selected="selected"' : '' ;
           echo "<option value={$facrow['id']} $selected>{$facrow['name']}</option>";
             *************************************************************/
-            if ($_SESSION['authorizedUser'] || in_array($facrow, $facils)) {
-                $selected = ( $facrow['id'] == $e2f ) ? 'selected="selected"' : '' ;
-                echo "<option value='" . attr($facrow['id']) . "' $selected>" . text($facrow['name']) . "</option>";
+            if ($_SESSION['authUser']) {
+                if(!$index) {
+                    echo "<option value='" . attr($facrow['default_facility_id']) . "' selected>" . text($facrow['default_facility']) . "</option>";
+                }
+                if($facrow['default_facility_id'] != $facrow['facility_id']){
+                    echo "<option value='" . attr($facrow['facility_id']) . "'>" . text($facrow['facility_name']) . "</option>";
+                }
             } else {
-                $selected = ( $facrow['id'] == $e2f ) ? 'selected="selected"' : '' ;
-                echo "<option value='" . attr($facrow['id']) . "' $selected>" . text($facrow['name']) . "</option>";
+                echo "<option value=''>-</option>";
             }
-
+            $index++;
             /************************************************************/
         }
 
@@ -1727,17 +1731,21 @@ if ($GLOBALS['select_multi_providers']) {
 
     echo "<select class='input-sm' name='form_provider' style='width:100%' />";
     while ($urow = sqlFetchArray($ures)) {
-        echo "    <option value='" . attr($urow['id']) . "'";
-        if ($urow['id'] == $defaultProvider) {
-            echo " selected";
-        }
+        if($urow['id'] == $_SESSION['authUserID'] || acl_check('admin', 'super')) {
+            echo "    <option value='" . attr($urow['id']) . "'";
+            if ($urow['id'] == $defaultProvider) {
+                echo " selected";
+            }
 
-        echo ">" . text($urow['lname']);
-        if ($urow['fname']) {
-            echo ", " . text($urow['fname']);
-        }
+            echo ">" . text($urow['lname']);
+            if ($urow['fname']) {
+                echo ", " . text($urow['fname']);
+            }
 
-        echo "</option>\n";
+            echo "</option>\n";
+        } else {
+            echo "look".$urow['id']."-".$defaultProvider;
+        }
     }
 
     echo "</select>";
