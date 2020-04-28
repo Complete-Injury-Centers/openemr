@@ -232,12 +232,19 @@ if ($printable) {
         echo "</td><td>";
     }
     ?>
-<?php echo $facility['street'] ?><br>
-<?php echo $facility['city'] ?>, <?php echo $facility['state'] ?> <?php echo $facility['postal_code'] ?><br clear='all'>
-214-666-6651<br>
+<?php
+if (isset($_ENV["STREET"]) && isset($_ENV["CITY"]) && isset($_ENV["STATE"]) && isset($_ENV["POSTAL"]) && isset($_ENV["PHONE"])) {
+    echo $_ENV['STREET']."<br>";
+    echo $_ENV['CITY'].", ". $_ENV['STATE'] ." ". $_ENV['POSTAL']." <br clear='all'>";
+    echo $_ENV['PHONE']."<br>";
+} else {
+    echo $facility['street']."<br>";
+    echo $facility['city']." , ". $facility['state'] ." ". $facility['postal_code']." <br clear='all'>";
+    echo "214-666-6651<br>";
+}
+?>
 
 <a href="javascript:window.close();"><span class='title'><?php echo $titleres['fname'] . " " . $titleres['lname']; ?></span></a><br>
-<span class='text'><?php xl('Generated on', 'e'); ?>: <?php echo text(oeFormatShortDate()); ?></span>
 <?php echo "</td></tr></tbody></table></div>";?>
 
 <?php

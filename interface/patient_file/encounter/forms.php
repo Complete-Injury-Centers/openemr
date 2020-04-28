@@ -642,7 +642,6 @@ if ($encounterLocked === false) {
         }
         $StringEcho.= "<li class=\"encounter-form-category-li\"><a href='JavaScript:void(0);' onClick=\"mopen('lbf');\" >" .
         xl('Visit Type') . "</a><div id='lbf' ><table border='0' cellspacing='0' cellpadding='0'>";
-        $user = sqlFetchArray(sqlStatement("SELECT * FROM users WHERE id=".$_SESSION['authId']));
         while ($lrow = sqlFetchArray($lres)) {
             $option_id = $lrow['option_id']; // should start with LBF
             $title = $lrow['title'];
@@ -653,19 +652,10 @@ if ($encounterLocked === false) {
                     continue;
                 }
             }
-            if($user['facility_id']!=23) {
-                $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
-                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
-                    text(xl_form_title($title)) . "</a></td></tr>";
-            } else {
-                if($title == "Medical Visit") {
-                    $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
-                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
-                    text(xl_form_title($title)) . "</a></td></tr>";
-                }
-            }
+            $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
+                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
+                "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
+                text(xl_form_title($title)) . "</a></td></tr>";
         }
     }
 }
@@ -795,7 +785,9 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 <?php
 // ESign for entire encounter
 $esign = $esignApi->createEncounterESign($encounter);
-
+if ($esign->isButtonViewable()) {
+    echo $esign->buttonHtml();
+}
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
   $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
@@ -825,15 +817,9 @@ if (isset($previousNote) && is_array($previousNote)) {
 </div>
 
 <div class='encounter-summary-column'>
-<?php
-    if ($esign->isLogViewable()) {
-        $esign->renderLog();
-    }
-
-    if ($esign->isButtonViewable()) {
-        echo '<div style="float:right;">' . $esign->buttonHtml() . "</div>";
-    }
-?>
+<?php if ($esign->isLogViewable()) {
+    $esign->renderLog();
+} ?>
 </div>
 
 <div class='encounter-summary-column'>
@@ -1095,7 +1081,11 @@ if ($pass_sens_squad &&
             }
         }
 
-
+        if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
+            if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
+                echo $esign->buttonHtml();
+            }
+        }
 
         if (substr($formdir, 0, 3) == 'LBF') {
           // A link for a nice printout of the LBF
