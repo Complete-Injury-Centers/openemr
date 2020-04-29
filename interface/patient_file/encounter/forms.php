@@ -785,9 +785,9 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 <?php
 // ESign for entire encounter
 $esign = $esignApi->createEncounterESign($encounter);
-if ($esign->isButtonViewable()) {
-    echo $esign->buttonHtml();
-}
+// if ($esign->isButtonViewable()) {
+//     echo $esign->buttonHtml();
+// }
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
   $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
@@ -820,6 +820,77 @@ if (isset($previousNote) && is_array($previousNote)) {
 <?php if ($esign->isLogViewable()) {
     $esign->renderLog();
 } ?>
+<br>
+<?php 
+    $encounters = getFormByEncounter(
+        $attendant_id,
+        $encounter,
+        "id, date, form_id, form_name, formdir, user, deleted",
+        "",
+        "FIND_IN_SET(formdir,'newpatient') DESC, form_name, date DESC"
+    );
+    
+    
+    foreach ($encounters as $iter) {
+        $formdir = $iter['formdir'];
+        // if ($iter['deleted'] == 1) {
+        //     continue;
+        // }
+        if (substr($formdir, 0, 3) == 'LBF' && !(substr($formdir, 3)=='signin' || substr($formdir, 3) == 'signout')) {
+            $esign = $esignApi->createFormESign($iter['id'], $formdir, $encounter);
+            echo "<div class='form_header_controls' style='margin-bottom: 10px'><span style=\"float:left; margin-right: 10px\">".substr($formdir, 3)."</span>";
+            if ($esign->isLocked()) {
+                 echo "<a href=# class='css_button_small form-edit-button-locked' id='form-edit-button-" . attr($formdir) . "-" . attr($iter['id']) . "'><span>" . xlt('Locked') . "</span></a>";
+            } else {
+                if ((!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write') and $is_group == 0 and $authPostCalendarCategoryWrite)
+                or (((!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) and $is_group and acl_check("groups", "glog", false, 'write')) and $authPostCalendarCategoryWrite)) {
+                    echo "<a class='css_button_small form-edit-button' " .
+                        "id='form-edit-button-" . attr($formdir) . "-" . attr($iter['id']) . "' " .
+                        "href='#' " .
+                        "title='" . xla('Edit this form') . "' " .
+                        "onclick=\"return openEncounterForm('" . attr($formdir) . "', '" .
+                        attr($form_name) . "', '" . attr($iter['form_id']) . "')\">";
+                    echo "<span>" . xlt('Edit') . "</span></a>";
+                }
+            }
+            if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
+                if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
+                    echo $esign->buttonHtml();
+                }
+            }
+            if (substr($formdir, 0, 3) == 'LBF') {
+            // A link for a nice printout of the LBF
+                echo "<a target='_blank' " .
+                "href='$rootdir/forms/LBF/printable.php?"   .
+                "formname="   . urlencode($formdir)         .
+                "&formid="    . urlencode($iter['form_id']) .
+                "&visitid="   . urlencode($encounter)       .
+                "&patientid=" . urlencode($pid)             .
+                "' class='css_button_small' title='" . xl('Print this form') .
+                "' onclick='top.restoreSession()'><span>" . xlt('Print') . "</span></a>";
+            }
+            if (acl_check('admin', 'super')) {
+                if ($formdir != 'newpatient' && $formdir != 'newGroupEncounter') {
+                    // a link to delete the form from the encounter
+                    echo "<a href='$rootdir/patient_file/encounter/delete_form.php?" .
+                        "formname=" . $formdir .
+                        "&id=" . $iter['id'] .
+                        "&encounter=". $encounter.
+                        "&pid=".$pid.
+                        "' class='css_button_small' title='" . xl('Delete this form') . "' onclick='top.restoreSession()'><span>" . xl('Delete') . "</span></a>";
+                } else {
+                    echo "<a href='javascript:;' class='css_button_small' style='color:gray'><span>". xl('Delete', 'e') ."</span></a>";
+                }
+            }
+            echo "</div>";
+            echo "<div style='margin: 8px'>";
+            if ($esign->isLogViewable()) {
+                $esign->renderLog();
+            }
+            echo "</div>";
+        }
+    }
+?>
 </div>
 
 <div class='encounter-summary-column'>
@@ -1081,12 +1152,6 @@ if ($pass_sens_squad &&
             }
         }
 
-        if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
-            if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
-                echo $esign->buttonHtml();
-            }
-        }
-
         if (substr($formdir, 0, 3) == 'LBF') {
           // A link for a nice printout of the LBF
             echo "<a target='_blank' " .
@@ -1132,9 +1197,9 @@ if ($pass_sens_squad &&
             call_user_func($formdir . "_report", $attendant_id, $encounter, 2, $iter['form_id']);
         }
 
-        if ($esign->isLogViewable()) {
-            $esign->renderLog();
-        }
+        // if ($esign->isLogViewable()) {
+        //     $esign->renderLog();
+        // }
 
         echo "</div></td></tr>";
         $divnos=$divnos+1;
