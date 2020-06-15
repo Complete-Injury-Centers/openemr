@@ -602,43 +602,27 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
   <tr>
     <td class="title" >COMPLETE INJURY CENTERS</td>
   </tr>
-  <tr>
-    <td class="title" ><?php echo text($facility{'street'}); ?></td>
-  </tr>
-  <tr>
-    <td class="title" ><?php echo text($facility{'city'}).", ".text($facility{'state'})." ".text($facility{'postal_code'}); ?></td>
-  </tr>
-  <tr>
-    <td class="title" ><?php echo xlt('Phone').': '; ?>214-666-6651</td>
-  </tr>
+  <?php
+    if (isset($_ENV["STREET"]) && isset($_ENV["CITY"]) && isset($_ENV["STATE"]) && isset($_ENV["POSTAL"]) && isset($_ENV["PHONE"])) {
+        echo "<tr><td class='title'>" . text($_ENV['STREET']) . " </td></tr><tr>";
+        echo "  <td class='title'>" . text($_ENV['CITY']).", ".text($_ENV['STATE'])." ".text($_ENV['POSTAL']) . "</td>";
+        echo "</tr><tr>";
+        echo "  <td class='title'>" . xlt('Phone').": " . $_ENV['PHONE'] . "</td></tr>";
+    } else {
+        echo "<tr><td class='title'>" . text($facility{'street'}) . " </td></tr><tr>";
+        echo "  <td class='title'>" . text($facility{'city'}).", ".text($facility{'state'})." ".text($facility{'postal_code'}) . "</td>";
+        echo "</tr><tr>";
+        echo "  <td class='title'>" . xlt('Phone').": 214-666-6651</td></tr>";
+    }
+
+  ?>
   <tr>
     <td class="title" ><?php echo xlt('Tax Id').': ' .text($facility{'federal_ein'}); ?></td>
   </tr>
-  <tr><td>&nbsp;</td></tr>
-  <tr>
-    <td class="title" ><?php echo xlt('Patient Ledger'); ?></td>
-  </tr>
-    <tr>
-        <?php
-            $title = xl('All Providers');
-        if ($form_provider) {
-            $title = xl('For Provider') . ': '.User_Id_Look($form_provider);
-        }
-        ?>
-    <td class="title" ><?php echo text($title); ?></td>
-    </tr>
-    <tr>
-        <?php
-            $title = xl('For Dates') . ': ' . oeFormatShortDate($form_from_date) . ' - ' . oeFormatShortDate($form_to_date);
-        ?>
-    <td class="title" ><?php echo text($title); ?></td>
-    </tr>
 </table>
 <br/>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td class='bold' ><?php echo xlt('Date')?>:
-        <?php echo text(date('Y-m-d')); ?></td>
     <td class='bold' ><?php echo xlt('Patient')?>:
         <?php if ($type_form == '1') { ?>
             <?php echo text($pat_name); ?></td>

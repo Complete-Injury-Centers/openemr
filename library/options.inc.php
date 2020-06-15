@@ -490,13 +490,14 @@ function generate_form_field($frow, $currvalue)
         while ($urow = sqlFetchArray($ures)) {
             $uname = text($urow['fname'] . ' ' . $urow['lname']);
             $optionId = attr($urow['id']);
-            echo "<option value='$optionId'";
-            if ($urow['id'] == $currvalue) {
-                echo " selected";
-                $got_selected = true;
+            if (acl_check('admin', 'super') || $urow['id'] == $_SESSION['authId']) {
+                echo "<option value='$optionId'";
+                // if ($urow['id'] == $_SESSION['authId']) {
+                //     echo " selected";
+                //     $got_selected = true;
+                // }
+                echo ">$uname</option>";
             }
-
-            echo ">$uname</option>";
         }
 
         if (!$got_selected && $currvalue) {
@@ -2010,7 +2011,7 @@ function generate_print_field($frow, $currvalue)
     }
 }
 
-function generate_display_field($frow, $currvalue)
+function generate_display_field($frow, $currvalue, $facility_show_city=false)
 {
     global $ISSUE_TYPES, $facilityService;
 
@@ -2403,7 +2404,11 @@ function generate_display_field($frow, $currvalue)
     } // facility
     else if ($data_type == 35) {
         $urow = $facilityService->getById($currvalue);
-        $s = htmlspecialchars($urow['name'], ENT_NOQUOTES);
+        if($facility_show_city)
+            $s = htmlspecialchars($urow['city'], ENT_NOQUOTES);
+        else
+            $s = htmlspecialchars($urow['name'], ENT_NOQUOTES);
+        
     } // Multi select
   //  Supports backup lists
     else if ($data_type == 36) {
@@ -2924,7 +2929,7 @@ function getLayoutProperties($formtype, &$grparr, $sel = "grp_title")
     }
 }
 
-function display_layout_rows($formtype, $result1, $result2 = '')
+function display_layout_rows($formtype, $result1, $result2 = '', $fac_show_city=false)
 {
     global $item_count, $cell_count, $last_group, $CPR;
 
@@ -3030,8 +3035,8 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             } else {
                 echo "&nbsp;";
             }
-
-          // Handle starting of a new data cell.
+            
+            // Handle starting of a new data cell.
             if ($datacols > 0) {
                 disp_end_cell();
                 //echo "<td class='text data' colspan='$datacols' valign='top'";
@@ -3043,7 +3048,7 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             }
 
             ++$item_count;
-            echo generate_display_field($frow, $currvalue);
+            echo generate_display_field($frow, $currvalue, $fac_show_city);
         }
     }
 
@@ -3632,7 +3637,11 @@ function dropdown_facility(
     global $facilityService;
 
     $have_selected = false;
-    $fres = $facilityService->getAll();
+    if (acl_check('admin', 'super')) {
+        $fres = $facilityService->getAll();
+    } else {
+        $fres = sqlStatement("SELECT  facility.name as name, users_facility.facility_id as id, users.facility as default_facility, users.facility_id as default_id FROM users LEFT JOIN users_facility ON users_facility.table_id=users.id LEFT JOIN facility ON facility.id=users_facility.facility_id WHERE users.id=".$_SESSION['authId']." OR users.facility=facility.id");
+    }
 
     $name = htmlspecialchars($name, ENT_QUOTES);
     echo "   <select class='form-control' name='$name' id='$name'";
@@ -3664,6 +3673,7 @@ function dropdown_facility(
         echo "    <option value=\"$option_value\" $option_selected_attr>$option_content</option>\n";
     }
 
+    $index = 0;
     foreach ($fres as $frow) {
         $facility_id = $frow['id'];
         $option_value = htmlspecialchars($facility_id, ENT_QUOTES);
@@ -3674,7 +3684,12 @@ function dropdown_facility(
         }
 
         $option_content = htmlspecialchars($frow['name'], ENT_NOQUOTES);
+        if(!$index && !acl_check('admin', 'super') && $frow['id'] != $frow['default_id']) {
+            echo "<option value=\"".htmlspecialchars($frow['default_id'], ENT_QUOTES)."\">".htmlspecialchars($frow['default_facility'], ENT_NOQUOTES)."</option>\n";
+        }
+
         echo "    <option value=\"$option_value\" $option_selected_attr>$option_content</option>\n";
+        $index++;
     }
 
     if ($allow_unspecified && $allow_allfacilities) {

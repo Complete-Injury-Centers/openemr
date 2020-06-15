@@ -40,6 +40,8 @@ $GLOBALS['PATIENT_REPORT_ACTIVE'] = true;
 
 $PDF_OUTPUT = empty($_POST['pdf']) ? 0 : intval($_POST['pdf']);
 
+$last_doctor = array(); // For last esign on document
+
 if ($PDF_OUTPUT) {
 /*   composer bootstrap loads classes for mPDF */
     $pdf = new mPDF(
@@ -412,7 +414,7 @@ foreach ($ar as $key => $val) {
             $result1 = getPatientData($pid, "title,city,postal_code,street,state,phone_home,phone_cell, fname,mname, lname,doi,DOB, refer_facilities,sex,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS");
             $result2 = getEmployerData($pid);
             echo "   <table>\n";
-            display_layout_rows('DEM', $result1, $result2);
+            display_layout_rows('DEM', $result1, $result2, true);
             echo "   </table>\n";
             echo "</div>\n";
         } elseif ($val == "history") {
@@ -821,6 +823,13 @@ foreach ($ar as $key => $val) {
                 }
 
                 $esign = $esignApi->createFormESign($formId, $res[1], $form_encounter);
+
+                $final_esign_query = "SELECT E.id, E.tid, E.table, E.uid, U.fname, U.lname, U.username, U.npi, E.datetime, E.is_lock, E.amendment, E.hash, E.signature_hash FROM esign_signatures E JOIN users U ON E.uid = U.id WHERE E.tid = ? AND E.table = ? ORDER BY E.datetime ASC;";
+                $result_esign = sqlQuery($final_esign_query, array($formId, 'forms' ));
+                if($result_esign['username']) {
+                    $last_doctor = $result_esign;
+                }
+                
                 if ($esign->isLogViewable("report")) {
                     $esign->renderLog();
                 }
@@ -855,8 +864,15 @@ foreach ($ar as $key => $val) {
 } // end $ar loop
 
 if ($printable || $PDF_OUTPUT) {// Patched out of pdf 04/20/2017 sjpadgett
-    
-    $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $provider['username'] . ".png";
+    $sign_data = '';
+    if(count($last_doctor)) {
+        $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $last_doctor['username'] . ".png";
+        $sign_data = "<br />" . xl('Signature') . ": <u>Dr. ".$last_doctor['fname']." ".$last_doctor['lname']. " - ".$last_doctor['npi']."</u><br />";
+    } else {
+        $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $provider['username'] . ".png";
+        $sign_data = "<br />" . xl('Signature') . ": <u>Dr. ".$provider['fname']." ".$provider['lname']. " - ".$provider['npi']."</u><br />";
+    }
+
     if (is_file($signature_image)) {
         $encoded_image = base64_encode(file_get_contents($signature_image));
         $s = "<br />";
@@ -865,7 +881,7 @@ if ($printable || $PDF_OUTPUT) {// Patched out of pdf 04/20/2017 sjpadgett
         }
         $s .= "<img class='signature' style='max-width:200px' src='data:image/png;base64," . $encoded_image . "'>";
         echo $s;
-        echo "<br />" . xl('Signature') . ": <u>Dr. ".$provider['fname']." ".$provider['lname']. " - ".$provider['npi']."</u><br />";
+        echo $sign_data;
     } else {
         echo "<br /><br />" . xl('Signature') . ": _______________________________<br />";
     }

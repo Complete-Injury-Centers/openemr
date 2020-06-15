@@ -785,9 +785,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 <?php
 // ESign for entire encounter
 $esign = $esignApi->createEncounterESign($encounter);
-// if ($esign->isButtonViewable()) {
-//     echo $esign->buttonHtml();
-// }
+
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
   $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
@@ -817,9 +815,17 @@ if (isset($previousNote) && is_array($previousNote)) {
 </div>
 
 <div class='encounter-summary-column'>
-<?php if ($esign->isLogViewable()) {
-    $esign->renderLog();
-} ?>
+<?php
+
+// echo "<div class='form_header_controls' style='margin-bottom: 10px'><span style=\"float:left; margin-right: 10px\">Encounter</span>";
+// if ($esign->isButtonViewable()) {
+//     echo $esign->buttonHtml();
+// }
+// echo "</div>";
+// if ($esign->isLogViewable()) {
+//     $esign->renderLog();
+// }
+ ?>
 <br>
 <?php 
     $encounters = getFormByEncounter(
@@ -830,7 +836,7 @@ if (isset($previousNote) && is_array($previousNote)) {
         "FIND_IN_SET(formdir,'newpatient') DESC, form_name, date DESC"
     );
     
-    
+
     foreach ($encounters as $iter) {
         $formdir = $iter['formdir'];
         // if ($iter['deleted'] == 1) {

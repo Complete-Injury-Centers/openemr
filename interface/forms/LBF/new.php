@@ -750,9 +750,13 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
             <div class="col-xs-12">
                 <div class="page-header">
                     <h3>
-                        <?php echo text($formtitle) . " " . xlt('for') . ' ';
-                        echo text($enrow['fname']) . ' ' . text($enrow['mname']) . ' ' . text($enrow['lname']);
-                        echo ' ' . xlt('on') . ' ' . text(oeFormatShortDate(substr($enrow['date'], 0, 10))); ?>
+                        <?php
+                        // echo text($formtitle) . " " . xlt('for') . ' ';
+                        // echo text($enrow['fname']) . ' ' . text($enrow['mname']) . ' ' . text($enrow['lname']);
+                        // echo ' ' . xlt('on') . ' ' . text(oeFormatShortDate(substr($enrow['date'], 0, 10)));
+
+                        echo text($formtitle);
+                        ?>
                     </h3>
                     <?php
                     $firow = sqlQuery(
@@ -765,9 +769,9 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
 
                     // Provider selector.
                     echo "&nbsp;&nbsp;";
-                    echo xlt('Provider') . ": ";
+                    // echo xlt('Provider') . ": ";
                     // TBD: Refactor this function out of the FeeSheetHTML class as that is not the best place for it.
-                    echo FeeSheetHtml::genProviderSelect('form_provider_id', '-- ' . xl("Please Select") . ' --', $form_provider_id);
+                    // echo FeeSheetHtml::genProviderSelect('form_provider_id', '-- ' . xl("Please Select") . ' --', $form_provider_id);
 
                     // If appropriate build a drop-down selector of issues of this type for this patient.
                     // We skip this if in an issue form tab because removing and adding visit form tabs is
@@ -966,12 +970,16 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
                     if (strlen($gname)) {
                         echo "<br /><span class='bold'><input type='checkbox' name='form_cb_" . attr($group_seq) . "' value='1' " .
                             "onclick='return divclick(this,\"div_" . attr(addslashes($group_seq)) . "\");'";
-                        if ($display_style == 'block') {
+                        if ($display_style == 'block' || $group_name == "Treatment" || true) {
                             echo " checked";
                         }
 
                         echo " /><b>" . text(xl_layout_label($group_name)) . "</b></span>\n";
-                        echo "<div id='div_" . attr($group_seq) . "' class='section table-responsive' style='display:" . attr($display_style) . ";'>\n";
+                        if ($display_style == 'block' || $group_name == "Treatment" || true) {
+                            echo "<div id='div_" . attr($group_seq) . "' class='section table-responsive' style='display:block;'>\n";
+                        } else {
+                            echo "<div id='div_" . attr($group_seq) . "' class='section table-responsive' style='display:" . attr($display_style) . ";'>\n";
+                        }
                     }
 
                     $group_table_active = true;

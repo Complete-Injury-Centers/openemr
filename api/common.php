@@ -28,10 +28,12 @@ if ($payload["token"]) {
 	session_id($payload["token"]);
 }
 
-ini_set("session.gc_maxlifetime", 65535);
-session_set_cookie_params(65535);
+$lifetime=86400;
+
+ini_set("session.gc_maxlifetime", $lifetime);
 
 session_start();
+setcookie(session_name(),session_id(),time()+$lifetime);
 
 date_default_timezone_set("America/Chicago");
 

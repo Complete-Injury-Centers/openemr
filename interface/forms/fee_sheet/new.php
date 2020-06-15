@@ -881,7 +881,7 @@ if ($_POST['search_type']) {
 $ndc_applies = true; // Assume all payers require NDC info.
 
 echo $i ? "  <td></td>\n </tr>\n" : "";
-echo " <tr>\n";
+echo " <tr style=\"display:none\">\n";
 echo "  <td colspan='" . attr($FEE_SHEET_COLUMNS) . "' align='center' nowrap>\n";
 
 // If Search was clicked, do it and write the list of results here.

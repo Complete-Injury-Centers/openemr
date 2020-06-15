@@ -629,18 +629,10 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
         ?>
     <td class="title" ><?php echo text($title); ?></td>
     </tr>
-    <tr>
-        <?php
-            $title = xl('For Dates') . ': '.$form_from_date.' - '.$form_to_date;
-        ?>
-    <td class="title" ><?php echo text($title); ?></td>
-    </tr>
 </table>
 <br/>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td class='bold' ><?php echo xlt('Date')?>:
-        <?php echo text(date('Y-m-d')); ?></td>
     <td class='bold' ><?php echo xlt('Patient')?>:
         <?php if ($type_form == '1') { ?>
             <?php echo text($pat_name); ?></td>
