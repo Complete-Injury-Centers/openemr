@@ -195,11 +195,15 @@ function generate_select_list(
 
     $got_selected = false;
 
+    $past_data = '';
     while ($lrow = sqlFetchArray($lres)) {
         $selectedValues = explode("|", $currvalue);
-
+        
         $optionValue = attr($lrow ['option_id']);
-        $s .= "<option value='$optionValue'";
+        if($optionValue==$past_data) {
+            continue;
+        }
+        $s .= "<option ".$i." value='$optionValue'";
 
         if ((strlen($currvalue) == 0 && $lrow ['is_default']) || (strlen($currvalue) > 0 && in_array($lrow ['option_id'], $selectedValues))) {
             $s .= " selected";
@@ -210,6 +214,7 @@ function generate_select_list(
         // the xl_list_label() function here
         $optionLabel = text($lrow ['title']);
         $s .= ">$optionLabel</option>\n";
+        $past_data = $optionValue;
     }
 
     /*
@@ -492,10 +497,10 @@ function generate_form_field($frow, $currvalue)
             $optionId = attr($urow['id']);
             if (acl_check('admin', 'super') || $urow['id'] == $_SESSION['authId']) {
                 echo "<option value='$optionId'";
-                // if ($urow['id'] == $_SESSION['authId']) {
-                //     echo " selected";
-                //     $got_selected = true;
-                // }
+                if ($urow['id'] == $_SESSION['authId']) {
+                    echo " selected";
+                    $got_selected = true;
+                }
                 echo ">$uname</option>";
             }
         }
@@ -3263,6 +3268,7 @@ function display_layout_tabs_data_editable($formtype, $result1, $result2 = '')
     $fres = sqlStatement("SELECT distinct group_id FROM layout_options " .
         "WHERE form_id = ? AND uor > 0 " .
         "ORDER BY group_id", array($formtype));
+
 
     $first = true;
     $condition_str = '';

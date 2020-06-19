@@ -522,7 +522,7 @@ while ($frow = sqlFetchArray($fres)) {
         // Check if admin here!
         end_cell();
         $datacols_esc = attr($datacols);
-        echo "<td valign='top' colspan='$datacols_esc' class='text' hehe";
+        echo "<td valign='top' colspan='$datacols_esc' class='text'";
         // This ID is used by action conditions.
         echo " id='value_id_" . attr($field_id) . "'";
         if ($cell_count > 0) {

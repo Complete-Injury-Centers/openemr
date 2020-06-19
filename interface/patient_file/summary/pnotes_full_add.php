@@ -208,8 +208,14 @@ $urlparms = "docid=$docid&orderid=$orderid";
             <!-- existing note -->
             <a href="#" class="css_button" id="printnote"><span><?php echo xlt('View Printable Version'); ?></span></a>
             <?php } ?>
-            <a class="css_button large_button" id='cancel' href='javascript:;'>
-            <span class='css_button_span large_button_span'><?php echo htmlspecialchars(xl('Cancel'), ENT_NOQUOTES);?></span>
+            <?php
+                if($_GET['clean'] == 1) {
+                    echo "";
+                } else {
+                    echo "<a class='css_button large_button' id='cancel' href='javascript:;'>";
+                    echo "<span class='css_button_span large_button_span'><?php echo htmlspecialchars(xl('Cancel'), ENT_NOQUOTES);?></span>";
+                }
+            ?>
             </a>
         </div>
     </div>
@@ -400,9 +406,17 @@ $(document).ready(function(){
     }
 
     var NewNote = function () {
-        top.restoreSession();
+        <?php
+            if($_GET['clean'] == 1) {
+                echo "";
+            }else {
+                echo "top.restoreSession();";
+            }
+        ?>
         $("#noteid").val('');
         $("#new_note").submit();
+
+
     }
 
     var AppendNote = function () {
@@ -442,7 +456,13 @@ $(document).ready(function(){
             type: request_method,
             data: form_data
         }).done(function (r) { //
-            dlgclose('refreshme', false);
+            <?php
+                if($_GET['clean'] == 1) {
+                    echo "top.refreshPatient();";
+                } else {
+                    echo "dlgclose('refreshme', false);";
+                }
+            ?>
         });
     });
 });

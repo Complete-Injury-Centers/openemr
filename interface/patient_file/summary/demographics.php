@@ -1217,8 +1217,11 @@ expand_collapse_widget(
 );
 ?>
                     <br/>
-                    <div style='margin-left:10px' class='text'><img src='../../pic/ajax-loader.gif'/></div><br/>
+                    <div style='margin-left:10px' class='text'><img src='../../pic/ajax-loader.gif'/>
+                    </div>
+                    <br/>
                 </div>
+                <iframe src="./pnotes_full_add.php?docid=0&orderid=0&clean=1" frameborder="0" style="height:200px; overflow: hidden; width: 500px"></iframe>
             </td>
         </tr>
 <?php } // end if notes authorized ?>
