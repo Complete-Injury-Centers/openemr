@@ -35,6 +35,43 @@ if (file_exists($deleteform)) {
     exit;
 }
 
+function removeBill($formname, $id, $encounter, $pid) {
+    // activity = 0 to treatments
+    $q = "SELECT opt.list_id,lbf.field_value FROM layout_options AS opt JOIN lbf_data as lbf ON lbf.field_id=opt.field_id WHERE opt.form_id=? AND opt.uor>0 AND opt.data_type='25' AND lbf.form_id=?";
+    $res = sqlStatement($q, array($formname, $id));
+    while($row = sqlFetchArray($res)) {
+        $values = explode('|', $row['field_value']);
+        foreach($values as $val) {
+            $val = explode(":", $val);
+            if($val[1] == "1") {
+                $cres = sqlStatement("SELECT codes FROM list_options WHERE option_id=? AND list_id=?",array($val[0],$row['list_id']));
+                if($crow = sqlFetchArray($cres)) {
+                    $crow = explode(":", $crow['codes']);
+                    $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' ORDER BY id DESC LIMIT 1",array($crow[0], $crow[1], $pid, $encounter));
+                    if($dres = sqlFetchArray($drow)) {
+                        sqlStatement("UPDATE billing SET activity=0 WHERE id=?", array($dres['id']));
+                    }
+                }
+            }
+        }
+    }
+
+    // activity = 0 to exam's bills
+    $res = sqlStatement("SELECT grp_title FROM layout_group_properties WHERE grp_form_id=? AND grp_group_id = '' AND grp_activity = 1",array($formname));
+    if($row = sqlFetchArray($res)) {
+        $grp_title = $row['grp_title'] != "Initial Visit" ? $row['grp_title'] : "Comprehensive New Patient";
+        $sqlS = "SELECT fs_codes FROM fee_sheet_options WHERE fs_option LIKE '%".$grp_title."'";
+        $cres = sqlStatement($sqlS);
+        if($crow = sqlFetchArray($cres)) {
+            $codes = explode("|", $crow['fs_codes']);
+            $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' ORDER BY id DESC LIMIT 1",array($codes[0], $codes[1], $pid, $encounter));
+            if($dres = sqlFetchArray($drow)) {
+                sqlStatement("UPDATE billing SET activity=0 WHERE id=?", array($dres['id']));
+            }
+        }
+    }
+}
+
 // if no custom 'delete' form, then use a generic one
 
 // when the Cancel button is pressed, where do we go?
@@ -55,6 +92,8 @@ if ($_POST['confirm']) {
             "lo.form_id = f.formdir AND lo.source = 'E' AND lo.uor > 0)",
             array($pid, $encounter, $pid, $encounter)
         );
+      // Remove billings asociated with the form
+        removeBill($_POST['formname'], $_POST['formid'], $_POST['encounter'], $_POST['pid']);
     }
     // log the event
     newEvent("delete", $_SESSION['authUser'], $_SESSION['authProvider'], 1, "Form ".$_POST['formname']." deleted from Encounter ".$_POST['encounter']);

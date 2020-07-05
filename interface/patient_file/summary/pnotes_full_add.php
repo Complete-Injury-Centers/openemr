@@ -199,11 +199,11 @@ $urlparms = "docid=$docid&orderid=$orderid";
 
 <form border='0' method='post' name='new_note' id="new_note" action='pnotes_full.php?<?php echo $urlparms; ?>'>
 
-    <div>
-        <div style='float:left; margin-right: 5px'>
-            <span class="title"><?php echo xlt('Patient Note') . $title_docname; ?></span>
+    <div style="margin: 5px 0; border:solid 2px; border-radius: 5px; padding: 5px; max-width: 1000px;">
+        <div style='display: inline-block; margin-right: 5px;'>
+            <span class="title"><?php echo xlt('ADD NOTE - UPDATE (back office adds updates here as well') . $title_docname; ?></span>
         </div>
-        <div>
+        <div style='display: inline-block;'>
             <?php if ($noteid) { ?>
             <!-- existing note -->
             <a href="#" class="css_button" id="printnote"><span><?php echo xlt('View Printable Version'); ?></span></a>
@@ -213,14 +213,27 @@ $urlparms = "docid=$docid&orderid=$orderid";
                     echo "";
                 } else {
                     echo "<a class='css_button large_button' id='cancel' href='javascript:;'>";
-                    echo "<span class='css_button_span large_button_span'><?php echo htmlspecialchars(xl('Cancel'), ENT_NOQUOTES);?></span>";
+                    echo "<span class='css_button_span large_button_span'>".htmlspecialchars(xl('Cancel'), ENT_NOQUOTES)."</span>";
                 }
             ?>
             </a>
         </div>
+        <div style='display: block;'>
+            <span class='text'>
+                <?php
+                if ($noteid) {
+                // Modified 6/2009 by BM to incorporate the patient notes into the list_options listings
+                    echo htmlspecialchars(xl('Amend Existing Note'), ENT_NOQUOTES) .
+                    "<b> &quot;" . generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $title) . "&quot;</b>\n";
+                } else {
+                    echo htmlspecialchars(xl('Ex. reason patient missed, patient not answering calls, update on case, etc.'), ENT_NOQUOTES) . "\n";
+                }
+                ?>
+            </span>
+        </div>
     </div>
 
-    <br/>
+    <!-- <br/> -->
 
 <input type='hidden' name='mode' id="mode" value="new">
 <input type='hidden' name='trigger' id="trigger" value="add">
@@ -230,19 +243,6 @@ $urlparms = "docid=$docid&orderid=$orderid";
 <input type='hidden' name='noteid' id="noteid" value="<?php echo htmlspecialchars($noteid, ENT_QUOTES) ?>">
 <input type='hidden' name='form_doc_only' id="form_doc_only" value="<?php echo htmlspecialchars($form_doc_only, ENT_QUOTES) ?>">
 <table border='0' cellspacing='8'>
- <tr>
-  <td class='text'>
-    <?php
-    if ($noteid) {
-       // Modified 6/2009 by BM to incorporate the patient notes into the list_options listings
-        echo htmlspecialchars(xl('Amend Existing Note'), ENT_NOQUOTES) .
-        "<b> &quot;" . generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $title) . "&quot;</b>\n";
-    } else {
-        echo htmlspecialchars(xl('Add New Note'), ENT_NOQUOTES) . "\n";
-    }
-    ?>
-  </td>
- </tr>
  <tr style="display:none">
   <td class='text'>
     <br/>
@@ -286,9 +286,9 @@ if ($noteid) {
     echo "<div class='text'>".$body."</div>";
 }
 ?>
-    <br/>
+    <!--<br/>-->
    <textarea name='note' id='note' rows='4' cols='58'></textarea>
-
+   <br />
     <?php if ($noteid) { ?>
     <!-- existing note -->
     <a href="#" class="css_button" id="newnote" title="<?php echo htmlspecialchars(xl('Add as a new note'), ENT_QUOTES); ?>" ><span><?php echo htmlspecialchars(xl('Save as new note'), ENT_NOQUOTES); ?></span></a>
@@ -300,7 +300,7 @@ if ($noteid) {
   </td>
  </tr>
 </table>
-<br>
+<!-- <br> -->
 </form>
 <form border='0' method='post' name='update_activity' id='update_activity'
  action="pnotes_full.php?<?php echo $urlparms; ?>">
@@ -415,8 +415,6 @@ $(document).ready(function(){
         ?>
         $("#noteid").val('');
         $("#new_note").submit();
-
-
     }
 
     var AppendNote = function () {

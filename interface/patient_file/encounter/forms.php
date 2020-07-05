@@ -397,6 +397,29 @@ function divtoggle(spanid, divid) {
         display:inline;
         margin-top:10px;
     }
+
+    #partable {
+        width: 680px;
+        float: left;
+        margin-right: 50px;
+    }
+
+    #feesheet {
+        width: 100%;
+    }
+
+    .feesheet-head {
+        border-bottom: solid 1px black;
+    }
+
+    .feesheet-body {
+        background-color: white;
+    }
+
+    .sheetcell {
+        padding: 4px 5px;
+    }
+
     a[onclick*='LBFsignin'], a[onclick*='LBFsignout'] {
         display: none !important;
     }
@@ -881,6 +904,7 @@ if (isset($previousNote) && is_array($previousNote)) {
                     echo "<a href='$rootdir/patient_file/encounter/delete_form.php?" .
                         "formname=" . $formdir .
                         "&id=" . $iter['id'] .
+                        "&formid="    . urlencode($iter['form_id']) .
                         "&encounter=". $encounter.
                         "&pid=".$pid.
                         "' class='css_button_small' title='" . xl('Delete this form') . "' onclick='top.restoreSession()'><span>" . xl('Delete') . "</span></a>";
@@ -1058,7 +1082,7 @@ if ($pass_sens_squad &&
         "",
         "FIND_IN_SET(formdir,'newpatient') DESC, form_name, date DESC"
     ))) {
-    echo "<table width='100%' id='partable'>";
+    echo "<div><table id='partable'>";
     $divnos = 1;
     foreach ($result as $iter) {
         $formdir = $iter['formdir'];
@@ -1176,6 +1200,7 @@ if ($pass_sens_squad &&
                 echo "<a href='$rootdir/patient_file/encounter/delete_form.php?" .
                     "formname=" . $formdir .
                     "&id=" . $iter['id'] .
+                    "&formid="    . urlencode($iter['form_id']) .
                     "&encounter=". $encounter.
                     "&pid=".$pid.
                     "' class='css_button_small' title='" . xl('Delete this form') . "' onclick='top.restoreSession()'><span>" . xl('Delete') . "</span></a>";
@@ -1210,7 +1235,36 @@ if ($pass_sens_squad &&
         echo "</div></td></tr>";
         $divnos=$divnos+1;
     }
-    echo "</table>";
+    ?>
+    </table>
+    <div id='feesheet'>
+        <div><b>Fee Sheet</b></div>
+        <table>
+            <tr class="feesheet-head">
+                <th class='sheetcell'><?php echo xlt('Type');?></th>
+                <th class='sheetcell'><?php echo xlt('Code');?></th>
+                <th class='sheetcell'><?php echo xlt('Description');?></th>
+                <th class='sheetcell'><?php echo xlt('Modifiers');?></th>
+                <th class='sheetcell'><?php echo xlt('Units');?></th>
+                <th class='sheetcell'><?php echo xlt('Total Price');?></th>
+                <th class='sheetcell'><?php echo xlt('Justify');?></th>
+                <th class='sheetcell'><?php echo xlt('Note Codes');?></th>
+            </tr>
+    <?php
+        $res = sqlStatement("SELECT code_type,code,code_text,modifier,fee,units,justify,notecodes FROM billing WHERE pid=? and encounter=? and activity='1'", array($pid,$encounter));
+        while ($row = sqlFetchArray($res)) {
+            echo "<tr class='feesheet-body'>";
+                echo "<td class='sheetcell'>".$row['code_type']."</td>";
+                echo "<td class='sheetcell'>".$row['code']."</td>";
+                echo "<td class='sheetcell'>".$row['code_text']."</td>";
+                echo "<td class='sheetcell'>".$row['modifier']."</td>";
+                echo "<td class='sheetcell' style='text-align: right;'>".$row['units']."</td>";
+                echo "<td class='sheetcell' style='text-align: right;'>$ ".$row['fee']."</td>";
+                echo "<td class='sheetcell'>".$row['justify']."</td>";
+                echo "<td class='sheetcell'>".$row['notecodes']."</td>";
+            echo "</tr>";
+        }
+    echo "</table></div></div>";
 }
 if (!$pass_sens_squad) {
     echo xlt("Not authorized to view this encounter");

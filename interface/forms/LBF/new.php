@@ -67,6 +67,121 @@ function end_row()
     }
 }
 
+// addBilling() with support for this PHP file
+function addBilling2(
+    $encounter_id,
+    $code_type,
+    $code,
+    $code_text,
+    $pid,
+    $authorized = "0",
+    $provider,
+    $modifier = "",
+    $units = "",
+    $fee = "0.00",
+    $ndc_info = '',
+    $justify = '',
+    $billed = 0,
+    $notecodes = ''
+) {
+
+    $sql = "insert into billing (date, encounter, code_type, code, code_text, " .
+    "pid, authorized, user, groupname, activity, billed, provider_id, " .
+    "modifier, units, fee, ndc_info, justify, notecodes) values (" .
+    "NOW(), ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)";
+    return sqlStatement($sql, array( $encounter_id,$code_type,$code,$code_text,$pid,$authorized,$_SESSION['authId'],$_SESSION['authProvider'],$billed,$provider,$modifier,$units,$fee,$ndc_info,$justify,$notecodes));
+}
+
+// If it's an exam add the price to the fee sheet
+function chkExam($formname, $encounter, $pid) {
+    $res = sqlStatement("SELECT grp_title FROM layout_group_properties WHERE grp_form_id=? AND grp_group_id = '' AND grp_activity = 1",array($formname));
+    if($row = sqlFetchArray($res)) {
+        $grp_title = $row['grp_title'] != "Initial Visit" ? $row['grp_title'] : "Comprehensive New Patient";
+        $sqlS = "SELECT fs_codes FROM fee_sheet_options WHERE fs_option LIKE '%".$grp_title."'";
+        $cres = sqlStatement($sqlS);
+        if($crow = sqlFetchArray($cres)) {
+            $codes = explode("|", $crow['fs_codes']);
+            $drow = sqlStatement("SELECT code,code_text,modifier,pr_price FROM prices RIGHT JOIN codes ON prices.pr_id=codes.id WHERE codes.code=?",array($codes[1]));
+            if($dres = sqlFetchArray($drow)) {
+                //$userauthorized = $_SESSION['userauthorized']; // providerID it's always equal to 0, in case is needed uncomment this
+                //$providerID  =  findProvider($pid, $encounter); // make sure findProvider() works
+                //if ($providerID == '0') {
+                //    $providerID = $userauthorized;//who is the default provider?
+                //}
+                addBilling2($encounter, $codes[0], $dres['code'], $dres['code_text'], $pid, '1', "0", $dres['modifier'], '1', $dres['pr_price']);
+            }
+        }
+    }
+}
+
+//Add price of the treatments to the fee sheet
+function addValues($value, $list_id, $encounter, $pid) {
+    $values = explode('|', $value);
+    foreach($values as $val) {
+        $val = explode(":", $val);
+        if($val[1] == "1") {
+            $cres = sqlStatement("SELECT codes FROM list_options WHERE option_id=? AND list_id=?",array($val[0],$list_id));
+            if($crow = sqlFetchArray($cres)) {
+                $crow = explode(":", $crow['codes']);
+                $drow = sqlStatement("SELECT code,code_text,modifier,pr_price FROM prices RIGHT JOIN codes ON prices.pr_id=codes.id WHERE codes.code=?",array($crow[1]));
+                if($dres = sqlFetchArray($drow)) {
+                    //$userauthorized = $_SESSION['userauthorized']; // providerID it's always equal to 0, in case is needed uncomment this
+                    //$providerID  =  findProvider($pid, $encounter); // make sure findProvider() works
+                    //if ($providerID == '0') {
+                    //    $providerID = $userauthorized;//who is the default provider?
+                    //}
+                    addBilling2($encounter, $crow[0], $dres['code'], $dres['code_text'], $pid, '1', "0", $dres['modifier'], '1', $dres['pr_price']);
+                }
+            }
+        }
+    }
+}
+
+// Remove element of the fee sheet
+function remValues($value, $list_id, $encounter, $pid) {
+    $values = explode('|', $value);
+    foreach($values as $val) {
+        $val = explode(":", $val);
+        if($val[1] == "1") {
+            $cres = sqlStatement("SELECT codes FROM list_options WHERE option_id=? AND list_id=?",array($val[0],$list_id));
+            if($crow = sqlFetchArray($cres)) {
+                $crow = explode(":", $crow['codes']);
+                $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' ORDER BY id DESC LIMIT 1",array($crow[0], $crow[1], $pid, $encounter));
+                if($dres = sqlFetchArray($drow)) {
+                    sqlStatement("UPDATE billing SET activity=0 WHERE id=?", array($dres['id']));
+                }
+            }
+        }
+    }
+}
+
+//If some chage was made toe the appointements treatments, it adds or removes items of the fee sheet
+function chkValues($value, $list_id, $encounter, $pid, $formid, $field_id) {
+    if($value == "") {
+        remValues($value, $list_id, $encounter, $pid);
+    } else {
+        $ores = sqlStatement("SELECT field_value FROM lbf_data WHERE form_id=? AND field_id=?", array($formid, $field_id));
+        if($orow = sqlFetchArray($ores)) {
+            $oldv = $orow['field_value'];
+
+            $oldvalues = explode('|', $oldv);
+            $newvalues = explode('|', $value);
+            for($i = 0; $i < count($oldvalues); $i++) { // iterate all the values of the two arrays
+                $vo = explode(":", $oldvalues[$i]);
+                $vn = explode(":", $newvalues[$i]);
+
+                if($vo[1] != $vn[1]) {
+                    if($vo[1] == "0") {
+                        addValues($newvalues[$i], $list_id, $encounter, $pid);
+                    } else {
+                        remValues($oldvalues[$i], $list_id, $encounter, $pid);
+                    }
+                }
+            }
+        }
+    }
+}
+
 // $is_lbf is defined in trend_form.php and indicates that we are being
 // invoked from there; in that case the current encounter is irrelevant.
 $from_trend_form = !empty($is_lbf);
@@ -245,6 +360,10 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
 
         // It's a normal form field, save to lbf_data.
         if ($formid) { // existing form
+            if($data_type == 25) {
+                chkValues($value, $frow['list_id'], $encounter, $pid, $formid, $field_id); //update treatments on the fee sheet
+            }
+
             if ($value === '') {
                 $query = "DELETE FROM lbf_data WHERE " .
                     "form_id = ? AND field_id = ?";
@@ -261,8 +380,16 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
                     "( form_id, field_id, field_value ) VALUES ( ?, ?, ? )",
                     array($newid, $field_id, $value)
                 );
+                if($data_type == 25) {
+                    addValues($value, $frow['list_id'], $encounter, $pid); //add treatments to the fee sheet
+                }
+
             }
         }
+    }
+
+    if(isset($_POST['bn_save']) and !$formid) {
+        chkExam($formname, $encounter, $pid); // add an exam to the fee sheet
     }
 
     if ($portalid) {

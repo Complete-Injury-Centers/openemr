@@ -3269,7 +3269,6 @@ function display_layout_tabs_data_editable($formtype, $result1, $result2 = '')
         "WHERE form_id = ? AND uor > 0 " .
         "ORDER BY group_id", array($formtype));
 
-
     $first = true;
     $condition_str = '';
 
@@ -3735,12 +3734,13 @@ function dropdown_facility(
 // $fixedWidth is to flag whether width is fixed
 // $forceExpandAlways is a flag to force the widget to always be expanded
 //
-function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $buttonClass, $linkMethod, $bodyClass, $auth, $fixedWidth, $forceExpandAlways = false)
+function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $buttonClass, $linkMethod, $bodyClass, $auth, $fixedWidth, $forceExpandAlways = false, $titleStyle = "")
 {
+    $newStyle = empty($titleStyle) ? "" : " style='".$titleStyle."'"; // change style of the widget title
     if ($fixedWidth) {
-        echo "<div class='section-header'>";
+        echo "<div class='section-header'".$newStyle.">";
     } else {
-        echo "<div class='section-header-dynamic'>";
+        echo "<div class='section-header-dynamic'".$newStyle.">";
     }
 
     echo "<table><tr>";

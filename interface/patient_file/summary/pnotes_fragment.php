@@ -87,7 +87,7 @@ if (isset($_GET['docUpdateId'])) {
 //            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('To'), ENT_NOQUOTES) ."</b></td>\n";
             echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Date'), ENT_NOQUOTES) ."</b></td>\n";
 //            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Subject'), ENT_NOQUOTES) ."</b></td>\n";
-            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Content'), ENT_NOQUOTES) ."</b></td>\n";
+            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Patient Update Note'), ENT_NOQUOTES) ."</b></td>\n";
 //            echo "<td valign='top' class='text' ></td>\n";
             echo "</tr>\n";
             foreach ($result as $iter) {
@@ -138,6 +138,13 @@ if (isset($_GET['docUpdateId'])) {
             <b><?php echo $N;?></b><br>
             <a href='pnotes_full.php?s=0' onclick='top.restoreSession()'>
             <?php echo htmlspecialchars(xl('Click here to view them all.'), ENT_NOQUOTES); ?></a>
+            <?php
+            echo "<a class='css_button_small' style='float:right;' href='pnotes_full.php?form_active=1'";
+            if (!isset($_SESSION['patient_portal_onsite']) && !isset($_SESSION['patient_portal_onsite_two'])) {
+                // prevent an error from occuring when calling the function from the patient portal
+                echo " onclick='top.restoreSession()'";
+            }
+            echo "><span>Edit</span></a>"; ?>
         </span><?php
         } ?>
 

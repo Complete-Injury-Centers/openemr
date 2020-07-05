@@ -591,6 +591,12 @@ $(window).on('load', function() {
 
 </script>
 
+<script>
+  function resizeIframe(obj) {
+    obj.style.height = (obj.contentWindow.document.documentElement.scrollHeight - 12) + 'px'; // If some blacnk space is behind the box, change 12 to higer
+  }
+</script>
+
 <style type="css/text">
 
 #pnotes_ps_expand {
@@ -1193,16 +1199,17 @@ if ($insurance_count > 0) {
 <?php if (acl_check('patients', 'notes')) { ?>
         <tr>
             <td width='650px'>
+                <iframe src="./pnotes_full_add.php?docid=0&orderid=0&clean=1" frameborder="0" style="overflow:hidden;width:620px" scrolling="no" onload="resizeIframe(this)" ></iframe>
 <?php
 // Notes expand collapse widget
-$widgetTitle = xl("Messages");
+$widgetTitle = xl("Patient Update Section");
 $widgetLabel = "pnotes";
 $widgetButtonLabel = xl("Edit");
 $widgetButtonLink = "pnotes_full.php?form_active=1";
 $widgetButtonClass = "";
 $linkMethod = "html";
 $bodyClass = "notab";
-$widgetAuth = acl_check('patients', 'notes', '', 'write');
+$widgetAuth = false;
 $fixedWidth = true;
 expand_collapse_widget(
     $widgetTitle,
@@ -1213,7 +1220,9 @@ expand_collapse_widget(
     $linkMethod,
     $bodyClass,
     $widgetAuth,
-    $fixedWidth
+    $fixedWidth,
+    false, // this is just to fill the original parameters
+    "margin: 5px 0; border:solid 3px; padding: 5px;" // new ccs style for the widget title
 );
 ?>
                     <br/>
@@ -1221,7 +1230,6 @@ expand_collapse_widget(
                     </div>
                     <br/>
                 </div>
-                <iframe src="./pnotes_full_add.php?docid=0&orderid=0&clean=1" frameborder="0" style="height:200px; overflow: hidden; width: 500px"></iframe>
             </td>
         </tr>
 <?php } // end if notes authorized ?>
@@ -1835,6 +1843,201 @@ foreach ($photos as $photo_doc_id) {
     }
 
      /* End of recurrence widget */
+
+    // Show past appointments
+    if (isset($pid) && !$GLOBALS['disable_calendar'] && acl_check('patients', 'appt')) {
+        $current_date2 = date('Y-m-d');
+        $events = array();
+        $apptNum = (int)$GLOBALS['number_of_appts_to_show'];
+        if ($apptNum != 0) {
+            $apptNum2 = abs($apptNum);
+        } else {
+            $apptNum2 = 10;
+        }
+
+        //
+        $mode1 = !$GLOBALS['appt_display_sets_option'];
+        $colorSet1 = $GLOBALS['appt_display_sets_color_1'];
+        $colorSet2 = $GLOBALS['appt_display_sets_color_2'];
+        $colorSet3 = $GLOBALS['appt_display_sets_color_3'];
+        $colorSet4 = $GLOBALS['appt_display_sets_color_4'];
+        //
+        if ($mode1) {
+            $extraAppts = 1;
+        } else {
+            $extraAppts = 6;
+        }
+
+        $events = fetchPastXAppts($current_date2, $pid, $apptNum2 + $extraAppts, true);
+        //////
+        if ($events) {
+            $selectNum = 0;
+            $apptNumber = count($events);
+          //
+            if ($apptNumber <= $apptNum2) {
+                $extraApptDate = '';
+                //
+            } else if ($mode1 && $apptNumber == $apptNum2 + 1) {
+                $extraApptDate = $events[$apptNumber - 1]['pc_eventDate'];
+                array_pop($events);
+                --$apptNumber;
+                $selectNum = 1;
+                //
+            } else if ($apptNumber == $apptNum2 + 6) {
+                $extraApptDate = $events[$apptNumber - 1]['pc_eventDate'];
+                array_pop($events);
+                --$apptNumber;
+                $selectNum = 2;
+                //
+            } else { // mode 2 - $apptNum2 < $apptNumber < $apptNum2 + 6
+                $extraApptDate = '';
+                $selectNum = 2;
+                //
+            }
+
+          //
+            $limitApptIndx = $apptNum2 - 1;
+            $limitApptDate = $events[$limitApptIndx]['pc_eventDate'];
+          //
+            switch ($selectNum) {
+                //
+                case 2:
+                    $lastApptIndx = $apptNumber - 1;
+                    $thisNumber = $lastApptIndx - $limitApptIndx;
+                    for ($i = 1; $i <= $thisNumber; ++$i) {
+                        if ($events[$limitApptIndx + $i]['pc_eventDate'] != $limitApptDate) {
+                            $extraApptDate = $events[$limitApptIndx + $i]['pc_eventDate'];
+                            $events = array_slice($events, 0, $limitApptIndx + $i);
+                            break;
+                        }
+                    }
+
+                    //
+                case 1:
+                    $firstApptIndx = 0;
+                    for ($i = 1; $i <= $limitApptIndx; ++$i) {
+                        if ($events[$limitApptIndx - $i]['pc_eventDate'] != $limitApptDate) {
+                            $firstApptIndx = $apptNum2 - $i;
+                            break;
+                        }
+                    }
+
+                    //
+            }
+
+          //
+            if ($extraApptDate) {
+                if ($extraApptDate != $limitApptDate) {
+                    $apptStyle2 = " style='background-color:" . attr($colorSet3) . ";'";
+                } else {
+                    $apptStyle2 = " style='background-color:" . attr($colorSet4) . ";'";
+                }
+            }
+        }
+
+        //////
+
+        // appointments expand collapse widget
+        $widgetTitle = xl("Past Appointments");
+        $widgetLabel = "past_appointments";
+        $widgetButtonLabel = xl("Add");
+        $widgetButtonLink = "return newEvt();";
+        $widgetButtonClass = "";
+        $linkMethod = "javascript";
+        $bodyClass = "summary_item small";
+        $widgetAuth = false;
+        $fixedWidth = false;
+        expand_collapse_widget($widgetTitle, $widgetLabel, $widgetButtonLabel, $widgetButtonLink, $widgetButtonClass, $linkMethod, $bodyClass, $widgetAuth, $fixedWidth);
+        $count = 0;
+        //
+        $toggleSet = true;
+        $priorDate = "";
+        $therapyGroupCategories = array();
+        $query = sqlStatement("SELECT pc_catid FROM openemr_postcalendar_categories WHERE pc_cattype = 3 AND pc_active = 1");
+        while ($result = sqlFetchArray($query)) {
+            $therapyGroupCategories[] = $result['pc_catid'];
+        }
+
+        //
+        foreach ($events as $row) { //////
+            $count++;
+            $dayname = date("l", strtotime($row['pc_eventDate'])); //////
+            $dispampm = "am";
+            $disphour = substr($row['pc_startTime'], 0, 2) + 0;
+            $dispmin  = substr($row['pc_startTime'], 3, 2);
+            if ($disphour >= 12) {
+                $dispampm = "pm";
+                if ($disphour > 12) {
+                    $disphour -= 12;
+                }
+            }
+
+            $etitle = xl('(Click to edit)');
+            if ($row['pc_hometext'] != "") {
+                $etitle = xl('Comments').": ".($row['pc_hometext'])."\r\n".$etitle;
+            }
+
+            //////
+            if ($extraApptDate && $count > $firstApptIndx) {
+                $apptStyle = $apptStyle2;
+            } else {
+                if ($row['pc_eventDate'] != $priorDate) {
+                    $priorDate = $row['pc_eventDate'];
+                    $toggleSet = !$toggleSet;
+                }
+
+                if ($toggleSet) {
+                    $apptStyle = " style='background-color:" . attr($colorSet2) . ";'";
+                } else {
+                    $apptStyle = " style='background-color:" . attr($colorSet1) . ";'";
+                }
+            }
+
+            //////
+            echo "<div " . $apptStyle . ">";
+            if (!in_array($row['pc_catid'], $therapyGroupCategories)) {
+                echo "<a href='javascript:oldEvt(" . htmlspecialchars(preg_replace("/-/", "", $row['pc_eventDate']), ENT_QUOTES) . ', ' . htmlspecialchars($row['pc_eid'], ENT_QUOTES) . ")' title='" . htmlspecialchars($etitle, ENT_QUOTES) . "'>";
+            } else {
+                echo "<span title='" . htmlspecialchars($etitle, ENT_QUOTES) . "'>";
+            }
+
+            echo "<b>" . text(oeFormatShortDate($row['pc_eventDate'])) . ", ";
+            echo text(sprintf("%02d", $disphour) .":$dispmin " . xl($dispampm) . " (" . xl($dayname))  . ")</b> ";
+            if ($row['pc_recurrtype']) {
+                echo "<img src='" . $GLOBALS['webroot'] . "/interface/main/calendar/modules/PostCalendar/pntemplates/default/images/repeating8.png' border='0' style='margin:0px 2px 0px 2px;' title='".htmlspecialchars(xl("Repeating event"), ENT_QUOTES)."' alt='".htmlspecialchars(xl("Repeating event"), ENT_QUOTES)."'>";
+            }
+
+            echo "<span title='" . generate_display_field(array('data_type'=>'1','list_id'=>'apptstat'), $row['pc_apptstatus']) . "'>";
+            echo "<br>" . xlt('Status') . "( " . htmlspecialchars($row['pc_apptstatus'], ENT_NOQUOTES) . " ) </span>";
+            echo htmlspecialchars(xl_appt_category($row['pc_catname']), ENT_NOQUOTES) . "\n";
+            if (in_array($row['pc_catid'], $therapyGroupCategories)) {
+                echo "<br><span>" . xlt('Group name') .": " . text(getGroup($row['pc_gid'])['group_name']) . "</span>\n";
+            }
+
+            if ($row['pc_hometext']) {
+                echo " <span style='color:green'> Com</span>";
+            }
+
+            echo "<br>" . htmlspecialchars($row['ufname'] . " " . $row['ulname'], ENT_NOQUOTES);
+            echo !in_array($row['pc_catid'], $therapyGroupCategories) ? '</a>' : '<span>';
+            echo "</div>\n";
+            //////
+        }
+
+        if ($resNotNull) { //////
+            if ($count < 1) {
+                echo "&nbsp;&nbsp;" . htmlspecialchars(xl('None'), ENT_NOQUOTES);
+            } else { //////
+                if ($extraApptDate) {
+                    echo "<div style='color:#0000cc;'><b>" . attr($extraApptDate) . " ( + ) </b></div>";
+                } else {
+                    echo "<div><hr></div>";
+                }
+            }
+
+            echo "</div>";
+        }
+    } // End of Past Appointments.
 
     // Show PAST appointments.
     // added by Terry Hill to allow reverse sorting of the appointments

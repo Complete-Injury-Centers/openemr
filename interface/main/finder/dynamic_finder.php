@@ -35,11 +35,11 @@ while ($row = sqlFetchArray($res)) {
     ++$colcount;
 }
 
-$header .= "   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Referrals (Sent/Received)</th>\n   <th>Last Visit</th>\n";
+$header .= "   <th>Referral Date</th>\n   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Referrals (Sent/Received)</th>\n   <th>Last Visit</th>\n";
 for ($i=0; $i < 5; $i++) {
 	$header0 .= "   <td align='center'><input type='text' size='10' value='' class='search_init' /></td>\n";
 }
-$coljson .= ", {\"sName\": \"visits\"}, {\"sName\": \"scheduled\"}, {\"sName\": \"compliance\"}, {\"sName\": \"referrals\"}, {\"sName\": \"lastVisit\"}";
+$coljson .= ", {\"sName\": \"Referral_Date\"}, {\"sName\": \"visits\"}, {\"sName\": \"scheduled\"}, {\"sName\": \"compliance\"}, {\"sName\": \"referrals\"}, {\"sName\": \"lastVisit\"}";
 ?>
 <html>
 <head>

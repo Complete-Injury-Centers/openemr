@@ -1043,6 +1043,7 @@ if ($billresult) {
 				$modifier = $row['modifier'];
 				if($fee == 0) // in case the price is set to 0
                     $fee  = $row['pr_price'];
+                sqlStatement("UPDATE billing SET fee=?, modifier=? WHERE id=?", array($fee,$modifier,trim($iter['id']))); //update the field in the DB
             }
         }
 
