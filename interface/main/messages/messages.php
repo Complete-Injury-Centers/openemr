@@ -28,6 +28,14 @@ require_once("$srcdir/MedEx/API.php");
 
 use OpenEMR\Core\Header;
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require '../../../library/PHPMailer/src/Exception.php';
+require '../../../library/PHPMailer/src/PHPMailer.php';
+require '../../../library/PHPMailer/src/SMTP.php';
+
 $MedEx = new MedExApi\MedEx('MedExBank.com');
 
 if ($GLOBALS['medex_enable'] == '1') {
@@ -49,6 +57,51 @@ if (($_POST['setting_bootstrap_submenu']) ||
     ($_POST['rcb_selectors'])) {
     // These are not form elements. We only ever change them via ajax, so exit now.
     exit();
+}
+
+function send_email($subject, $body, $send_to) {
+    // Instantiation and passing `true` enables exceptions
+    $mail = new PHPMailer(true);
+
+    try {
+        //Server settings
+        $mail->SMTPDebug = SMTP::DEBUG_OFF; //SMTP::DEBUG_CONNECTION;                      // Enable verbose debug output
+        $mail->isSMTP();                                            // Send using SMTP
+        $mail->Host       = $_ENV['HOST'];                       // Set the SMTP server to send through
+        $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+        $mail->Username   = $_ENV['EMAIL_USERNAME'];                       // SMTP username
+        $mail->Password   = $_ENV['EMAIL_PASSWORD'];                         // SMTP password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 587;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+        //Recipients
+        $mail->setFrom($_ENV['EMAIL_USERNAME'], 'CIC Clinic');         // Add email sent from
+        $mail->addAddress($send_to);                                // Add a recipient
+        // $mail->addReplyTo('info@example.com', 'Information');
+        // $mail->addCC('cc@example.com');
+        // $mail->addBCC('bcc@example.com');
+
+        // Content
+        $mail->isHTML(true);                                        // Set email format to HTML
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+        echo "<script>console.log('Message has been sent')</script>";
+    } catch (Exception $e) {
+        // echo "<script>console.log('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
+    }
+}
+
+function find_doctor($patient_id) {
+    $res = sqlStatement("SELECT email FROM facility AS f LEFT JOIN form_encounter AS e ON e.facility_id=f.id WHERE e.pid=? ORDER BY e.date DESC LIMIT 1", array($patient_id));
+    if($row = sqlFetchArray($res)) {
+        $email = preg_replace('/\s+/', '', $row['email']);
+        $email = explode(",", $email);
+        return $email[0];
+        // return 'to@gmail.com';
+    }
+    return "";
 }
 
 ?>
@@ -81,6 +134,10 @@ if (($_POST['setting_bootstrap_submenu']) ||
         }
         .ui-datepicker-year {
             color: #000;
+        }
+        .important-label {
+            margin-right: 24px;
+            font-size: 10pt;
         }
 
     </style>
@@ -275,6 +332,18 @@ if (!empty($_REQUEST['go'])) { ?>
                             // In these cases a new note is created.
                             foreach ($reply_to as $patient) {
                                 addPnote($patient, $note, $userauthorized, '1', $form_note_type, $assigned_to, '', $form_message_status);
+                                if($_POST['important']) {
+                                    $res = sqlStatement("SELECT lname,fname,mname FROM patient_data WHERE id=?", array($patient));
+                                    if($row = sqlFetchArray($res)) {
+                                        $patient_name = $row['lname'] . ", ". $row['fname'] . (isset($row['mname']) ? " " . $row['mname'] : "");
+                                        $subject = "Patient Notification";
+                                        $body = "Your patient <b>" . $patient_name . "</b> has an alert in messages section.";
+                                        $send_to = find_doctor($patient);
+                                        if($send_to != "") {
+                                            send_email($subject, $body, $send_to);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -485,7 +554,6 @@ if (!empty($_REQUEST['go'])) { ?>
                         </tr>
                     </table>
 
-
                     <?php if ($noteid) { ?>
                         <!-- This is for displaying an existing note. -->
                         <input type="button" class="form-control btn btn-primary" id="newnote"
@@ -495,6 +563,11 @@ if (!empty($_REQUEST['go'])) { ?>
                         <input type="button" class="form-control btn btn-primary" id="cancel"
                                value="<?php echo xla('Cancel'); ?>">
                     <?php } else { ?>
+                        <!-- important checkbox -->
+                        <input type="checkbox" class="form-control" id="important"
+                            name="<?php echo xla('important'); ?>">
+                        <label for="important" class="important-label"><b class='addnew'><?php echo xlt('Important'); ?></b></label>
+
                         <!-- This is for displaying a new note. -->
                         <input type="button" class="form-control btn btn-primary" id="newnote"
                                value="<?php echo xla('Send message'); ?>">

@@ -52,6 +52,7 @@ header("Content-Type: application/json; charset=UTF-8");
 
 /** Initialize the DB connection used for the API */
 $conn = new mysqli($sqlconf["host"], $sqlconf["login"], $sqlconf["pass"], $sqlconf["dbase"]);
+$conn->set_charset("utf8");
 
 /** Quit if the connection fails as the API depends on it */
 if ($conn->connect_error) {

@@ -21,6 +21,6 @@ function get_patient()
 	global $conn;
     $queryPatientSQL = "SELECT * "
     	."FROM patient_data ORDER BY lname ASC, fname ASC";
-    return runSQL($queryPatientSQL);
+    return runSQL($queryPatientSQL, true);
 }
 ?>
