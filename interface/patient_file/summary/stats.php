@@ -6,6 +6,7 @@ include_once("../../globals.php");
 include_once("$srcdir/lists.inc");
 include_once("$srcdir/acl.inc");
 include_once("$srcdir/options.inc.php");
+require_once("$srcdir/clinical_rules.php");
 ?>
 
 <div id="patient_stats_summary">
@@ -19,6 +20,29 @@ include_once("$srcdir/options.inc.php");
             top.frames["RTop"].location=location;
         }
     }
+
+    $(document).ready(function(){
+        <?php if ($GLOBALS['enable_cdr'] && $GLOBALS['enable_cdr_crw']) { ?>
+        top.restoreSession();
+        $("#clinical_reminders_ps_expand").load("clinical_reminders_fragment.php", { 'embeddedScreen' : true }, function() {
+            // (note need to place javascript code here also to get the dynamic link to work)
+            $(".medium_modal").on('click', function(e) {
+                e.preventDefault();e.stopPropagation();
+                dlgopen('', '', 800, 200, '', '', {
+                    buttons: [
+                        {text: '<?php echo xla('Close'); ?>', close: true, style: 'default btn-sm'}
+                    ],
+                    onClosed: 'refreshme',
+                    allowResize: false,
+                    allowDrag: true,
+                    dialogId: 'demreminder',
+                    type: 'iframe',
+                    url: $(this).attr('href')
+                });
+            });
+        });
+        <?php } // end crw?>
+    });
 </script>
 
 <table id="patient_stats_issues">
@@ -120,6 +144,30 @@ if ($row_currentMed['size'] > 0) {
     }
 
     if (sqlNumRows($pres) > 0 || $arr[4] == 1) {
+        if($arr[0] == "Allergies") {
+            // Show Clinical Reminders for any user that has rules that are permitted.
+            $clin_rem_check = resolve_rules_sql('', '0', true, '', $_SESSION['authUser']);
+            if (!empty($clin_rem_check) && $GLOBALS['enable_cdr'] && $GLOBALS['enable_cdr_crw'] &&
+                acl_check('patients', 'alert')) {
+                echo "<tr><td>";
+                // clinical summary expand collapse widget
+                $widgetTitle = xl("Clinical Reminders");
+                $widgetLabel = "clinical_reminders";
+                $widgetButtonLabel = xl("Edit");
+                $widgetButtonLink = "../reminder/clinical_reminders.php?patient_id=".$pid;
+                ;
+                $widgetButtonClass = "";
+                $linkMethod = "html";
+                $bodyClass = "summary_item small";
+                $widgetAuth = acl_check('patients', 'alert', '', 'write');
+                $fixedWidth = false;
+                expand_collapse_widget($widgetTitle, $widgetLabel, $widgetButtonLabel, $widgetButtonLink, $widgetButtonClass, $linkMethod, $bodyClass, $widgetAuth, $fixedWidth);
+                echo "<br/>";
+                echo "<div style='margin-left:10px' class='text'><image src='../../pic/ajax-loader.gif'/></div><br/>";
+                echo "</div>";
+            } // end if crw
+        }
+
         $old_key=$key;
         if ($_POST['embeddedScreen']) {
             if ($GLOBALS['erx_enable'] && $key == "medication") {

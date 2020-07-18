@@ -346,27 +346,6 @@ $(document).ready(function(){
     $("#pnotes_ps_expand").load("pnotes_fragment.php");
     $("#disclosures_ps_expand").load("disc_fragment.php");
 
-    <?php if ($GLOBALS['enable_cdr'] && $GLOBALS['enable_cdr_crw']) { ?>
-      top.restoreSession();
-      $("#clinical_reminders_ps_expand").load("clinical_reminders_fragment.php", { 'embeddedScreen' : true }, function() {
-          // (note need to place javascript code here also to get the dynamic link to work)
-          $(".medium_modal").on('click', function(e) {
-              e.preventDefault();e.stopPropagation();
-              dlgopen('', '', 800, 200, '', '', {
-                  buttons: [
-                      {text: '<?php echo xla('Close'); ?>', close: true, style: 'default btn-sm'}
-                  ],
-                  onClosed: 'refreshme',
-                  allowResize: false,
-                  allowDrag: true,
-                  dialogId: 'demreminder',
-                  type: 'iframe',
-                  url: $(this).attr('href')
-              });
-          });
-      });
-    <?php } // end crw?>
-
     <?php if ($GLOBALS['enable_cdr'] && $GLOBALS['enable_cdr_prw']) { ?>
       top.restoreSession();
       $("#patient_reminders_ps_expand").load("patient_reminders_fragment.php");
@@ -1472,7 +1451,7 @@ while ($gfrow = sqlFetchArray($gfres)) {
     <div>
     <table>
     <tr>
-    <td>
+    <td valign="top" style="padding-right:8px;">
 
 <div>
     <?php
@@ -1510,7 +1489,7 @@ foreach ($photos as $photo_doc_id) {
     }
 ?>
 
-<br />
+<!-- <br /> -->
 </div>
 <div>
     <?php
@@ -1570,27 +1549,6 @@ foreach ($photos as $photo_doc_id) {
       </div>
     <?php
     }  // close advanced dir block
-
-    // Show Clinical Reminders for any user that has rules that are permitted.
-    $clin_rem_check = resolve_rules_sql('', '0', true, '', $_SESSION['authUser']);
-    if (!empty($clin_rem_check) && $GLOBALS['enable_cdr'] && $GLOBALS['enable_cdr_crw'] &&
-        acl_check('patients', 'alert')) {
-        // clinical summary expand collapse widget
-        $widgetTitle = xl("Clinical Reminders");
-        $widgetLabel = "clinical_reminders";
-        $widgetButtonLabel = xl("Edit");
-        $widgetButtonLink = "../reminder/clinical_reminders.php?patient_id=".$pid;
-        ;
-        $widgetButtonClass = "";
-        $linkMethod = "html";
-        $bodyClass = "summary_item small";
-        $widgetAuth = acl_check('patients', 'alert', '', 'write');
-        $fixedWidth = false;
-        expand_collapse_widget($widgetTitle, $widgetLabel, $widgetButtonLabel, $widgetButtonLink, $widgetButtonClass, $linkMethod, $bodyClass, $widgetAuth, $fixedWidth);
-        echo "<br/>";
-        echo "<div style='margin-left:10px' class='text'><image src='../../pic/ajax-loader.gif'/></div><br/>";
-        echo "</div>";
-    } // end if crw
 
       // Show current and upcoming appointments.
       //
@@ -2107,11 +2065,11 @@ foreach ($photos as $photo_doc_id) {
             echo "</div>";
         }
     }
-
     // END of past appointments
 ?>
         </div>
-
+    </td>
+    <td valign="top">
         <div id='stats_div'>
             <br/>
             <div style='margin-left:10px' class='text'><img src='../../pic/ajax-loader.gif'/></div><br/>

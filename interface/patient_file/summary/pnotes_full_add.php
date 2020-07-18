@@ -201,7 +201,7 @@ $urlparms = "docid=$docid&orderid=$orderid";
 
     <div style="margin: 5px 0; border:solid 2px; border-radius: 5px; padding: 5px; max-width: 1000px;">
         <div style='display: inline-block; margin-right: 5px;'>
-            <span class="title"><?php echo xlt('ADD NOTE - UPDATE (back office adds updates here as well') . $title_docname; ?></span>
+            <span class="title"><?php echo xlt('ADD NOTE - UPDATE (back office adds updates here as well)') . $title_docname; ?></span>
         </div>
         <div style='display: inline-block;'>
             <?php if ($noteid) { ?>
@@ -287,13 +287,19 @@ if ($noteid) {
 }
 ?>
     <!--<br/>-->
-   <textarea name='note' id='note' rows='4' cols='58'></textarea>
-   <br />
+    <textarea name='note' id='note' rows='4' cols='58'></textarea>
+
     <?php if ($noteid) { ?>
+    <br />
     <!-- existing note -->
     <a href="#" class="css_button" id="newnote" title="<?php echo htmlspecialchars(xl('Add as a new note'), ENT_QUOTES); ?>" ><span><?php echo htmlspecialchars(xl('Save as new note'), ENT_NOQUOTES); ?></span></a>
     <a href="#" class="css_button" id="appendnote" title="<?php echo htmlspecialchars(xl('Append to the existing note'), ENT_QUOTES); ?>"><span><?php echo htmlspecialchars(xl('Append this note'), ENT_NOQUOTES); ?></span></a>
     <?php } else { ?>
+    <!-- important checkbox -->
+    <input type="checkbox" id="important" name="<?php echo xla('important'); ?>">
+    <label for="important" style="font-size:10pt;"><b><?php echo xlt('Important'); ?></b></label>
+
+    <br />
     <a href="#" class="css_button" id="newnote" title="<?php echo htmlspecialchars(xl('Add as a new note'), ENT_QUOTES); ?>" ><span><?php echo htmlspecialchars(xl('Save as new note'), ENT_NOQUOTES); ?></span></a>
     <?php } ?>
 

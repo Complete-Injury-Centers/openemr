@@ -3779,30 +3779,32 @@ function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $butt
     htmlspecialchars($label, ENT_QUOTES) . "_ps_expand\")'><span class='text'><b>";
     echo htmlspecialchars($title, ENT_NOQUOTES) . "</b></span>";
 
-    if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
-        // collapse all entries in the patient portal
-        $text = xl('expand');
-    } else if (getUserSetting($label."_ps_expand")) {
-        $text = xl('collapse');
-    } else {
-        $text = xl('expand');
-    }
+    // if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
+    //     // collapse all entries in the patient portal
+    //     $text = xl('expand');
+    // } else if (getUserSetting($label."_ps_expand")) {
+    //     $text = xl('collapse');
+    // } else {
+    //     $text = xl('expand');
+    // }
+    $text = xl('collapse');
 
     echo " (<span class='indicator'>" . htmlspecialchars($text, ENT_QUOTES) .
     "</span>)</a></td>";
     echo "</tr></table>";
     echo "</div>";
-    if ($forceExpandAlways) {
-        // Special case to force the widget to always be expanded
-        $styling = "";
-    } else if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
-        // collapse all entries in the patient portal
-        $styling = "style='display:none'";
-    } else if (getUserSetting($label."_ps_expand")) {
-        $styling = "";
-    } else {
-        $styling = "style='display:none'";
-    }
+    // if ($forceExpandAlways) {
+    //     // Special case to force the widget to always be expanded
+    //     $styling = "";
+    // } else if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
+    //     // collapse all entries in the patient portal
+    //     $styling = "style='display:none'";
+    // } else if (getUserSetting($label."_ps_expand")) {
+    //     $styling = "";
+    // } else {
+    //     $styling = "style='display:none'";
+    // }
+    $styling = "";
 
     if ($bodyClass) {
         $styling .= " class='" . $bodyClass . "'";

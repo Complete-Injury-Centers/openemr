@@ -30,6 +30,13 @@ require_once($GLOBALS['srcdir'].'/options.inc.php');
 require_once($GLOBALS['srcdir'].'/gprelations.inc.php');
 
 use OpenEMR\Core\Header;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require '../../../library/PHPMailer/src/Exception.php';
+require '../../../library/PHPMailer/src/PHPMailer.php';
+require '../../../library/PHPMailer/src/SMTP.php';
 
 if ($_GET['set_pid']) {
     require_once($GLOBALS['srcdir'].'/pid.inc');
@@ -49,6 +56,19 @@ if ($docid) {
 } else if ($orderid) {
     $row = sqlQuery("SELECT patient_id FROM procedure_order WHERE procedure_order_id = ?", array($orderid));
     $patient_id = intval($row['patient_id']);
+}
+
+if($_POST['important']) {
+    $res = sqlStatement("SELECT lname,fname,mname FROM patient_data WHERE id=?", array($patient_id));
+    if($row = sqlFetchArray($res)) {
+        $patient_name = $row['lname'] . ", ". $row['fname'] . (isset($row['mname']) ? " " . $row['mname'] : "");
+        $subject = "Patient Notification";
+        $body = "Your patient <b>" . $patient_name . "</b> has an alert in messages section.";
+        $send_to = find_doctor($patient_id);
+        if($send_to != "") {
+            send_email($subject, $body, $send_to);
+        }
+    }
 }
 
 // Check authorization.
@@ -208,6 +228,52 @@ $result_sent = getSentPnotesByDate(
     '',
     $orderid
 );
+
+function send_email($subject, $body, $send_to) {
+    // Instantiation and passing `true` enables exceptions
+    $mail = new PHPMailer(true);
+
+    try {
+        //Server settings
+        $mail->SMTPDebug = SMTP::DEBUG_OFF; //SMTP::DEBUG_CONNECTION;                      // Enable verbose debug output
+        $mail->isSMTP();                                            // Send using SMTP
+        $mail->Host       = $_ENV['HOST'];                       // Set the SMTP server to send through
+        $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+        $mail->Username   = $_ENV['EMAIL_USERNAME'];                       // SMTP username
+        $mail->Password   = $_ENV['EMAIL_PASSWORD'];                         // SMTP password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+        $mail->Port       = 587;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+        //Recipients
+        $mail->setFrom($_ENV['EMAIL_USERNAME'], 'CIC Clinic');         // Add email sent from
+        $mail->addAddress($send_to);                                // Add a recipient
+        // $mail->addReplyTo('info@example.com', 'Information');
+        // $mail->addCC('cc@example.com');
+        // $mail->addBCC('bcc@example.com');
+
+        // Content
+        $mail->isHTML(true);                                        // Set email format to HTML
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+        // echo "<script>console.log('Message has been sent')</script>";
+    } catch (Exception $e) {
+        // echo "<script>console.log('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
+    }
+}
+
+function find_doctor($patient_id) {
+    $res = sqlStatement("SELECT f.email FROM facility AS f LEFT JOIN patient_data AS p ON p.refer_facilities=f.id WHERE p.id=?", array($patient_id));
+    if($row = sqlFetchArray($res)) {
+        $email = preg_replace('/\s+/', '', $row['email']);
+        $email = explode(",", $email);
+        return $email[0]; //comment just to not to send emails to people in testing env
+        // return 'example@gmail.com'; //change this for debug purposes
+
+    }
+    return "";
+}
 ?>
 <!DOCTYPE html>
 <html>
