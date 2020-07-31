@@ -1516,6 +1516,11 @@ if ($_GET['prov']==true) {
       /***************************************************************
       $qsql = sqlStatement("SELECT * FROM facility WHERE service_location != 0");
       ***************************************************************/
+        if(isset($eid)) {
+            $facilsaved = sqlStatement("SELECT e.pc_facility AS facilid FROM openemr_postcalendar_events AS e WHERE e.pc_eid=? LIMIT 1", array($eid));
+            $facilid = sqlFetchArray($facilsaved);
+        }
+
         $facils = getUserFacilities($_SESSION['authId']);
         $qsql = sqlStatement("SELECT users.id, users.username, users.facility_id as default_facility_id, users.facility as default_facility, facility.name as facility_name, users_facility.facility_id as facility_id FROM users LEFT JOIN users_facility ON users_facility.table_id=users.id LEFT JOIN facility ON facility.id=users_facility.facility_id WHERE users.id=".$_SESSION['authId']);
       /**************************************************************/
@@ -1531,8 +1536,11 @@ if ($_GET['prov']==true) {
                 // }
                 // if($facrow['default_facility_id'] != $facrow['facility_id']){
                     echo "<option value='" . attr($facrow['facility_id'])."'";
-                    if($facrow['facility_id'] == $facrow['default_facility_id'] ) {
-                        echo "selected";
+                    if(isset($facilid) && $facilid['facilid'] == $facrow['facility_id']) {
+                        echo " selected";
+                    }
+                    elseif($facrow['facility_id'] == $facrow['default_facility_id'] ) {
+                        echo " selected";
                         // echo $facrow['default_facility_id'];
                     }
                     echo ">" . text($facrow['facility_name']) . "</option>";

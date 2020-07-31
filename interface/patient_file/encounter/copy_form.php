@@ -13,11 +13,11 @@
 	$formValues = '';
 	$res = sqlStatement("SELECT field_id, field_value FROM lbf_data WHERE form_id = ".$id);
 	while ($row = sqlFetchArray($res)) {
-		$formValues .= "(" . $newNoteId . ", '" . $row['field_id'] . "', '" . $row['field_value'] . "'), ";
- 	}
+		$formValues .= '(' . $newNoteId . ', "' . str_replace('"', '\'', $row['field_id']) . '", "' . str_replace('"', '\'', $row['field_value']) . '"), ';
+	}
  	if ($formValues != '') {
- 		$formValues = rtrim($formValues, ', ');
-	 	sqlInsert("INSERT INTO `lbf_data`(form_id, field_id, field_value) VALUES ".$formValues);
+		$formValues = rtrim($formValues, ', ');
+		sqlInsert("INSERT INTO `lbf_data` (form_id, field_id, field_value) VALUES ".$formValues);
 	}
 	
 	//Add price of the treatments to the fee sheet
