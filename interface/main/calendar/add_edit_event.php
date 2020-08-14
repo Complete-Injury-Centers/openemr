@@ -48,6 +48,7 @@ require_once($GLOBALS['srcdir'].'/acl.inc');
 require_once($GLOBALS['srcdir'].'/patient_tracker.inc.php');
 require_once($GLOBALS['incdir']."/main/holidays/Holidays_Controller.php");
 require_once($GLOBALS['srcdir'].'/group.inc');
+require_once("../../sender.php");
 
  //Check access control
 if (!acl_check('patients', 'appt', '', array('write','wsome'))) {
@@ -139,7 +140,94 @@ if (empty($collectthis)) {
 
     <?php
 
+    function notifyPatient($eid) {
+        $patient = getInfoPatient($eid);
+        generateSMS($patient);
+    }
 
+    function getInfoPatient($eid) {
+        $query = 'SELECT '.
+            'e.pc_eventDate, e.pc_endDate, e.pc_startTime, e.pc_endTime, e.pc_duration, e.pc_recurrtype, e.pc_recurrspec, e.pc_recurrfreq, e.pc_catid, e.pc_eid, e.pc_gid, '.
+            'e.pc_title, e.pc_hometext, e.pc_apptstatus, '.
+            'p.fname, p.mname, p.lname, p.pid, p.pubpid, p.phone_home, p.phone_cell, '.
+            'p.hipaa_allowsms, p.hipaa_voice, '.
+            'p.hipaa_allowemail, p.email, u.fname AS ufname, u.mname AS umname, u.lname AS ulname, u.id AS uprovider_id, '.
+            'f.name, '.
+            'c.pc_catname, c.pc_catid, e.pc_facility '.
+            'FROM openemr_postcalendar_events AS e '.
+            'LEFT OUTER JOIN facility AS f ON e.pc_facility = f.id '.
+            'LEFT OUTER JOIN patient_data AS p ON p.pid = e.pc_pid '.
+            'LEFT OUTER JOIN users AS u ON u.id = e.pc_aid '.
+            'LEFT OUTER JOIN openemr_postcalendar_categories AS c ON c.pc_catid = e.pc_catid '.
+            'WHERE e.pc_eid='.$eid;
+        $res = sqlStatement($query);
+        if($row = sqlFetchArray($res)) {
+            return $row;
+        }
+    }
+
+    function generateSMS($p) {
+        if(!$p) return;
+        $greeting = date("H") < 12 ? "Good Morning" : "Good Afternoon";
+        $greeting = date("H") > 18 ? "Good Evening" : $greeting;
+
+        if($p['phone_home']) {
+            if($p['hipaa_allowsms'] != "NO") {
+                $phoneNumber = $p['phone_home'];
+                $message = $greeting." ".$p['fname']." ".$p['lname'].
+                        "! A new appointment has been scheduled for you with Complete Injury Centers ".$_ENV['STATE'].", ".
+                        $_ENV['STREET']." ".$_ENV['CITY'].", ".$_ENV['STATE'].", ".$_ENV['POSTAL']." on ".$p['pc_eventDate'].
+                        " at ".$p['pc_startTime'].", with Dr. ".$p['ufname']." ".$p['ulname'].
+                        ". Please respond to this text if you have any questions or need to reschedule your appointment.";
+            } else {
+                return "SMS couldn't been Sent";
+            }
+        } else {
+            $phoneNumber = $_ENV['PHONE'];
+            $message = $greeting.", ".$p['fname']." ".$p['lname'].
+                        " has not a phone registered for his appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
+                        ", with ".$p['ufname']." ".$p['ulname'].".";
+        }
+
+        $phoneNumber = $_ENV['DEBUG'] ? $_ENV['ADMIN_PHONE'] : $phoneNumber;
+        $message = $_ENV['DEBUG'] ? "DEBUG => ".$message : $message;
+
+        // echo "<script>console.log('sendSMS()');</script>";
+
+        echo "<script>";
+        echo "var data = JSON.stringify({".
+                '"to_numbers": ['.
+                    json_encode($phoneNumber) .
+                '],'.
+                '"user_id": '. json_encode($_ENV['USER_ID']) .','.
+                '"sender_group_type": '. json_encode($_ENV['SENDER_TYPE']) .','.
+                '"sender_group_id": '. json_encode($_ENV['GROUP_ID']) .','.
+                '"infer_country_code": true,'.
+                '"text": '. json_encode($message) .
+            "});";
+        // echo "console.log(data);";
+
+        echo "var xhr = new XMLHttpRequest();";
+
+        echo 'xhr.addEventListener("readystatechange", function () {'.
+                'if(this.readyState === this.DONE) {'.
+                    // 'console.log(this.responseText);'.
+                    'if(this.status === 200) {'.
+                        'console.log("The alert has been sent.");'.
+                    '}'.
+                '}'.
+            '});';
+
+        echo "xhr.open('POST', 'https://dialpad.com/api/v2/sms', false);";
+        echo "xhr.setRequestHeader('accept', 'application/json');";
+        echo "xhr.setRequestHeader('content-type', 'application/json');";
+        echo "xhr.setRequestHeader('authorization', 'Bearer ". $_ENV['TOKEN'] ."');";
+
+        // echo "console.log('sending data...');";
+        // echo "xhr.send(data);";
+        // echo "console.log('... after sending');";
+        echo "</script>";
+    }
 
     function InsertEventFull()
     {
@@ -427,6 +515,19 @@ if (empty($collectthis)) {
 //=============================================================================================================================
     if ($_POST['form_action'] == "duplicate") {
         $eid = InsertEventFull();
+
+        if(isset($eid)) {
+            if(isset($_POST['form_sms_alert'])) {
+                notifyPatient($eid);
+            }
+            if(isset($_POST['form_lawyer_alert'])) {
+                sendLawyerAppointmentAlert($eid);
+            }
+            if(isset($_POST['form_clinic_alert'])) {
+                sendClinicAppointmentAlert($eid);
+            }
+        }
+
         DOBandEncounter($eid);
     }
 
@@ -725,6 +826,18 @@ if (empty($collectthis)) {
          * ======================================================*/
 
             $eid = InsertEventFull();
+
+            if(isset($eid)) {
+                if(isset($_POST['form_sms_alert'])) {
+                    notifyPatient($eid);
+                }
+                if(isset($_POST['form_lawyer_alert'])) {
+                    sendLawyerAppointmentAlert($eid);
+                }
+                if(isset($_POST['form_clinic_alert'])) {
+                    sendClinicAppointmentAlert($eid);
+                }
+            }
         }
 
             // done with EVENT insert/update statements
@@ -1422,16 +1535,25 @@ if ($_GET['prov']==true) {
          <a href='add_edit_event.php?startampm=<?php echo attr($startm);?>&starttimeh=<?php echo attr($starth);?>&userid=<?php echo attr($uid);?>&starttimem=<?php echo attr($starttm);?>&date=<?php echo attr($dt);?>&catid=<?php echo attr($cid);?>'>
             <?php echo xlt('Patient');?></a>
          </li>
-         <li <?php echo $provider_class;?>>
-         <a href='add_edit_event.php?prov=true&startampm=<?php echo attr($startm);?>&starttimeh=<?php echo attr($starth);?>&userid=<?php echo attr($uid);?>&starttimem=<?php echo attr($starttm);?>&date=<?php echo attr($dt);?>&catid=<?php echo attr($cid);?>'>
-            <?php echo xlt('Provider');?></a>
-         </li>
+         <!-- <li < ?php echo $provider_class;?>>
+         <a href='add_edit_event.php?prov=true&startampm=< ?php echo attr($startm);?>&starttimeh=< ?php echo attr($starth);?>&userid=< ?php echo attr($uid);?>&starttimem=< ?php echo attr($starttm);?>&date=< ?php echo attr($dt);?>&catid=< ?php echo attr($cid);?>'>
+            < ?php echo xlt('Provider');?></a>
+         </li> -->
             <?php if ($have_group_global_enabled) :?>
          <li <?php echo $group_class ;?>>
             <a href='add_edit_event.php?group=true&startampm=<?php echo attr($startm);?>&starttimeh=<?php echo attr($starth);?>&userid=<?php echo attr($uid);?>&starttimem=<?php echo attr($starttm);?>&date=<?php echo attr($dt);?>&catid=<?php echo attr($cid);?>'>
             <?php echo xlt('Group');?></a>
          </li>
             <?php endif ?>
+          <li>&nbsp;&nbsp;&nbsp;&nbsp;</li>
+          <li>
+            <input type="checkbox" name="form_lawyer_alert" id="form_lawyer_alert" value="1" />
+            <label for="form_lawyer_alert"><?php echo xlt('Lawyer 1st Visit Confirmation'); ?></label>
+          </li>
+          <li>
+            <input type="checkbox" name="form_clinic_alert" id="form_clinic_alert" value="1" />
+            <label for="form_clinic_alert"><?php echo xlt('Clinic 1st Visit Confirmation'); ?></label>
+          </li>
         </ul>
 </th></tr>
 <tr><td colspan='10'>
@@ -1559,6 +1681,12 @@ if ($_GET['prov']==true) {
       //END (CHEMED) IF ?>
       </td>
       </select>
+      <td>
+        <input type='checkbox' name='form_sms_alert' id="form_sms_alert" value='1' checked />
+      </td>
+      <td colspan="2">
+        <label for="form_sms_alert"><?php echo xlt('Patient Appointment Notification'); ?></label>
+      </td>
     </tr>
     <tr>
         <td nowrap>

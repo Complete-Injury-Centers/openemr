@@ -45,6 +45,11 @@ td { font-size:10pt; }
  cursor: pointer;
 }
 
+.title {
+  background-color: white;
+  padding: 1px 4px;
+}
+
 </style>
 </head>
 
@@ -75,6 +80,9 @@ if ($userid) {
 }
 ?>
 
+<div class="title">
+  <h3>Marketing To Do</h3>
+</div>
 <br />
 <form method='post' name='theform' id="theform" action='addrbook_info_edit.php?userid=<?php echo attr($userid) ?>'>
 <center>
@@ -87,7 +95,7 @@ if ($userid) {
     </td>
   </tr>
   <tr>
-    <td nowrap><b><?php echo xlt('Information'); ?>:</b></td>
+    <td nowrap><b><?php echo xlt('Marketing Notes'); ?>:</b></td>
     <td>
     <textarea rows='8' cols='40' name='form_mkt_info' style='width:100%'
       wrap='virtual' class='inputtext'><?php echo text($row['mkt_info']) ?></textarea>

@@ -598,7 +598,7 @@ if ($ISSUE_TYPES['ippf_gcac'] && !$_POST['form_save']) {
   var title = "";
   var diagnosis = "";
   for (var i = 0; i <= selected.length - 1; i++) {
-      title += title == "" ? (selected[i].value ? selected[i].text : "") : (selected[i].value ? "/" + selected[i].text : "");
+      title += title == "" ? (selected[i].value ? selected[i].text.replace("/","-") : "") : (selected[i].value ? "/" + selected[i].text.replace("/","-") : "");
       diagnosis += diagnosis == "" ? (selected[i].value ? selected[i].getAttribute('data-code') || " " : "") : (selected[i].value ? ("/" + (selected[i].getAttribute('data-code') || " ")) : "");
   }
   f.form_title.value = title;
@@ -629,7 +629,12 @@ if ($ISSUE_TYPES['ippf_gcac'] && !$_POST['form_save']) {
 
  // Called by the deleteme.php window on a successful delete.
  function imdeleted() {
-  closeme();
+    var myboss = opener ? opener : parent;
+    if(myboss.refreshIssue) myboss.refreshIssue();
+    else if(myboss.reloadIssues) myboss.reloadIssues();
+    else myboss.location.reload();
+    
+    closeme();
  }
 
  function closeme() {
