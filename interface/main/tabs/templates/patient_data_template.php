@@ -170,7 +170,7 @@ function permission() {
         <div>
             <div class="" id="mkt-main"></div>
             <h5>
-                <a href="/tracker/">Tracker</a>
+                <a href="/tracker/" target="_blank">Tracker</a>
             </h5>
         </div>
     </div>
