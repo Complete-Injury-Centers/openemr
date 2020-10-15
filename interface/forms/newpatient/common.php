@@ -233,14 +233,14 @@ require_once($GLOBALS['srcdir'] . "/validation/validation_script.js.php"); ?>
 <table width='96%'>
 
  <tr>
-  <td width='33%' nowrap class='bold'><?php echo xlt('Consultation Brief Description'); ?>:</td>
-  <td width='34%' rowspan='2' align='center' valign='center' class='text'>
+  <!-- <td width='33%' nowrap class='bold'>< ?php echo xlt('Consultation Brief Description'); ?>:</td> -->
+  <td width='34%' rowspan='2' valign='center' class='text'>
    <table>
 
     <tr>
-     <td class='bold' nowrap><?php echo xlt('Visit Category:'); ?></td>
+     <!-- <td class='bold' nowrap><?php echo xlt('Visit Category:'); ?></td> -->
      <td class='text'>
-      <select class="form-control" name='pc_catid' id='pc_catid'>
+      <select class="form-control" name='pc_catid' id='pc_catid' style='display: none;'>
           <option value='_blank'>-- <?php echo xlt('Select One'); ?> --</option>
             <?php
             //Bring only patient ang group categories
@@ -331,7 +331,7 @@ if ($facilities) {
       </select>
      </td>
     </tr>
-    <tr>
+    <!-- <tr>
         <td class='bold' nowrap><?php echo xlt('Billing Facility'); ?>:</td>
         <td class='text'>
             <div id="ajaxdiv">
@@ -340,8 +340,8 @@ if ($facilities) {
             ?>
             </div>
         </td>
-     </tr>
-        <?php if ($GLOBALS['set_pos_code_encounter']) { ?>
+     </tr> -->
+        <?php if ($GLOBALS['set_pos_code_encounter'] and false) { ?>
         <tr>
             <td><span class='bold' nowrap><?php echo xlt('POS Code'); ?>: </span></td>
             <td colspan="6">
@@ -371,9 +371,9 @@ if ($facilities) {
 if ($sensitivities && count($sensitivities)) {
     usort($sensitivities, "sensitivity_compare");
 ?>
-   <td class='bold' nowrap><?php echo xlt('Sensitivity:'); ?></td>
+    <!-- <td class='bold' nowrap>< ?php echo xlt('Sensitivity:'); ?></td> -->
     <td class='text'>
-     <select class="form-control" name='form_sensitivity'>
+     <select class="form-control" name='form_sensitivity' style='display: none;'>
 <?php
 foreach ($sensitivities as $value) {
    // Omit sensitivities to which this user does not have access.
@@ -405,7 +405,7 @@ echo ">" . xlt('None'). "</option>\n";
 ?>
     </tr>
 
-    <tr<?php if (!$GLOBALS['gbl_visit_referral_source']) {
+    <tr <?php if (!$GLOBALS['gbl_visit_referral_source'] or true) {
         echo " style='visibility:hidden;'";
 } ?>>
      <td class='bold' nowrap><?php echo xlt('Referral Source'); ?>:</td>
@@ -436,7 +436,7 @@ echo ">" . xlt('None'). "</option>\n";
      </td>
     </tr>
 
-    <tr<?php if ($GLOBALS['ippf_specific']) {
+    <tr <?php if ($GLOBALS['ippf_specific'] or true) {
         echo " style='visibility:hidden;'";
 } ?>>
      <td class='bold' nowrap><?php echo xlt('Onset/hosp. date:'); ?></td>
@@ -467,7 +467,7 @@ foreach ($ISSUE_TYPES as $type => $dummy) {
     }
 }
 
-if ($issuesauth) {
+if ($issuesauth and false) {
 ?>
   <div style='float:left'>
 <?php echo xlt('Issues (Injuries/Medical/Allergy)'); ?>
@@ -484,13 +484,13 @@ if ($issuesauth) {
  </tr>
 
  <tr>
-  <td class='text' valign='top'>
+  <!-- <td class='text' valign='top'>
    <textarea name='reason' cols='40' rows='12' wrap='virtual' style='width:96%'
-    ><?php echo $viewmode ? text($result['reason']) : text($GLOBALS['default_chief_complaint']); ?></textarea>
-  </td>
+    >< ?php echo $viewmode ? text($result['reason']) : text($GLOBALS['default_chief_complaint']); ?></textarea>
+  </td> -->
   <td class='text' valign='top'>
 
-<?php if ($issuesauth) { ?>
+<?php if ($issuesauth and false) { ?>
    <select class="form-control" multiple name='issues[]' size='8' style='width:100%'
     title='<?php echo xla('Hold down [Ctrl] for multiple selections or to unselect'); ?>'>
 <?php

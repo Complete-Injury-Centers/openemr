@@ -28,7 +28,7 @@ if (!$_GET["id"] || !acl_check('admin', 'users')) {
 
 $res = sqlStatement("select * from users where id=?", array($_GET["id"]));
 for ($iter = 0; $row = sqlFetchArray($res); $iter++) {
-                $result[$iter] = $row;
+  $result[$iter] = $row;
 }
 
 $iter = $result[0];
@@ -70,7 +70,6 @@ var collectvalidation = <?php echo($collectthis); ?>;
   alert("<?php echo addslashes(xl('If you change e-RX Role for ePrescription, it may affect the ePrescription workflow. If you face any difficulty, contact your ePrescription vendor.'));?>");
 }
 function submitform() {
-
     var valid = submitme(1, undefined, 'user_form', collectvalidation);
     if (!valid) return;
 
@@ -79,33 +78,32 @@ function submitform() {
     <?php if (!$GLOBALS['use_active_directory']) { ?>
     if(document.forms[0].clearPass.value!="")
     {
-        //Checking for the strong password if the 'secure password' feature is enabled
-        if(document.forms[0].secure_pwd.value === 1)
-        {
-                    var pwdresult = passwordvalidate(document.forms[0].clearPass.value);
-                    if(pwdresult == 0) {
-                            flag=1;
-                            alert("<?php echo xls('The password must be at least eight characters, and should');
-                            echo '\n';
-                            echo xls('contain at least three of the four following items:');
-                            echo '\n';
-                            echo xls('A number');
-                            echo '\n';
-                            echo xls('A lowercase letter');
-                            echo '\n';
-                            echo xls('An uppercase letter');
-                            echo '\n';
-                            echo xls('A special character');
-                            echo '(';
-                            echo xls('not a letter or number');
-                            echo ').';
-                            echo '\n';
-                            echo xls('For example:');
-                            echo ' healthCare@09'; ?>");
-                            return false;
-                    }
+      //Checking for the strong password if the 'secure password' feature is enabled
+      if(document.forms[0].secure_pwd.value === 1)
+      {
+        var pwdresult = passwordvalidate(document.forms[0].clearPass.value);
+        if(pwdresult == 0) {
+          flag=1;
+          alert("<?php echo xls('The password must be at least eight characters, and should');
+          echo '\n';
+          echo xls('contain at least three of the four following items:');
+          echo '\n';
+          echo xls('A number');
+          echo '\n';
+          echo xls('A lowercase letter');
+          echo '\n';
+          echo xls('An uppercase letter');
+          echo '\n';
+          echo xls('A special character');
+          echo '(';
+          echo xls('not a letter or number');
+          echo ').';
+          echo '\n';
+          echo xls('For example:');
+          echo ' healthCare@09'; ?>");
+          return false;
         }
-
+      }
     }//If pwd null ends here
     <?php } ?>
     //Request to reset the user password if the user was deactived once the password expired.
@@ -187,19 +185,19 @@ function submitform() {
 }
 //Getting the list of selected item in ACL
 function getSelected(opt) {
-         var selected = new Array();
-            var index = 0;
-            for (var intLoop = 0; intLoop < opt.length; intLoop++) {
-               if ((opt[intLoop].selected) ||
-                   (opt[intLoop].checked)) {
-                  index = selected.length;
-                  selected[index] = new Object;
-                  selected[index].value = opt[intLoop].value;
-                  selected[index].index = intLoop;
-               }
-            }
-            return selected;
-         }
+  var selected = new Array();
+  var index = 0;
+  for (var intLoop = 0; intLoop < opt.length; intLoop++) {
+      if ((opt[intLoop].selected) ||
+          (opt[intLoop].checked)) {
+        index = selected.length;
+        selected[index] = new Object;
+        selected[index].value = opt[intLoop].value;
+        selected[index].index = intLoop;
+      }
+  }
+  return selected;
+}
 
 function authorized_clicked() {
  var f = document.forms[0];
@@ -309,7 +307,7 @@ for ($i=0; $i<$bg_count; $i++) {
 <td><span class=text><?php echo xlt('Last Name'); ?>: </span></td><td><input type=entry name=lname id=lname style="width:150px;"  class="form-control" value="<?php echo attr($iter["lname"]); ?>"><span class="mandatory"></span></td>
 <td><span class=text><?php echo xlt('Default Facility'); ?>: </span></td><td><select name=facility_id style="width:150px;" class="form-control">
 <?php
-$fres = $facilityService->getAllBillingLocations();
+$fres = $facilityService->getAllServiceLocations();
 if ($fres) {
     for ($iter2 = 0; $iter2 < sizeof($fres); $iter2++) {
                 $result[$iter2] = $fres[$iter2];
@@ -322,6 +320,8 @@ if ($fres) {
 } ?>><?php echo text($iter2['name']); ?></option>
 <?php
     }
+} else {
+  // echo "NOOOO!!!";
 }
 ?>
 </select></td>
@@ -329,7 +329,40 @@ if ($fres) {
 
 <?php if ($GLOBALS['restrict_user_facility']) { ?>
 <tr>
- <td colspan=2>&nbsp;</td>
+  <td><span class=text><?php echo xlt('Law Firms:');?></td>
+  <td>
+    <select name="law_firm[]" multiple style="width:150px;" class="form-control">
+  <?php
+    //sqlStatement("CREATE TABLE IF NOT EXISTS `users_lawyer` (`users_id` int(11) NOT NULL, `lawyer_id` int(11) NOT NULL, primary key (users_id, lawyer_id)) ENGINE=InnoDB");
+    $rez = sqlStatement("SELECT ul.users_id,ul.lawyer_id as id
+      FROM users_lawyer as ul
+      LEFT JOIN users as u on(ul.lawyer_id = u.id)
+      WHERE u.abook_type='lawyer_firm'
+      AND ul.users_id=?", array($_GET['id']));
+
+    $lawFirms = array();
+    while($row = sqlFetchArray($rez)) {
+      $lawFirms[] = $row;
+    }
+
+    $lfid = array();
+    foreach ($lawFirms as $lf) {
+      $lfid[] = $lf['id'];
+    }
+
+    $fres = sqlStatement("SELECT id,organization FROM users WHERE active='1' AND abook_type='lawyer_firm' AND organization!='' ORDER BY organization ASC");
+  if ($fres) {
+      foreach ($fres as $frow):
+  ?>
+    <option <?php echo in_array($frow['id'], $lfid) ? "selected" : null ?>
+            class="form-control" value="<?php echo attr($frow['id']); ?>"><?php echo text($frow['organization']) ?></option>
+  <?php
+      endforeach;
+  }
+  ?>
+    </select>
+  </td>
+
  <td><span class=text><?php echo xlt('Schedule Facilities:');?></td>
  <td>
   <select name="schedule_facility[]" multiple style="width:150px;" class="form-control">
@@ -473,6 +506,17 @@ foreach ($list_acl_groups as $value) {
   <td><span class=text><?php echo xlt('Additional Info'); ?>:</span></td>
   <td><textarea style="width:150px;" name="comments" wrap=auto rows=4 cols=25 class="form-control"><?php echo text($iter["info"]); ?></textarea></td>
 
+  </tr>
+  <tr>
+    <td><span class="text"><?php echo xlt('Out CIC User'); ?>: </span></td>
+    <td>
+      <input type="checkbox" name="outCIC" <?php echo $iter["externalUser"] == '1' ? " checked" : ""; ?> />
+    </td>
+
+    <td><span class="text"><?php echo xlt('Not Allow See Patients Info'); ?>: </span></td>
+    <td>
+      <input type="checkbox" name="justSee" <?php echo $iter["justSee"] == '1' ? " checked" : ""; ?> />
+    </td>
   </tr>
   <tr height="20" valign="bottom">
   <td colspan="4" class="text">

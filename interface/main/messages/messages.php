@@ -485,7 +485,6 @@ if (!empty($_REQUEST['go'])) { ?>
                         </tr>
                     </table>
 
-
                     <?php if ($noteid) { ?>
                         <!-- This is for displaying an existing note. -->
                         <input type="button" class="form-control btn btn-primary" id="newnote"

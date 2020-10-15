@@ -34,7 +34,17 @@ if (isset($_GET['docUpdateId'])) {
     return disappearPnote($_GET['docUpdateId']);
 }
 
+function permission() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? false : true; // If it's an external user, permision set to false
+    }
+    else {
+        return true;
+    }
+}
 ?>
+
 <?php if ($GLOBALS['portal_offsite_enable'] == 1) { ?>
 <ul class="tabNav">
   <li class="current" ><a href="#"><?php echo htmlspecialchars(xl('Inbox'), ENT_NOQUOTES); ?></a></li>
@@ -87,7 +97,7 @@ if (isset($_GET['docUpdateId'])) {
 //            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('To'), ENT_NOQUOTES) ."</b></td>\n";
             echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Date'), ENT_NOQUOTES) ."</b></td>\n";
 //            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Subject'), ENT_NOQUOTES) ."</b></td>\n";
-            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Content'), ENT_NOQUOTES) ."</b></td>\n";
+            echo "<td valign='top' class='text' ><b>". htmlspecialchars(xl('Patient Update Note'), ENT_NOQUOTES) ."</b></td>\n";
 //            echo "<td valign='top' class='text' ></td>\n";
             echo "</tr>\n";
             foreach ($result as $iter) {
@@ -136,8 +146,17 @@ if (isset($_GET['docUpdateId'])) {
             <span class='text'>
             <?php echo htmlspecialchars(xl('Displaying the following number of most recent notes:'), ENT_NOQUOTES); ?>
             <b><?php echo $N;?></b><br>
-            <a href='pnotes_full.php?s=0' onclick='top.restoreSession()'>
+            <a <?php echo permission() ? "href='pnotes_full.php?s=0' onclick='top.restoreSession()'" : '';?>>
             <?php echo htmlspecialchars(xl('Click here to view them all.'), ENT_NOQUOTES); ?></a>
+            <?php
+            if(permission()) {
+                echo "<a class='css_button_small' style='float:right;' href='pnotes_full.php?form_active=1'";
+                if (!isset($_SESSION['patient_portal_onsite']) && !isset($_SESSION['patient_portal_onsite_two'])) {
+                    // prevent an error from occuring when calling the function from the patient portal
+                    echo " onclick='top.restoreSession()'";
+                }
+                echo "><span>Edit</span></a>";
+            } ?>
         </span><?php
         } ?>
 
@@ -221,7 +240,7 @@ if (isset($_GET['docUpdateId'])) {
                     <span class='text'>
         <?php echo htmlspecialchars(xl('Displaying the following number of most recent notes'), ENT_NOQUOTES).":"; ?>
                         <b><?php echo $M;?></b><br>
-        <a href='pnotes_full.php?s=1' onclick='top.restoreSession()'><?php echo htmlspecialchars(xl('Click here to view them all.'), ENT_NOQUOTES); ?></a>
+        <a <?php echo permission() ? "href='pnotes_full.php?s=1' onclick='top.restoreSession()'" : ''; ?>><?php echo htmlspecialchars(xl('Click here to view them all.'), ENT_NOQUOTES); ?></a>
         </span>
                     <?php
                 } ?>

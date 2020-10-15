@@ -14,6 +14,16 @@
  * @copyright Copyright (c) 2018 Jerry Padgett <sjpadgett@gmail.com>
  * @license   https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
+
+function permission() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? "false" : "true"; // If it's an external user, permision set to false
+    }
+    else {
+        return "true";
+    }
+}
 ?>
 <script type="text/html" id="patient-data-template">
     <div>
@@ -89,7 +99,7 @@
                 <ul class="dropdown-menu" aria-labelledby="pastEncounters">
                     <!-- ko foreach:encounterArray -->
                     <li style="display: inline-flex;">
-                        <a href="#" data-bind="click:chooseEncounterEvent">
+                        <a href="#" data-bind="click:function(data,evt){chooseEncounterEvent(data,evt,<?php echo permission();?>)}">
                             <span data-bind="text:date"></span>
                             <span data-bind="text:category"></span>
                         </a>
@@ -157,6 +167,24 @@
         <!-- /ko -->
         <!-- /ko -->
         <!-- /ko -->
+        <div>
+            <div class="" id="mkt-main"></div>
+            <h5>
+                <a href="/tracker/">Tracker</a>
+            </h5>
+        </div>
     </div>
     <!-- /ko -->
 </script>
+
+<?php if(acl_check('admin', 'super')) :?>
+    <script>
+        window.onload = function(){
+            var item = document.getElementById("mkt-main");
+            
+            item.innerHTML = '<span onclick="navigateTab(`../../usergroup/addrbook_list.php`, `adm`);activateTabByName(`adm`,true);">' + 
+                '<h5><a href="#">Marketing</a></h5>' +
+            '</span>';
+        }
+    </script>
+<?php endif ?>

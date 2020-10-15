@@ -19,7 +19,7 @@ echo $result;
 function get_patient($fname, $lname, $dob)
 {
 	global $conn;
-    $queryPatientSQL = "SELECT pid, id, lname, fname, mname, refer_facilities "
+    $queryPatientSQL = "SELECT pid, id, lname, fname, mname, refer_facilities, ptstatus, doi "
     	."FROM patient_data "
     	."WHERE "
     		."fname = '".$conn->real_escape_string($fname)."' AND "

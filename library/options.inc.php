@@ -195,11 +195,15 @@ function generate_select_list(
 
     $got_selected = false;
 
+    $past_data = '';
     while ($lrow = sqlFetchArray($lres)) {
         $selectedValues = explode("|", $currvalue);
-
+        
         $optionValue = attr($lrow ['option_id']);
-        $s .= "<option value='$optionValue'";
+        if($optionValue==$past_data) {
+            continue;
+        }
+        $s .= "<option ".$i." value='$optionValue'";
 
         if ((strlen($currvalue) == 0 && $lrow ['is_default']) || (strlen($currvalue) > 0 && in_array($lrow ['option_id'], $selectedValues))) {
             $s .= " selected";
@@ -210,6 +214,7 @@ function generate_select_list(
         // the xl_list_label() function here
         $optionLabel = text($lrow ['title']);
         $s .= ">$optionLabel</option>\n";
+        $past_data = $optionValue;
     }
 
     /*
@@ -490,13 +495,14 @@ function generate_form_field($frow, $currvalue)
         while ($urow = sqlFetchArray($ures)) {
             $uname = text($urow['fname'] . ' ' . $urow['lname']);
             $optionId = attr($urow['id']);
-            echo "<option value='$optionId'";
-            if ($urow['id'] == $currvalue) {
-                echo " selected";
-                $got_selected = true;
+            if (acl_check('admin', 'super') || $urow['id'] == $_SESSION['authId']) {
+                echo "<option value='$optionId'";
+                if ($urow['id'] == $_SESSION['authId']) {
+                    echo " selected";
+                    $got_selected = true;
+                }
+                echo ">$uname</option>";
             }
-
-            echo ">$uname</option>";
         }
 
         if (!$got_selected && $currvalue) {
@@ -2010,7 +2016,7 @@ function generate_print_field($frow, $currvalue)
     }
 }
 
-function generate_display_field($frow, $currvalue)
+function generate_display_field($frow, $currvalue, $facility_show_city=false)
 {
     global $ISSUE_TYPES, $facilityService;
 
@@ -2403,7 +2409,11 @@ function generate_display_field($frow, $currvalue)
     } // facility
     else if ($data_type == 35) {
         $urow = $facilityService->getById($currvalue);
-        $s = htmlspecialchars($urow['name'], ENT_NOQUOTES);
+        if($facility_show_city)
+            $s = htmlspecialchars($urow['city'], ENT_NOQUOTES);
+        else
+            $s = htmlspecialchars($urow['name'], ENT_NOQUOTES);
+        
     } // Multi select
   //  Supports backup lists
     else if ($data_type == 36) {
@@ -2924,7 +2934,7 @@ function getLayoutProperties($formtype, &$grparr, $sel = "grp_title")
     }
 }
 
-function display_layout_rows($formtype, $result1, $result2 = '')
+function display_layout_rows($formtype, $result1, $result2 = '', $fac_show_city=false)
 {
     global $item_count, $cell_count, $last_group, $CPR;
 
@@ -3030,8 +3040,8 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             } else {
                 echo "&nbsp;";
             }
-
-          // Handle starting of a new data cell.
+            
+            // Handle starting of a new data cell.
             if ($datacols > 0) {
                 disp_end_cell();
                 //echo "<td class='text data' colspan='$datacols' valign='top'";
@@ -3043,7 +3053,7 @@ function display_layout_rows($formtype, $result1, $result2 = '')
             }
 
             ++$item_count;
-            echo generate_display_field($frow, $currvalue);
+            echo generate_display_field($frow, $currvalue, $fac_show_city);
         }
     }
 
@@ -3119,6 +3129,8 @@ function display_layout_tabs_data($formtype, $result1, $result2 = '')
                 $list_id       = $group_fields['list_id'];
                 $currvalue     = '';
                 $edit_options  = $group_fields['edit_options'];
+
+                if($field_id == "only_admin" && !acl_check('admin', 'super')) continue;
 
                 if ($formtype == 'DEM') {
                     if (strpos($field_id, 'em_') === 0) {
@@ -3291,6 +3303,8 @@ function display_layout_tabs_data_editable($formtype, $result1, $result2 = '')
                 $backup_list = $group_fields['list_backup_id'];
                 $currvalue  = '';
                 $action     = 'skip';
+
+                if($field_id == "only_admin" && !acl_check('admin', 'super')) continue;
 
                 // Accumulate action conditions into a JSON expression for the browser side.
                 accumActionConditions($field_id, $condition_str, $group_fields['conditions']);
@@ -3632,7 +3646,11 @@ function dropdown_facility(
     global $facilityService;
 
     $have_selected = false;
-    $fres = $facilityService->getAll();
+    if (acl_check('admin', 'super')) {
+        $fres = $facilityService->getAll();
+    } else {
+        $fres = sqlStatement("SELECT  facility.name as name, users_facility.facility_id as id, users.facility as default_facility, users.facility_id as default_id FROM users LEFT JOIN users_facility ON users_facility.table_id=users.id LEFT JOIN facility ON facility.id=users_facility.facility_id WHERE users.id=".$_SESSION['authId']." OR users.facility=facility.id");
+    }
 
     $name = htmlspecialchars($name, ENT_QUOTES);
     echo "   <select class='form-control' name='$name' id='$name'";
@@ -3664,6 +3682,7 @@ function dropdown_facility(
         echo "    <option value=\"$option_value\" $option_selected_attr>$option_content</option>\n";
     }
 
+    $index = 0;
     foreach ($fres as $frow) {
         $facility_id = $frow['id'];
         $option_value = htmlspecialchars($facility_id, ENT_QUOTES);
@@ -3674,7 +3693,12 @@ function dropdown_facility(
         }
 
         $option_content = htmlspecialchars($frow['name'], ENT_NOQUOTES);
+        if(!$index && !acl_check('admin', 'super') && $frow['id'] != $frow['default_id']) {
+            echo "<option value=\"".htmlspecialchars($frow['default_id'], ENT_QUOTES)."\">".htmlspecialchars($frow['default_facility'], ENT_NOQUOTES)."</option>\n";
+        }
+
         echo "    <option value=\"$option_value\" $option_selected_attr>$option_content</option>\n";
+        $index++;
     }
 
     if ($allow_unspecified && $allow_allfacilities) {
@@ -3714,12 +3738,13 @@ function dropdown_facility(
 // $fixedWidth is to flag whether width is fixed
 // $forceExpandAlways is a flag to force the widget to always be expanded
 //
-function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $buttonClass, $linkMethod, $bodyClass, $auth, $fixedWidth, $forceExpandAlways = false)
+function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $buttonClass, $linkMethod, $bodyClass, $auth, $fixedWidth, $forceExpandAlways = false, $titleStyle = "")
 {
+    $newStyle = empty($titleStyle) ? "" : " style='".$titleStyle."'"; // change style of the widget title
     if ($fixedWidth) {
-        echo "<div class='section-header'>";
+        echo "<div class='section-header'".$newStyle.">";
     } else {
-        echo "<div class='section-header-dynamic'>";
+        echo "<div class='section-header-dynamic'".$newStyle.">";
     }
 
     echo "<table><tr>";
@@ -3758,30 +3783,32 @@ function expand_collapse_widget($title, $label, $buttonLabel, $buttonLink, $butt
     htmlspecialchars($label, ENT_QUOTES) . "_ps_expand\")'><span class='text'><b>";
     echo htmlspecialchars($title, ENT_NOQUOTES) . "</b></span>";
 
-    if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
-        // collapse all entries in the patient portal
-        $text = xl('expand');
-    } else if (getUserSetting($label."_ps_expand")) {
-        $text = xl('collapse');
-    } else {
-        $text = xl('expand');
-    }
+    // if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
+    //     // collapse all entries in the patient portal
+    //     $text = xl('expand');
+    // } else if (getUserSetting($label."_ps_expand")) {
+    //     $text = xl('collapse');
+    // } else {
+    //     $text = xl('expand');
+    // }
+    $text = xl('collapse');
 
     echo " (<span class='indicator'>" . htmlspecialchars($text, ENT_QUOTES) .
     "</span>)</a></td>";
     echo "</tr></table>";
     echo "</div>";
-    if ($forceExpandAlways) {
-        // Special case to force the widget to always be expanded
-        $styling = "";
-    } else if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
-        // collapse all entries in the patient portal
-        $styling = "style='display:none'";
-    } else if (getUserSetting($label."_ps_expand")) {
-        $styling = "";
-    } else {
-        $styling = "style='display:none'";
-    }
+    // if ($forceExpandAlways) {
+    //     // Special case to force the widget to always be expanded
+    //     $styling = "";
+    // } else if (isset($_SESSION['patient_portal_onsite']) || isset($_SESSION['patient_portal_onsite_two'])) {
+    //     // collapse all entries in the patient portal
+    //     $styling = "style='display:none'";
+    // } else if (getUserSetting($label."_ps_expand")) {
+    //     $styling = "";
+    // } else {
+    //     $styling = "style='display:none'";
+    // }
+    $styling = "";
 
     if ($bodyClass) {
         $styling .= " class='" . $bodyClass . "'";

@@ -346,6 +346,7 @@ function ImgProcedure() {literal}{{/literal}
 	</tr>
 </table>
 <script language='JavaScript'>
+{if $permission}
 {literal}
 $('.btn-toggle').click(function() {
     $(this).find('.btn').toggleClass('active');
@@ -359,4 +360,5 @@ $('.btn-toggle').click(function() {
     $("#DocProperties").css('display', show_prop);
 });
 {/literal}
+{/if}
 </script>

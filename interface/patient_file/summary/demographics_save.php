@@ -3,6 +3,7 @@ include_once("../../globals.php");
 include_once("$srcdir/patient.inc");
 include_once("$srcdir/acl.inc");
 include_once("$srcdir/options.inc.php");
+include_once("../../sender.php");
 
 // Check authorization.
 if ($pid) {
@@ -158,5 +159,10 @@ newInsuranceData(
     filter_input(INPUT_POST, 'i3accept_assignment'),
     filter_input(INPUT_POST, 'i3policy_type')
 );
+
+if($_POST['form_lop_request_dem'] == "1") {
+    // send email
+    sendLOPRequest($pid);
+}
 
  include_once("demographics.php");

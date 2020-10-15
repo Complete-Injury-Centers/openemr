@@ -268,6 +268,43 @@ if ($fres) {
 ?>
 </select></td>
 </tr>
+
+<?php if ($GLOBALS['restrict_user_facility']) { ?>
+<tr>
+  <td><span class=text><?php echo xlt('Law Firms:');?></td>
+  <td>
+    <select name="law_firm[]" multiple style="width:150px;" class="form-control">
+  <?php
+    $fres = sqlStatement("SELECT id,organization FROM users WHERE active='1' AND abook_type='lawyer_firm' AND organization!='' ORDER BY organization ASC");
+  if ($fres) {
+      foreach ($fres as $frow):
+  ?>
+    <option class="form-control" value="<?php echo attr($frow['id']); ?>"><?php echo text($frow['organization']) ?></option>
+  <?php
+      endforeach;
+  }
+  ?>
+    </select>
+  </td>
+
+ <td><span class=text><?php echo xlt('Schedule Facilities:');?></td>
+ <td>
+  <select name="schedule_facility[]" multiple style="width:150px;" class="form-control">
+<?php
+  $fres = $facilityService->getAllServiceLocations();
+    if ($fres) {
+        foreach ($fres as $frow) :
+?>
+            <option class="form-control" value="<?php echo attr($frow['id']); ?>"><?php echo text($frow['name']) ?></option>
+<?php
+        endforeach;
+    }
+?>
+  </select>
+ </td>
+</tr>
+<?php } ?>
+
 <tr>
 <td><span class="text"><?php echo xlt('Federal Tax ID'); ?>: </span></td><td><input type=entry name='federaltaxid' style="width:120px;" class="form-control"></td>
 <td><span class="text"><?php echo xlt('Federal Drug ID'); ?>: </span></td><td><input type=entry name='federaldrugid' style="width:120px;" class="form-control"></td>
@@ -382,6 +419,12 @@ foreach ($list_acl_groups as $value) {
   <td><span class="text"><?php echo xlt('Additional Info'); ?>: </span></td>
   <td><textarea name=info style="width:120px;" cols=27 rows=4 wrap=auto class="form-control"></textarea></td>
 
+  </tr>
+  <tr>
+    <td><span class="text"><?php echo xlt('Out CIC User'); ?>: </span></td>
+    <td>
+      <input type="checkbox" name="outCIC" />
+    </td>
   </tr>
   <tr height="25"><td colspan="4">&nbsp;</td></tr>
 

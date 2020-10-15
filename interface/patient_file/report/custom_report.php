@@ -40,6 +40,8 @@ $GLOBALS['PATIENT_REPORT_ACTIVE'] = true;
 
 $PDF_OUTPUT = empty($_POST['pdf']) ? 0 : intval($_POST['pdf']);
 
+$last_doctor = array(); // For last esign on document
+
 if ($PDF_OUTPUT) {
 /*   composer bootstrap loads classes for mPDF */
     $pdf = new mPDF(
@@ -78,6 +80,7 @@ $auth_coding   = acl_check('encounters', 'coding');
 $auth_relaxed  = acl_check('encounters', 'relaxed');
 $auth_med      = acl_check('patients', 'med');
 $auth_demo     = acl_check('patients', 'demo');
+$form_encounter = null;
 
 $esignApi = new Api();
 
@@ -200,9 +203,28 @@ if ($printable) {
   $sql = "SELECT * FROM facility ORDER BY billing_location DESC LIMIT 1";
   *******************************************************************/
     $titleres = getPatientData($pid, "fname,lname,providerID,refer_facilities,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS,DATE_FORMAT(DOI,'%m/%d/%Y') as DOI_TS");
+    $provider = sqlQuery("SELECT id, fname, lname, username, npi " .
+    "FROM users WHERE id = '".$titleres["providerID"]."'");
     $facility = $facilityService->getById($titleres['refer_facilities']);
     $main_header = xlt("PATIENT") . ':' . text($titleres['lname']) . ', ' . text($titleres['fname']) . ' DOB: ' . $titleres['DOB_TS'] . ' DOI: ' . $titleres['DOI_TS'] . '<br><img style="margin-left: ' . ($titleres['refer_facilities'] == 23 ? '40' : '110') . 'px; height: 60px" src="../../../sites/default/images/' . ($titleres['refer_facilities'] == 23 ? 'report-header-pi.png' : 'report-header.png') . '	"><hr />';
-    $main_footer = xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651';
+    // $main_footer = xlt('Generated on') . ' ' . text(oeFormatShortDate()) . ' - Complete Injury Centers - 214-666-6651';
+
+    $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $provider['username'] . ".png";
+    $foot_sign = "";
+    if (is_file($signature_image)) {
+        $encoded_image = base64_encode(file_get_contents($signature_image));
+        $foot_sign = "<img class='signature' style='max-width:50px' src='data:image/png;base64," . $encoded_image . "'>";
+    }
+
+    $main_footer = '
+    <table width="100%">
+        <tr>'.
+            // '<td width="33%">{DATE j-m-Y}</td>
+            // <td width="33%" align="center">{PAGENO}/{nbpg}</td>'.
+            '<td width="33%" style="text-align: right;">Dr. '.$provider['fname'].' '.$provider['lname']. ' - '. $provider['npi'].' '.$foot_sign.'</td>
+        </tr>
+    </table>
+    ';
 
     if ($PDF_OUTPUT) {
 	    $pdf->SetHTMLHeader($main_header);
@@ -232,12 +254,19 @@ if ($printable) {
         echo "</td><td>";
     }
     ?>
-<?php echo $facility['street'] ?><br>
-<?php echo $facility['city'] ?>, <?php echo $facility['state'] ?> <?php echo $facility['postal_code'] ?><br clear='all'>
-214-666-6651<br>
+<?php
+if (isset($_ENV["STREET"]) && isset($_ENV["CITY"]) && isset($_ENV["STATE"]) && isset($_ENV["POSTAL"]) && isset($_ENV["PHONE"])) {
+    echo $_ENV['STREET']."<br>";
+    echo $_ENV['CITY'].", ". $_ENV['STATE'] ." ". $_ENV['POSTAL']." <br clear='all'>";
+    echo $_ENV['PHONE']."<br>";
+} else {
+    echo $facility['street']."<br>";
+    echo $facility['city']." , ". $facility['state'] ." ". $facility['postal_code']." <br clear='all'>";
+    echo "214-666-6651<br>";
+}
+?>
 
 <a href="javascript:window.close();"><span class='title'><?php echo $titleres['fname'] . " " . $titleres['lname']; ?></span></a><br>
-<span class='text'><?php xl('Generated on', 'e'); ?>: <?php echo text(oeFormatShortDate()); ?></span>
 <?php echo "</td></tr></tbody></table></div>";?>
 
 <?php
@@ -382,10 +411,10 @@ foreach ($ar as $key => $val) {
             echo "<div class='text demographics' id='DEM'>\n";
             print "<h1>".xl('Patient Data').":</h1>";
             // printRecDataOne($patient_data_array, getRecPatientData ($pid), $N);
-            $result1 = getPatientData($pid);
+            $result1 = getPatientData($pid, "title,city,postal_code,street,state,phone_home,phone_cell, fname,mname, lname,doi,DOB, refer_facilities,sex,DATE_FORMAT(DOB,'%m/%d/%Y') as DOB_TS");
             $result2 = getEmployerData($pid);
             echo "   <table>\n";
-            display_layout_rows('DEM', $result1, $result2);
+            display_layout_rows('DEM', $result1, $result2, true);
             echo "   </table>\n";
             echo "</div>\n";
         } elseif ($val == "history") {
@@ -794,6 +823,13 @@ foreach ($ar as $key => $val) {
                 }
 
                 $esign = $esignApi->createFormESign($formId, $res[1], $form_encounter);
+
+                $final_esign_query = "SELECT E.id, E.tid, E.table, E.uid, U.fname, U.lname, U.username, U.npi, E.datetime, E.is_lock, E.amendment, E.hash, E.signature_hash FROM esign_signatures E JOIN users U ON E.uid = U.id WHERE E.tid = ? AND E.table = ? ORDER BY E.datetime ASC;";
+                $result_esign = sqlQuery($final_esign_query, array($formId, 'forms' ));
+                if($result_esign['username']) {
+                    $last_doctor = $result_esign;
+                }
+                
                 if ($esign->isLogViewable("report")) {
                     $esign->renderLog();
                 }
@@ -827,8 +863,28 @@ foreach ($ar as $key => $val) {
     } // end if('include_')... else...
 } // end $ar loop
 
-if ($printable && ! $PDF_OUTPUT) {// Patched out of pdf 04/20/2017 sjpadgett
-    echo "<br /><br />" . xl('Signature') . ": _______________________________<br />";
+if ($printable || $PDF_OUTPUT) {// Patched out of pdf 04/20/2017 sjpadgett
+    $sign_data = '';
+    if(count($last_doctor)) {
+        $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $last_doctor['username'] . ".png";
+        $sign_data = "<br />" . xl('Signature') . ": <u>Dr. ".$last_doctor['fname']." ".$last_doctor['lname']. " - ".$last_doctor['npi']."</u><br />";
+    } else {
+        $signature_image = $GLOBALS['OE_SITE_DIR'] . "/signatures/" . $provider['username'] . ".png";
+        $sign_data = "<br />" . xl('Signature') . ": <u>Dr. ".$provider['fname']." ".$provider['lname']. " - ".$provider['npi']."</u><br />";
+    }
+
+    if (is_file($signature_image)) {
+        $encoded_image = base64_encode(file_get_contents($signature_image));
+        $s = "<br />";
+        for($i=0; $i<20; $i++) {
+            $s.="&nbsp;";
+        }
+        $s .= "<img class='signature' style='max-width:200px' src='data:image/png;base64," . $encoded_image . "'>";
+        echo $s;
+        echo $sign_data;
+    } else {
+        echo "<br /><br />" . xl('Signature') . ": _______________________________<br />";
+    }
 }
 ?>
 

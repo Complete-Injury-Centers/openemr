@@ -50,13 +50,14 @@
 	font-style: italic;
 }
 .esign-log-row-container {
+	background-color: pink;
 	border-bottom: 1px dashed;
 	padding-top: 4px;
 	padding-bottom: 4px;
 }
 
 .esign-log-row-container.locked {
-	background-color: pink;
+	background-color: #92da98;
 }
 
 .span3 {

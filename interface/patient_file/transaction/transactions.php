@@ -6,6 +6,16 @@ use OpenEMR\Core\Header;
 include_once("../../globals.php");
 include_once("$srcdir/transactions.inc");
 require_once("$srcdir/options.inc.php");
+
+function permission() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? false : true; // If it's an external user, permision set to false
+    }
+    else {
+        return true;
+    }
+}
 ?>
 <html>
 <head>
@@ -34,7 +44,7 @@ require_once("$srcdir/options.inc.php");
     <div class="btn-group">
         <a href="../summary/demographics.php" class="btn btn-default btn-back" onclick="top.restoreSession()">
             <?php echo xlt('Back to Patient'); ?></a>
-        <a href="add_transaction.php" class="btn btn-default btn-add" onclick="top.restoreSession()">
+        <a <?php echo permission() ? "href='add_transaction.php'" : ""; ?> class="btn btn-default btn-add" onclick="top.restoreSession()">
             <?php echo xlt('Add'); ?></a>
         <a href="print_referral.php" class="btn btn-default btn-print" onclick="top.restoreSession()">
             <?php echo xlt('View Blank Referral Form'); ?></a>
@@ -85,14 +95,14 @@ require_once("$srcdir/options.inc.php");
                                         <?php echo text($view); ?>
                                     </a>
                                 <?php } ?>
-                                <a href='add_transaction.php?transid=<?php echo attr($id); ?>&title=<?php echo attr($title); ?>&inmode=edit'
+                                <a <?php echo permission() ? 'href="add_transaction.php?transid='. attr($id) .'&title='. attr($title) .'&inmode=edit"' : ''; ?>
                                     onclick='top.restoreSession()'
                                     class='btn btn-default btn-edit'>
                                     <?php echo text($edit); ?>
                                 </a>
                                 <?php if (acl_check('admin', 'super')) { ?>
                                     <a href='#'
-                                        onclick='deleteme(<?php echo attr($id); ?>)'
+                                        <?php echo permission() ? 'onclick="deleteme('. attr($id) .')"' : ''; ?>
                                         class='btn btn-default btn-delete'>
                                         <?php echo text($delete); ?>
                                     </a>

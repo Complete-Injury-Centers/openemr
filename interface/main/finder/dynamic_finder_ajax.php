@@ -14,7 +14,7 @@ include_once("$srcdir/transactions.inc");
 
 $popup = empty($_REQUEST['popup']) ? 0 : 1;
 
-$specialItems = array("visits", "scheduled", "compliance", "referrals", "lastVisit");
+$specialItems = array("Referral_Date", "visits", "scheduled", "compliance", "referrals", "lastVisit");
 
 // With the ColReorder or ColReorderWithResize plug-in, the expected column
 // ordering may have been changed by the user.  So we cannot depend on
@@ -87,8 +87,14 @@ if (!isset($facilityId) && !acl_check('admin', 'super')) {
 		$facilities[] = $row['id'];
 	}
 
-	$where .= $where ? ' AND' : 'WHERE';
-	$where .= " `refer_facilities` IN (" . implode($facilities, ",") . ")";
+    $where .= $where ? ' AND' : 'WHERE';
+    // $where .= " (";
+    $where .= " `refer_facilities` IN (" . implode($facilities, ",") . ")";
+    // $res = sqlStatement("SELECT username FROM users WHERE id=?", array($_SESSION['authUserID']));
+    // if($row = sqlFetchArray($res)) {
+        // $where .= $row['username'] ? " OR `doctor_portal`='".$row['username']."'" : "";
+    // }
+    // $where .= " )";
 }
 
 // Compute list of column names for SELECT clause.
@@ -130,9 +136,30 @@ while ($row = sqlFetchArray($res)) {
     $fieldsInfo[$row['field_id']] = $row;
 }
 
-$query = "SELECT $sellist FROM patient_data $where $orderby $limit";
+$rez = sqlStatement("SELECT username FROM users WHERE username IS NOT NULL AND username!='' AND id=? AND username IN (SELECT DISTINCT ext_doctor FROM patient_data)", array($_SESSION['authUserID']));
+$extern = false;
+$username = "";
+if($rowz = sqlFetchArray($rez)) {
+    $extern = true;
+    $username = $rowz['username'];
+}
+
+$query = "SELECT $sellist, lawyer, only_admin, ext_doctor FROM patient_data $where $orderby $limit";
 $res = sqlStatement($query);
 while ($row = sqlFetchArray($res)) {
+    if($extern and $row['ext_doctor'] != $username) {
+        continue;
+    }
+
+    if($row['only_admin'] == "YES" && !acl_check('admin', 'super')) continue;
+
+    $rez = sqlStatement("SELECT lawyer_id FROM users_lawyer WHERE users_id=?", array($_SESSION['authUserID']));
+    $lawFirms = array();
+    while($rowz = sqlFetchArray($rez)) {
+      $lawFirms[] = $rowz['lawyer_id'];
+    }
+    if(!empty($lawFirms) && !in_array($row['lawyer'], $lawFirms)) continue;
+
   // Each <tr> will have an ID identifying the patient.
     $arow = array('DT_RowId' => 'pid_' . $row['pid']);
     foreach ($aColumns as $colname) {
@@ -141,10 +168,18 @@ while ($row = sqlFetchArray($res)) {
         }
     }
 
+    $ref_date = sqlStatement('SELECT Referral_Date FROM patient_data WHERE pid = '.$row['pid']);
+    $referrals = sqlFetchArray($ref_date)['Referral_Date'];
+    
+    if ($_GET["sSearch_10"] !== '' && $_GET["sSearch_10"] != $referrals) {
+        continue;
+    }
+    $arow[] = $referrals;
+
     $encounters = sqlStatement('SELECT date FROM form_encounter WHERE pid = '.$row['pid'].' ORDER BY date desc');
     $visits = sqlNumRows($encounters);
 
-    if ($_GET["sSearch_10"] !== '' && $_GET["sSearch_10"] != $visits) {
+    if ($_GET["sSearch_11"] !== '' && $_GET["sSearch_11"] != $visits) {
         continue;
     }
     $arow[] = $visits;
@@ -152,7 +187,7 @@ while ($row = sqlFetchArray($res)) {
     $appointments = fetchAppointments("2019-01-01", date("Y-m-d"), $row['pid']);
     $total = count($appointments);
 
-    if ($_GET["sSearch_11"] !== '' && $_GET["sSearch_11"] != $total) {
+    if ($_GET["sSearch_12"] !== '' && $_GET["sSearch_12"] != $total) {
         continue;
     }
     $arow[] = $total;
@@ -161,7 +196,7 @@ while ($row = sqlFetchArray($res)) {
     $compliance = $compliance > 100 ? 100 : $compliance;
     $compliance = $compliance . "%";
 
-    if ($_GET["sSearch_12"] !== '' && $_GET["sSearch_12"] != $compliance) {
+    if ($_GET["sSearch_13"] !== '' && $_GET["sSearch_13"] != $compliance) {
         continue;
     }
     $arow[] = $compliance;
@@ -180,13 +215,13 @@ while ($row = sqlFetchArray($res)) {
     }
 
     $referralString = $refSent . " sent / " . $refReceived . " received";
-    if ($_GET["sSearch_13"] !== '' && $_GET["sSearch_13"] != $referralString) {
+    if ($_GET["sSearch_14"] !== '' && $_GET["sSearch_14"] != $referralString) {
         continue;
     }
     $arow[] = $referralString;
 
     $lastVisit = $visits ? substr(sqlFetchArray($encounters)['date'], 0, 10) : '';
-    if ($_GET["sSearch_14"] !== '' && $_GET["sSearch_14"] != $lastVisit) {
+    if ($_GET["sSearch_15"] !== '' && $_GET["sSearch_15"] != $lastVisit) {
         continue;
     }
     $arow[] = $lastVisit;

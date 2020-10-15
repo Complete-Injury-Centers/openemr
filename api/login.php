@@ -41,7 +41,9 @@ function validate_user_password($username, $password, $provider)
     }
 
     $getUserSQL="select id, authorized, see_auth".
-                        ", active, facility_id ".
+                        ", active, facility_id, ".
+                        "fname, mname, lname, facility,".
+                        "email, organization".
                         " from users where BINARY username = '".$conn->real_escape_string($username)."'";
     $userInfo = runSQL($getUserSQL);
     if ($userInfo['active'] != 1) {
@@ -74,7 +76,18 @@ function validate_user_password($username, $password, $provider)
             $valid=false;
         }
     }
-    return $valid ? json_encode( array( "token" => session_id(), "facilityID" => $userInfo['facility_id'] ) ) : false;
+    return $valid ? json_encode( array( 
+        "token" => session_id(), 
+        "id" => $userInfo['id'],
+        "username" => $username,
+        "fname" => $userInfo['fname'],
+        "mname" => $userInfo['mname'],
+        "lname" => $userInfo['lname'],
+        "facility" => $userInfo['facility'],
+        "email" => $userInfo['email'],
+        "organization" => $userInfo['organization'],
+        "facilityID" => $userInfo['facility_id'] 
+    ) ) : false;
 }
 
 /**

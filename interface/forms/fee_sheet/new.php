@@ -881,7 +881,7 @@ if ($_POST['search_type']) {
 $ndc_applies = true; // Assume all payers require NDC info.
 
 echo $i ? "  <td></td>\n </tr>\n" : "";
-echo " <tr>\n";
+echo " <tr style=\"display:none\">\n";
 echo "  <td colspan='" . attr($FEE_SHEET_COLUMNS) . "' align='center' nowrap>\n";
 
 // If Search was clicked, do it and write the list of results here.
@@ -1013,7 +1013,7 @@ $justinit = "var f = document.forms[0];\n";
 // Generate lines for items already in the billing table for this encounter,
 // and also set the rendering provider if we come across one.
 //
-// $bill_lino = 0;
+//$bill_lino = 0;
 if ($billresult) {
     foreach ($billresult as $iter) {
         if (!$ALLOW_COPAYS && $iter["code_type"] == 'COPAY') {
@@ -1024,16 +1024,30 @@ if ($billresult) {
             continue;
         }
 
-        // ++$bill_lino;
+        //++$bill_lino;
         $bill_lino = count($fs->serviceitems);
         $bline = $_POST['bill']["$bill_lino"];
         $del = $bline['del']; // preserve Delete if checked
         if ($institutional) {
             $revenue_code   = trim($iter["revenue_code"]);
         }
-        $modifier   = trim($iter["modifier"]);
-        $units      = $iter["units"];
+		
+		$modifier    = trim($iter["modifier"]);
+		$units      = $iter["units"];
         $fee        = $iter["fee"];
+        
+        // the modifier is mising, in some cases the price is set to 0
+        if(empty($modifier) and $bill_lino == count($billresult) - 1) { // check if the modifier is not set
+            $re_sql = sqlStatement("SELECT modifier, pr_price FROM prices RIGHT JOIN codes ON prices.pr_id=codes.id WHERE codes.code=? ", array($iter['code']));
+            if($row = sqlFetchArray($re_sql)) { // in case there is a modifier
+				$modifier = $row['modifier'];
+				if($fee == 0) // in case the price is set to 0
+                    $fee  = $row['pr_price'];
+                sqlStatement("UPDATE billing SET fee=?, modifier=? WHERE id=?", array($fee,$modifier,trim($iter['id']))); //update the field in the DB
+                $current_checksum = $fs->visitChecksum();
+            }
+        }
+
         $authorized = $iter["authorized"];
         $ndc_info   = $iter["ndc_info"];
         $justify    = trim($iter['justify']);

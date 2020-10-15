@@ -167,10 +167,12 @@ function setEncounter(id)
     app_view_model.application_data[attendant_type]().selectedEncounterID(id);
 }
 
-function chooseEncounterEvent(data,evt)
+function chooseEncounterEvent(data,evt,allowed)
 {
-    setEncounter(data.id());
-    goToEncounter(data.id());
+    if(allowed) {
+        setEncounter(data.id());
+        goToEncounter(data.id());
+    }
 }
 
 function previousEncounterEvent(index)

@@ -113,6 +113,20 @@ if (isset($_POST["privatemode"]) && $_POST["privatemode"] =="user_admin") {
               //END (CHEMED)
         }
 
+        if($_POST["law_firm"]) {
+            sqlStatement("delete from users_lawyer
+            where users_id=?
+            and lawyer_id not in (" . implode(",", $_POST['law_firm']) . ")", array($_POST["id"]));
+            foreach ($_POST["law_firm"] as $tqvar) {
+                sqlStatement("replace into users_lawyer set
+                lawyer_id = '$tqvar',
+                users_id = {$_POST["id"]}");
+            }
+        } else {
+            sqlStatement("delete from users_lawyer
+            where users_id=?", array($_POST["id"]));
+        }
+
         if ($GLOBALS['restrict_user_facility'] && $_POST["schedule_facility"]) {
             sqlStatement("delete from users_facility
             where tablename='users'
@@ -183,6 +197,10 @@ if (isset($_POST["privatemode"]) && $_POST["privatemode"] =="user_admin") {
             sqlStatement("update users set info = '$tqvar' where id = ? ", array($_POST["id"]));
         }
 
+        sqlStatement("UPDATE users SET externalUser=? WHERE id=?", array($_POST['outCIC'] ? '1' : '0', $_POST["id"]));
+
+        sqlStatement("UPDATE users SET justSee=? WHERE id=?", array($_POST['justSee'] ? '1' : '0', $_POST["id"]));
+
         $erxrole = formData('erxrole', 'P');
         sqlStatement("update users set newcrop_user_role = '$erxrole' where id = ? ", array($_POST["id"]));
 
@@ -227,7 +245,9 @@ if (isset($_POST["mode"])) {
 
         // $_POST["info"] = addslashes($_POST["info"]);
 
-        $calvar = $_POST["calendar"] ? 1 : 0;
+        $calvar  = $_POST["calendar"] ? 1 : 0;
+        $extern  = $_POST["outCIC"]   ? 1 : 0;
+        $justSee = $_POST["justSee"]  ? 1 : 0;
 
         $res = sqlStatement("select distinct username from users where username != ''");
         $doit = true;
@@ -249,10 +269,10 @@ if (isset($_POST["mode"])) {
             $insertUserSQL=
             "insert into users set " .
             "username = '"         . trim(formData('rumple')) .
-            "', password = '"      . 'NoLongerUsed'                  .
-            "', fname = '"         . trim(formData('fname')) .
-            "', mname = '"         . trim(formData('mname')) .
-            "', lname = '"         . trim(formData('lname')) .
+            "', password = '"      . 'NoLongerUsed'           .
+            "', fname = '"         . trim(formData('fname'))  .
+            "', mname = '"         . trim(formData('mname'))  .
+            "', lname = '"         . trim(formData('lname'))  .
             "', federaltaxid = '"  . trim(formData('federaltaxid')) .
             "', state_license_number = '"  . trim(formData('state_license_number')) .
             "', newcrop_user_role = '"  . trim(formData('erxrole')) .
@@ -261,18 +281,20 @@ if (isset($_POST["mode"])) {
             "', patient_menu_role = '"  . trim(formData('patient_menu_role')) .
             "', weno_prov_id = '"  . trim(formData('erxprid')) .
             "', authorized = '"    . trim(formData('authorized')) .
-            "', info = '"          . trim(formData('info')) .
+            "', info = '"          . trim(formData('info'))   .
             "', federaldrugid = '" . trim(formData('federaldrugid')) .
-            "', upin = '"          . trim(formData('upin')) .
-            "', npi  = '"          . trim(formData('npi')).
+            "', upin = '"          . trim(formData('upin'))   .
+            "', npi  = '"          . trim(formData('npi'))    .
             "', taxonomy = '"      . trim(formData('taxonomy')) .
             "', facility_id = '"   . trim(formData('facility_id')) .
             "', specialty = '"     . trim(formData('specialty')) .
             "', see_auth = '"      . trim(formData('see_auth')) .
             "', default_warehouse = '" . trim(formData('default_warehouse')) .
             "', irnpool = '"       . trim(formData('irnpool')) .
-            "', calendar = '"      . $calvar                         .
-            "', pwd_expiration_date = '" . trim("$exp_date") .
+            "', calendar = '"      . $calvar                  .
+            "', externalUser = '"  . $extern                  .
+            "', justSee = '"       . $justSee                 .
+            "', pwd_expiration_date = '" . trim("$exp_date")  .
             "'";
 
             $clearAdminPass=$_POST['adminPass'];
@@ -300,14 +322,34 @@ if (isset($_POST["mode"])) {
                     "', user = '" . trim(formData('rumple')) . "'");
 
                 if (trim(formData('rumple'))) {
-                              // Set the access control group of user
-                              set_user_aro(
-                                  $_POST['access_group'],
-                                  trim(formData('rumple')),
-                                  trim(formData('fname')),
-                                  trim(formData('mname')),
-                                  trim(formData('lname'))
-                              );
+                    // Set the access control group of user
+                    set_user_aro(
+                        $_POST['access_group'],
+                        trim(formData('rumple')),
+                        trim(formData('fname')),
+                        trim(formData('mname')),
+                        trim(formData('lname'))
+                    );
+                }
+
+                $res = sqlStatement("SELECT id FROM users WHERE username=?", array(trim(formData('rumple'))));
+                if ($row = sqlFetchArray($res)) {
+                    if($_POST["law_firm"]) {
+                        foreach ($_POST["law_firm"] as $tqvar) {
+                            sqlStatement("replace into users_lawyer set
+                            lawyer_id = '$tqvar',
+                            users_id = {$row["id"]}");
+                        }
+                    }
+            
+                    if ($GLOBALS['restrict_user_facility'] && $_POST["schedule_facility"]) {
+                        foreach ($_POST["schedule_facility"] as $tqvar) {
+                            sqlStatement("replace into users_facility set
+                            facility_id = '$tqvar',
+                            tablename='users',
+                            table_id = {$row["id"]}");
+                        }
+                    }
                 }
             }
         } else {

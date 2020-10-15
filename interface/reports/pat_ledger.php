@@ -139,7 +139,7 @@ function PrintEncHeader($dt, $rsn, $dr)
         $rsn = substr($rsn, 0, 50).'...';
     }
 
-    echo "<td colspan='4'><span class='bold'>".xlt('Encounter Dt / Rsn'). ": </span><span class='detail'>".text(substr($dt, 0, 10))." / ".text($rsn)."</span></td>";
+    echo "<td colspan='5'><span class='bold'>".xlt('Encounter Dt / Rsn'). ": </span><span class='detail'>".text(substr($dt, 0, 10))." / ".text($rsn)."</span></td>";
     echo "<td colspan='5'><span class='bold'>" . xlt('Provider'). ": </span><span class='detail'>".text(User_Id_Look($dr))."</span></td>";
     echo "</tr>\n";
     $orow++;
@@ -148,7 +148,7 @@ function PrintEncFooter()
 {
     global $enc_units, $enc_chg, $enc_pmt, $enc_adj, $enc_bal;
     echo "<tr bgcolor='#DDFFFF'>";
-    echo "<td colspan='3'>&nbsp;</td>";
+    echo "<td colspan='4'>&nbsp;</td>";
     echo "<td class='detail'>". xlt('Encounter Balance').":</td>";
     echo "<td class='detail' style='text-align: center;'>".text($enc_units)."</td>";
     echo "<td class='detail' style='text-align: center;'>".text(oeFormatMoney($enc_chg))."</td>";
@@ -555,7 +555,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
     $rows = array();
     $sqlBindArray = array();
     $query = "select b.code_type, b.code, b.code_text, b.pid, b.provider_id, ".
-        "b.billed, b.payer_id, b.units, b.fee, b.bill_date, b.id, ".
+        "b.billed, b.payer_id, b.modifier, b.units, b.fee, b.bill_date, b.id, ".
         "ins.name, ".
         "fe.encounter, fe.date, fe.reason, fe.provider_id ".
         "FROM form_encounter AS fe ".
@@ -602,43 +602,27 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
   <tr>
     <td class="title" >COMPLETE INJURY CENTERS</td>
   </tr>
-  <tr>
-    <td class="title" ><?php echo text($facility{'street'}); ?></td>
-  </tr>
-  <tr>
-    <td class="title" ><?php echo text($facility{'city'}).", ".text($facility{'state'})." ".text($facility{'postal_code'}); ?></td>
-  </tr>
-  <tr>
-    <td class="title" ><?php echo xlt('Phone').': '; ?>214-666-6651</td>
-  </tr>
+  <?php
+    if (isset($_ENV["STREET"]) && isset($_ENV["CITY"]) && isset($_ENV["STATE"]) && isset($_ENV["POSTAL"]) && isset($_ENV["PHONE"])) {
+        echo "<tr><td class='title'>" . text($_ENV['STREET']) . " </td></tr><tr>";
+        echo "  <td class='title'>" . text($_ENV['CITY']).", ".text($_ENV['STATE'])." ".text($_ENV['POSTAL']) . "</td>";
+        echo "</tr><tr>";
+        echo "  <td class='title'>" . xlt('Phone').": " . $_ENV['PHONE'] . "</td></tr>";
+    } else {
+        echo "<tr><td class='title'>" . text($facility{'street'}) . " </td></tr><tr>";
+        echo "  <td class='title'>" . text($facility{'city'}).", ".text($facility{'state'})." ".text($facility{'postal_code'}) . "</td>";
+        echo "</tr><tr>";
+        echo "  <td class='title'>" . xlt('Phone').": 214-666-6651</td></tr>";
+    }
+
+  ?>
   <tr>
     <td class="title" ><?php echo xlt('Tax Id').': ' .text($facility{'federal_ein'}); ?></td>
   </tr>
-  <tr><td>&nbsp;</td></tr>
-  <tr>
-    <td class="title" ><?php echo xlt('Patient Ledger'); ?></td>
-  </tr>
-    <tr>
-        <?php
-            $title = xl('All Providers');
-        if ($form_provider) {
-            $title = xl('For Provider') . ': '.User_Id_Look($form_provider);
-        }
-        ?>
-    <td class="title" ><?php echo text($title); ?></td>
-    </tr>
-    <tr>
-        <?php
-            $title = xl('For Dates') . ': ' . oeFormatShortDate($form_from_date) . ' - ' . oeFormatShortDate($form_to_date);
-        ?>
-    <td class="title" ><?php echo text($title); ?></td>
-    </tr>
 </table>
 <br/>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td class='bold' ><?php echo xlt('Date')?>:
-        <?php echo text(date('Y-m-d')); ?></td>
     <td class='bold' ><?php echo xlt('Patient')?>:
         <?php if ($type_form == '1') { ?>
             <?php echo text($pat_name); ?></td>
@@ -659,7 +643,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
 <div id="report_results">
 <table >
  <tr>
-    <td class='bold' ><?php echo xlt('Code'); ?></td>
+    <td colspan="2" class='bold' ><?php echo xlt('Code'); ?></td>
     <td colspan="2" class='bold' ><?php echo xlt('Description'); ?></td>
     <td class='bold' ><?php echo xlt('Billed Date'); ?> / <?php echo xlt('Payor'); ?></td>
     <td class='bold' ><?php echo xlt('Type'); ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -670,7 +654,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
     <td align='right' class='bold' >&nbsp;&nbsp;&nbsp;<?php echo xlt('Balance'); ?></td>
  </tr>
  <tr>
-    <td>&nbsp;&nbsp;&nbsp;</td>
+    <td colspan="2">&nbsp;&nbsp;&nbsp;</td>
     <td colspan="2" >&nbsp;&nbsp;&nbsp;</td>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -734,6 +718,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
             $bgcolor = (($bgcolor == "#FFFFDD") ? "#FFDDDD" : "#FFFFDD");
             $print = "<tr bgcolor='". attr($bgcolor) ."'>";
             $print .= "<td class='detail'>".text($erow['code'])."</td>";
+            $print .= "<td class='detail'>".text($erow['modifier'])."</td>";
             $print .= "<td class='detail' colspan='2'>".text($code_desc)."</td>";
             $who = ($erow['name'] == '') ? xl('Self') : $erow['name'];
             $bill = substr($erow['bill_date'], 0, 10);
@@ -798,7 +783,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
 
     if (!$_REQUEST['form_csvexport'] && $orow) {
         echo "<tr bgcolor='#DDFFFF'>\n";
-        echo " <td colspan='2'>&nbsp;</td>";
+        echo " <td colspan='3'>&nbsp;</td>";
         echo " <td class='bold' colspan='2'>" . xlt("Grand Total") ."</td>\n";
         echo " <td class='bold' style='text-align: center;'>". text($total_units) ."</td>\n";
         echo " <td class='bold' style='text-align: center;'>". text(oeFormatMoney($total_chg)) ."</td>\n";

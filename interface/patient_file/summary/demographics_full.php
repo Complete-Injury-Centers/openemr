@@ -794,6 +794,12 @@ foreach ($policy_types as $key => $value) {
 <?php } // end of "if not simplified_demographics" ?>
 </div></div>
 
+<?php if(acl_check('admin', 'super')) :?>
+    <span class='bold'>
+        <input type='checkbox' name='form_lop_request_dem' id='form_lop_request_dem'>
+        <label for="form_lop_request_dem"><b>Send LOP Request to Law Firm</b></label>
+    </span>
+<?php endif ?>
 </form>
 
 <br>

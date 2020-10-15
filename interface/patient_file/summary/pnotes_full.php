@@ -31,7 +31,9 @@ require_once($GLOBALS['srcdir'].'/gprelations.inc.php');
 
 use OpenEMR\Core\Header;
 
-if ($_GET['set_pid']) {
+require_once('../../sender.php');
+
+if(isset($_GET['set_pid'])) {
     require_once($GLOBALS['srcdir'].'/pid.inc');
     setpid($_GET['set_pid']);
 }
@@ -49,6 +51,22 @@ if ($docid) {
 } else if ($orderid) {
     $row = sqlQuery("SELECT patient_id FROM procedure_order WHERE procedure_order_id = ?", array($orderid));
     $patient_id = intval($row['patient_id']);
+}
+
+if(isset($_POST['important'])) {
+    sendImportantEmail($patient_id);
+}
+
+if(isset($_POST['note_lop_request'])) {
+    sendLOPRequest($patient_id);
+}
+
+if(isset($_POST['notify_lawyer_mail']) && $_POST['note']) {
+    sendNoteEmail($patient_id, $_POST['note']);
+}
+
+if(isset($_POST['notify_back']) && $_POST['note']) {
+    notifyBack($patient_id, $_POST['note']);
 }
 
 // Check authorization.

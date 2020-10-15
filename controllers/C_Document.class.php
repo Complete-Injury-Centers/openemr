@@ -9,6 +9,13 @@ require_once(dirname(__FILE__) . "/../library/crypto.php");
 
 use OpenEMR\Services\FacilityService;
 use OpenEMR\Services\PatientService;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require_once(dirname(__FILE__) . "/../library/PHPMailer/src/Exception.php");
+require_once(dirname(__FILE__) . "/../library/PHPMailer/src/PHPMailer.php");
+require_once(dirname(__FILE__) . "/../library/PHPMailer/src/SMTP.php");
 
 class C_Document extends Controller
 {
@@ -50,6 +57,7 @@ class C_Document extends Controller
         $this->assign("category_id", $category_id);
         $this->assign("category_name", $category_name);
         $this->assign("hide_encryption", $GLOBALS['hide_document_encryption']);
+        $this->assign("permission", $this->permission());
         $this->assign("patient_id", $patient_id);
 
         // Added by Rod to support document template download from general_upload.html.
@@ -213,6 +221,19 @@ class C_Document extends Controller
                         $error .= $rc . "\n";
                     } else {
                         $this->assign("upload_success", "true");
+
+                        if($_POST['important']) {
+                            $res = sqlStatement("SELECT lname,fname,mname FROM patient_data WHERE pid=?", array($patient_id));
+                            if($row = sqlFetchArray($res)) {
+                                $patient_name = $row['lname'] . ", ". $row['fname'] . (isset($row['mname']) ? " " . $row['mname'] : "");
+                                $subject = "Patient Report Notification";
+                                $body = "You have a report for <b>" . $patient_name . "</b> on CIC EMR.";
+                                $send_to = self::find_doctor($patient_id);
+                                if($send_to != "") {
+                                    self::send_email($subject, $body, $send_to);
+                                }
+                            }
+                        }
                     }
                     $sentUploadStatus[] = $d;
                     $this->assign("file", $sentUploadStatus);
@@ -250,6 +271,16 @@ class C_Document extends Controller
         //$this->_state = false;
         $_POST['process'] = "";
         //return $this->fetch($GLOBALS['template_dir'] . "documents/" . $this->template_mod . "_upload.html");
+    }
+
+    function permission() {
+        $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+        if($row = sqlFetchArray($res)) {
+            return $row['externalUser'] == '1' ? false : true; // If it's an external user, permision set to false
+        }
+        else {
+            return true;
+        }
     }
 
     function note_action_process($patient_id)
@@ -346,6 +377,7 @@ class C_Document extends Controller
         $this->assign("NOTE_ACTION", $this->_link("note"));
         $this->assign("MOVE_ACTION", $this->_link("move") . "document_id=" . $d->get_id() . "&process=true");
         $this->assign("hide_encryption", $GLOBALS['hide_document_encryption']);
+        $this->assign("permission", $this->permission());
         $this->assign("assets_static_relative", $GLOBALS['assets_static_relative']);
         $this->assign("webroot", $GLOBALS['webroot']);
 
@@ -1435,5 +1467,59 @@ class C_Document extends Controller
             sqlStatement("update documents set encounter_id='0' where foreign_id=? and id = ?", array($patient_id,$document_id));
         }
         return $this->view_action($patient_id, $document_id);
+    }
+
+    function send_email($subject, $body, $send_to) {
+        // Instantiation and passing `true` enables exceptions
+        $mail = new PHPMailer(true);
+
+        if(isset($_ENV['DEBUG'])) {
+            echo "<script>console.log('original: ".$send_to."')</script>";
+            $send_to = $_ENV['DEV_EMAIL'];
+        }
+    
+        try {
+            //Server settings
+            $mail->SMTPDebug = SMTP::DEBUG_OFF;//SMTP::DEBUG_CONNECTION;// Enable verbose debug output
+            $mail->isSMTP();                                            // Send using SMTP
+            $mail->Host       = $_ENV['HOST'];                          // Set the SMTP server to send through
+            $mail->SMTPAuth   = true;                                   // Enable SMTP authentication
+            $mail->Username   = $_ENV['EMAIL_USER_SCH'];                // SMTP username
+            $mail->Password   = $_ENV['EMAIL_PASS_SCH'];                // SMTP password
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;         // Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` encouraged
+            $mail->Port       = 587;                                    // TCP port to connect to, use 465 for `PHPMailer::ENCRYPTION_SMTPS` above
+
+            //Recipients
+            $mail->setFrom($_ENV['EMAIL_USER_SCH'], 'CIC Clinic');      // Add email sent from
+            $mail->addAddress($send_to);                                // Add a recipient
+            // $mail->addReplyTo('info@example.com', 'Information');
+            // $mail->addCC('cc@example.com');
+            // $mail->addBCC('bcc@example.com');
+
+            // Content
+            $mail->isHTML(true);                                        // Set email format to HTML
+            $mail->Subject = $subject;
+            $mail->Body    = $body;
+
+            $mail->send();
+            echo "<script>console.log('Message has been sent')</script>";
+        } catch (Exception $e) {
+            // echo "<script>console.log('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
+        }
+    }
+    
+    function find_doctor($patient_id) {
+        $res = sqlStatement("SELECT f.email FROM facility AS f LEFT JOIN patient_data AS p ON p.refer_facilities=f.id WHERE p.pid=?", array($patient_id));
+        if($row = sqlFetchArray($res)) {
+            $email = preg_replace('/\s+/', '', $row['email']);
+            $emails = explode(",", $email);
+            foreach($emails as $mail) {
+                $mail = strtolower($mail);
+                if(preg_match("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$^", $mail)) {
+                    return $mail;
+                }
+            }
+        }
+        return "";
     }
 }

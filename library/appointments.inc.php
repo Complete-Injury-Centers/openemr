@@ -100,7 +100,7 @@ function checkEvent($recurrtype, $recurrspec)
     return $eFlag;
 }
 
-function fetchEvents($from_date, $to_date, $where_param = null, $orderby_param = null, $tracker_board = false, $nextX = 0, $bind_param = null, $query_param = null)
+function fetchEvents($from_date, $to_date, $where_param = null, $orderby_param = null, $tracker_board = false, $nextX = 0, $bind_param = null, $query_param = null, $past = false)
 {
 
     $sqlBindArray = array();
@@ -114,16 +114,28 @@ function fetchEvents($from_date, $to_date, $where_param = null, $orderby_param =
     } else {
         //////
         if ($nextX) {
-            $where =
-            "((e.pc_endDate >= ? AND e.pc_recurrtype > '0') OR " .
-            "(e.pc_eventDate >= ?))";
+            if($past) {
+                $where =
+                "((e.pc_endDate <= ? AND e.pc_recurrtype > '0') OR " .
+                "(e.pc_eventDate <= ?))";
+            } else {
+                $where =
+                "((e.pc_endDate >= ? AND e.pc_recurrtype > '0') OR " .
+                "(e.pc_eventDate >= ?))";
+            }
 
             array_push($sqlBindArray, $from_date, $from_date);
         } else {
           //////
-            $where =
-            "((e.pc_endDate >= ? AND e.pc_eventDate <= ? AND e.pc_recurrtype > '0') OR " .
-            "(e.pc_eventDate >= ? AND e.pc_eventDate <= ?))";
+            if($past) {
+                $where =
+                "((e.pc_endDate <= ? AND e.pc_eventDate <= ? AND e.pc_recurrtype > '0') OR " .
+                "(e.pc_eventDate <= ? AND e.pc_eventDate <= ?))";
+            } else {
+                $where =
+                "((e.pc_endDate >= ? AND e.pc_eventDate <= ? AND e.pc_recurrtype > '0') OR " .
+                "(e.pc_eventDate >= ? AND e.pc_eventDate <= ?))";
+            }
 
             array_push($sqlBindArray, $from_date, $to_date, $from_date, $to_date);
         }
@@ -356,7 +368,7 @@ function fetchAllEvents($from_date, $to_date, $provider_id = null, $facility_id 
 }
 
 //Support for therapy group appointments added by shachar z.
-function fetchAppointments($from_date, $to_date, $patient_id = null, $provider_id = null, $facility_id = null, $pc_appstatus = null, $with_out_provider = null, $with_out_facility = null, $pc_catid = null, $tracker_board = false, $nextX = 0, $group_id = null, $patient_name = null)
+function fetchAppointments($from_date, $to_date, $patient_id = null, $provider_id = null, $facility_id = null, $pc_appstatus = null, $with_out_provider = null, $with_out_facility = null, $pc_catid = null, $tracker_board = false, $nextX = 0, $group_id = null, $patient_name = null, $past = false)
 {
     $sqlBindArray = array();
 
@@ -409,14 +421,27 @@ function fetchAppointments($from_date, $to_date, $patient_id = null, $provider_i
         $where .= " AND e.pc_facility = 0";
     }
 
-    $appointments = fetchEvents($from_date, $to_date, $where, '', $tracker_board, $nextX, $sqlBindArray);
+    $appointments = fetchEvents($from_date, $to_date, $where, '', $tracker_board, $nextX, $sqlBindArray, null, $past);
     return $appointments;
+}
+
+//Support for past appointments
+function fetchPastXAppts($from_date, $patient_id, $pastX = 1, $group_id = null)
+{
+    $appts = array();
+    $pastXAppts = array();
+    $appts = fetchAppointments($from_date, null, $patient_id, null, null, null, null, null, null, false, $pastX, $group_id, null, true);
+    if ($appts) {
+        $appts = sortAppointments($appts);
+        $pastXAppts = array_slice($appts, 0, $pastX);
+    }
+
+    return $pastXAppts;
 }
 
 //Support for therapy group appointments added by shachar z.
 function fetchNextXAppts($from_date, $patient_id, $nextX = 1, $group_id = null)
 {
-
     $appts = array();
     $nextXAppts = array();
     $appts = fetchAppointments($from_date, null, $patient_id, null, null, null, null, null, null, false, $nextX, $group_id);

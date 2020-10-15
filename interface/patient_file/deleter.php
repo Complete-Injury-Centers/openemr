@@ -269,9 +269,10 @@ if ($_POST['form_submit']) {
 
         row_delete("forms", "encounter = '" . add_escape_custom($encounterid) . "'");
     } else if ($signatureid) {
-        if (!acl_check('admin', 'super')) {
-            die("Not authorized!");
-        }
+        // A user now can delete a signature without being an admin
+        // if (!acl_check('admin', 'super')) {
+        //     die("Not authorized!");
+        // }
 
         row_delete("esign_signatures", "id = '" . add_escape_custom($signatureid) . "'");
     } else if ($formid) {

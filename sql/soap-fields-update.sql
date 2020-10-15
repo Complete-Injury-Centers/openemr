@@ -1,0 +1,2 @@
+UPDATE `openemr`.`layout_options` SET `fld_rows` = '4' WHERE (`form_id` = 'LBFSOAP') and (`field_id` = 'objective') and (`seq` = '20');
+UPDATE `openemr`.`layout_options` SET `fld_rows` = '4' WHERE (`form_id` = 'LBFSOAP') and (`field_id` = 'subjective') and (`seq` = '10');

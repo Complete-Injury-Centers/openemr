@@ -397,6 +397,29 @@ function divtoggle(spanid, divid) {
         display:inline;
         margin-top:10px;
     }
+
+    #partable {
+        width: 680px;
+        float: left;
+        margin-right: 50px;
+    }
+
+    #feesheet {
+        width: 100%;
+    }
+
+    .feesheet-head {
+        border-bottom: solid 1px black;
+    }
+
+    .feesheet-body {
+        background-color: white;
+    }
+
+    .sheetcell {
+        padding: 4px 5px;
+    }
+
     a[onclick*='LBFsignin'], a[onclick*='LBFsignout'] {
         display: none !important;
     }
@@ -642,7 +665,6 @@ if ($encounterLocked === false) {
         }
         $StringEcho.= "<li class=\"encounter-form-category-li\"><a href='JavaScript:void(0);' onClick=\"mopen('lbf');\" >" .
         xl('Visit Type') . "</a><div id='lbf' ><table border='0' cellspacing='0' cellpadding='0'>";
-        $user = sqlFetchArray(sqlStatement("SELECT * FROM users WHERE id=".$_SESSION['authId']));
         while ($lrow = sqlFetchArray($lres)) {
             $option_id = $lrow['option_id']; // should start with LBF
             $title = $lrow['title'];
@@ -653,19 +675,10 @@ if ($encounterLocked === false) {
                     continue;
                 }
             }
-            if($user['facility_id']!=23) {
-                $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
-                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
-                    text(xl_form_title($title)) . "</a></td></tr>";
-            } else {
-                if($title == "Medical Visit") {
-                    $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
-                    $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
-                    "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
-                    text(xl_form_title($title)) . "</a></td></tr>";
-                }
-            }
+            $StringEcho .= "<tr><td style='border-top: 1px solid #000000;padding:0px;'><a onclick=\"openNewForm('" .
+                $rootdir . "/patient_file/encounter/load_form.php?formname=" . urlencode($option_id) .
+                "', '" . addslashes(xl_form_title($title)) . "')\" href='JavaScript:void(0);'>" .
+                text(xl_form_title($title)) . "</a></td></tr>";
         }
     }
 }
@@ -795,9 +808,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
 <?php
 // ESign for entire encounter
 $esign = $esignApi->createEncounterESign($encounter);
-if ($esign->isButtonViewable()) {
-    echo $esign->buttonHtml();
-}
+
 if ($attendant_type == 'pid' && is_numeric($pid)) {
   $encounters = array();
   $encounters_res = sqlStatement("SELECT encounter as id, DATE_FORMAT(`date`,'%m/%d/%Y') as `date` FROM form_encounter WHERE pid = " . $pid . " ORDER BY id");
@@ -827,9 +838,89 @@ if (isset($previousNote) && is_array($previousNote)) {
 </div>
 
 <div class='encounter-summary-column'>
-<?php if ($esign->isLogViewable()) {
-    $esign->renderLog();
-} ?>
+<?php
+
+// echo "<div class='form_header_controls' style='margin-bottom: 10px'><span style=\"float:left; margin-right: 10px\">Encounter</span>";
+// if ($esign->isButtonViewable()) {
+//     echo $esign->buttonHtml();
+// }
+// echo "</div>";
+// if ($esign->isLogViewable()) {
+//     $esign->renderLog();
+// }
+ ?>
+<br>
+<?php 
+    $encounters = getFormByEncounter(
+        $attendant_id,
+        $encounter,
+        "id, date, form_id, form_name, formdir, user, deleted",
+        "",
+        "FIND_IN_SET(formdir,'newpatient') DESC, form_name, date DESC"
+    );
+    
+
+    foreach ($encounters as $iter) {
+        $formdir = $iter['formdir'];
+        // if ($iter['deleted'] == 1) {
+        //     continue;
+        // }
+        if (substr($formdir, 0, 3) == 'LBF' && !(substr($formdir, 3)=='signin' || substr($formdir, 3) == 'signout')) {
+            $esign = $esignApi->createFormESign($iter['id'], $formdir, $encounter);
+            echo "<div class='form_header_controls' style='margin-bottom: 10px'><span style=\"float:left; margin-right: 10px\">".substr($formdir, 3)."</span>";
+            if ($esign->isLocked()) {
+                 echo "<a href=# class='css_button_small form-edit-button-locked' id='form-edit-button-" . attr($formdir) . "-" . attr($iter['id']) . "'><span>" . xlt('Locked') . "</span></a>";
+            } else {
+                if ((!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write') and $is_group == 0 and $authPostCalendarCategoryWrite)
+                or (((!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) and $is_group and acl_check("groups", "glog", false, 'write')) and $authPostCalendarCategoryWrite)) {
+                    echo "<a class='css_button_small form-edit-button' " .
+                        "id='form-edit-button-" . attr($formdir) . "-" . attr($iter['id']) . "' " .
+                        "href='#' " .
+                        "title='" . xla('Edit this form') . "' " .
+                        "onclick=\"return openEncounterForm('" . attr($formdir) . "', '" .
+                        attr($form_name) . "', '" . attr($iter['form_id']) . "')\">";
+                    echo "<span>" . xlt('Edit') . "</span></a>";
+                }
+            }
+            if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
+                if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
+                    echo $esign->buttonHtml();
+                }
+            }
+            if (substr($formdir, 0, 3) == 'LBF') {
+            // A link for a nice printout of the LBF
+                echo "<a target='_blank' " .
+                "href='$rootdir/forms/LBF/printable.php?"   .
+                "formname="   . urlencode($formdir)         .
+                "&formid="    . urlencode($iter['form_id']) .
+                "&visitid="   . urlencode($encounter)       .
+                "&patientid=" . urlencode($pid)             .
+                "' class='css_button_small' title='" . xl('Print this form') .
+                "' onclick='top.restoreSession()'><span>" . xlt('Print') . "</span></a>";
+            }
+            if (acl_check('admin', 'super')) {
+                if ($formdir != 'newpatient' && $formdir != 'newGroupEncounter') {
+                    // a link to delete the form from the encounter
+                    echo "<a href='$rootdir/patient_file/encounter/delete_form.php?" .
+                        "formname=" . $formdir .
+                        "&id=" . $iter['id'] .
+                        "&formid="    . urlencode($iter['form_id']) .
+                        "&encounter=". $encounter.
+                        "&pid=".$pid.
+                        "' class='css_button_small' title='" . xl('Delete this form') . "' onclick='top.restoreSession()'><span>" . xl('Delete') . "</span></a>";
+                } else {
+                    echo "<a href='javascript:;' class='css_button_small' style='color:gray'><span>". xl('Delete', 'e') ."</span></a>";
+                }
+            }
+            echo "</div>";
+            echo "<div style='margin: 8px'>";
+            if ($esign->isLogViewable()) {
+                $esign->renderLog();
+            }
+            echo "</div>";
+        }
+    }
+?>
 </div>
 
 <div class='encounter-summary-column'>
@@ -991,7 +1082,7 @@ if ($pass_sens_squad &&
         "",
         "FIND_IN_SET(formdir,'newpatient') DESC, form_name, date DESC"
     ))) {
-    echo "<table width='100%' id='partable'>";
+    echo "<div><table id='partable'>";
     $divnos = 1;
     foreach ($result as $iter) {
         $formdir = $iter['formdir'];
@@ -1069,7 +1160,7 @@ if ($pass_sens_squad &&
         echo "<a href='#' onclick='divtoggle(\"spanid_$divnos\",\"divid_$divnos\");' class='small' id='aid_$divnos'>" .
           "<div class='formname'>" . text($form_name) . "</div> " .
           xlt('by') . " " . text($form_author) . " " .
-          "(<span id=spanid_$divnos class=\"indicator\">" . ($divnos == 1 ? xlt('Collapse') : xlt('Expand')) . "</span>)</a>";
+          "(<span id=spanid_$divnos class=\"indicator\">" .  xlt('Collapse') . "</span>)</a>";
         echo "</div>";
 
         // a link to edit the form
@@ -1091,12 +1182,6 @@ if ($pass_sens_squad &&
             }
         }
 
-        if (($esign->isButtonViewable() and $is_group == 0 and $authPostCalendarCategoryWrite) or ($esign->isButtonViewable() and $is_group and acl_check("groups", "glog", false, 'write') and $authPostCalendarCategoryWrite)) {
-            if (!$aco_spec || acl_check($aco_spec[0], $aco_spec[1], '', 'write')) {
-                echo $esign->buttonHtml();
-            }
-        }
-
         if (substr($formdir, 0, 3) == 'LBF') {
           // A link for a nice printout of the LBF
             echo "<a target='_blank' " .
@@ -1115,6 +1200,7 @@ if ($pass_sens_squad &&
                 echo "<a href='$rootdir/patient_file/encounter/delete_form.php?" .
                     "formname=" . $formdir .
                     "&id=" . $iter['id'] .
+                    "&formid="    . urlencode($iter['form_id']) .
                     "&encounter=". $encounter.
                     "&pid=".$pid.
                     "' class='css_button_small' title='" . xl('Delete this form') . "' onclick='top.restoreSession()'><span>" . xl('Delete') . "</span></a>";
@@ -1128,7 +1214,7 @@ if ($pass_sens_squad &&
         echo "</tr>";
         echo "<tr>";
         echo "<td valign='top' class='formrow'><div class='tab' id='divid_$divnos' ";
-        echo "style='display:" . ($divnos == 1 ? 'block' : 'none') . "'>";
+        echo "style='display:block'>";
 
         // Use the form's report.php for display.  Forms with names starting with LBF
         // are list-based forms sharing a single collection of code.
@@ -1142,14 +1228,43 @@ if ($pass_sens_squad &&
             call_user_func($formdir . "_report", $attendant_id, $encounter, 2, $iter['form_id']);
         }
 
-        if ($esign->isLogViewable()) {
-            $esign->renderLog();
-        }
+        // if ($esign->isLogViewable()) {
+        //     $esign->renderLog();
+        // }
 
         echo "</div></td></tr>";
         $divnos=$divnos+1;
     }
-    echo "</table>";
+    ?>
+    </table>
+    <div id='feesheet'>
+        <div><b>Fee Sheet</b></div>
+        <table>
+            <tr class="feesheet-head">
+                <th class='sheetcell'><?php echo xlt('Type');?></th>
+                <th class='sheetcell'><?php echo xlt('Code');?></th>
+                <th class='sheetcell'><?php echo xlt('Description');?></th>
+                <th class='sheetcell'><?php echo xlt('Modifiers');?></th>
+                <th class='sheetcell'><?php echo xlt('Units');?></th>
+                <th class='sheetcell'><?php echo xlt('Total Price');?></th>
+                <th class='sheetcell'><?php echo xlt('Justify');?></th>
+                <th class='sheetcell'><?php echo xlt('Note Codes');?></th>
+            </tr>
+    <?php
+        $res = sqlStatement("SELECT code_type,code,code_text,modifier,fee,units,justify,notecodes FROM billing WHERE pid=? and encounter=? and activity='1'", array($pid,$encounter));
+        while ($row = sqlFetchArray($res)) {
+            echo "<tr class='feesheet-body'>";
+                echo "<td class='sheetcell'>".$row['code_type']."</td>";
+                echo "<td class='sheetcell'>".$row['code']."</td>";
+                echo "<td class='sheetcell'>".$row['code_text']."</td>";
+                echo "<td class='sheetcell'>".$row['modifier']."</td>";
+                echo "<td class='sheetcell' style='text-align: right;'>".$row['units']."</td>";
+                echo "<td class='sheetcell' style='text-align: right;'>$ ".$row['fee']."</td>";
+                echo "<td class='sheetcell'>".$row['justify']."</td>";
+                echo "<td class='sheetcell'>".$row['notecodes']."</td>";
+            echo "</tr>";
+        }
+    echo "</table></div></div>";
 }
 if (!$pass_sens_squad) {
     echo xlt("Not authorized to view this encounter");

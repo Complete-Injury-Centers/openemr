@@ -364,7 +364,7 @@ if (isset($_REQUEST['submitform']) && $_REQUEST['submitform'] == 'save') {
         </tr>
         <tr class="text">
             <td align=right>
-                <select multiple name="topersonalized[]" id="topersonalized" size="6" style="width:220px"
+                <select multiple name="topersonalized[]" id="topersonalized" size="6" style="width:360px"
                         onchange="display_category_item(document.myform,'topersonalized');">
                     <?php
                     $where = '';
@@ -425,7 +425,7 @@ if (isset($_REQUEST['submitform']) && $_REQUEST['submitform'] == 'save') {
                        onclick="check_user_category(document.myform,'topersonalized','personalized')">
             </td>
             <td align=left>
-                <select multiple name="personalized[]" id="personalized" size="6" style="width:220px">
+                <select multiple name="personalized[]" id="personalized" size="6" style="width:360px">
                     <?php
                     $where = '';
                     if ($_REQUEST['filter_context']) {

@@ -144,6 +144,10 @@ if ($PDF_OUTPUT) {
     ob_start();
 }
 
+if(!permission()) {
+    $s = str_replace("<body>", "<body oncontextmenu='javascript:return false;'>", $s);
+}
+
 echo $s;
 
 if ($PDF_OUTPUT) {
@@ -259,4 +263,14 @@ function generateIssuesList() {
         $list .= $prow['title'].", ";
     }
     return rtrim($list,", ");
+}
+
+function permission() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? false : true; // If it's an external user, permision set to false
+    }
+    else {
+        return true;
+    }
 }

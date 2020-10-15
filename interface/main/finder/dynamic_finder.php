@@ -11,6 +11,13 @@ require_once("../../globals.php");
 
 $popup = empty($_REQUEST['popup']) ? 0 : 1;
 
+function justSee() {
+  $res = sqlStatement("SELECT justSee FROM users WHERE id=?", array($_SESSION['authUserID']));
+  if($row = sqlFetchArray($res)) {
+    return $row['justSee'] == '1' ? "true" : "false";
+  }
+}
+
 // Generate some code based on the list of columns.
 //
 $colcount = 0;
@@ -20,26 +27,26 @@ $coljson = "";
 $res = sqlStatement("SELECT option_id, title FROM list_options WHERE " .
   "list_id = 'ptlistcols' AND activity = 1 ORDER BY seq, title");
 while ($row = sqlFetchArray($res)) {
-    $colname = $row['option_id'];
-    $title = xl_list_label($row['title']);
-    $header .= "   <th>";
-    $header .= text($title);
-    $header .= "</th>\n";
-    $header0 .= "   <td align='center'><input type='text' size='10' ";
-    $header0 .= "value='' class='search_init' /></td>\n";
-    if ($coljson) {
-        $coljson .= ", ";
-    }
+  $colname = $row['option_id'];
+  $title = xl_list_label($row['title']);
+  $header .= "   <th>";
+  $header .= text($title);
+  $header .= "</th>\n";
+  $header0 .= "   <td align='center'><input type='text' size='10' ";
+  $header0 .= "value='' class='search_init' /></td>\n";
+  if ($coljson) {
+      $coljson .= ", ";
+  }
 
-    $coljson .= "{\"sName\": \"" . addcslashes($colname, "\t\r\n\"\\") . "\"}";
-    ++$colcount;
+  $coljson .= "{\"sName\": \"" . addcslashes($colname, "\t\r\n\"\\") . "\"}";
+  ++$colcount;
 }
 
-$header .= "   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Referrals (Sent/Received)</th>\n   <th>Last Visit</th>\n";
+$header .= "   <th>Referral Date</th>\n   <th>Visits</th>\n   <th>Scheduled</th>\n   <th>Compliance</th>\n   <th>Referrals (Sent/Received)</th>\n   <th>Last Visit</th>\n";
 for ($i=0; $i < 5; $i++) {
 	$header0 .= "   <td align='center'><input type='text' size='10' value='' class='search_init' /></td>\n";
 }
-$coljson .= ", {\"sName\": \"visits\"}, {\"sName\": \"scheduled\"}, {\"sName\": \"compliance\"}, {\"sName\": \"referrals\"}, {\"sName\": \"lastVisit\"}";
+$coljson .= ", {\"sName\": \"Referral_Date\"}, {\"sName\": \"visits\"}, {\"sName\": \"scheduled\"}, {\"sName\": \"compliance\"}, {\"sName\": \"referrals\"}, {\"sName\": \"lastVisit\"}";
 ?>
 <html>
 <head>
@@ -74,49 +81,49 @@ $(document).ready(function() {
   "columns": [ <?php echo $coljson; ?> ],
   initComplete: function () {
   	this.api().columns().every( function () {
-  	    var column = this;
+      var column = this;
 
-  	    if ( column.index() === 4 ) {
-          var select = $('<td><select><option value=""></option><option value="%Release">Release and Auto Release</option></select></td>')
-              .appendTo( $(".filters") );
-        } else {
-          var select = $('<td><select><option value=""></option></select></td>')
-              .appendTo( $(".filters") );
+      if ( column.index() === 4 ) {
+        var select = $('<td><select><option value=""></option><option value="%Release">Release and Auto Release</option></select></td>')
+            .appendTo( $(".filters") );
+      } else {
+        var select = $('<td><select><option value=""></option></select></td>')
+            .appendTo( $(".filters") );
+      }
+
+      select.find('select').on( 'change', function () {
+        column
+            .search( $(this).val() )
+            .draw();
+      } );
+
+      column.data().unique().sort().each( function ( d, j ) {
+        if (d) {
+            select.find('select').append( '<option value="'+d+'">'+d+'</option>' );
         }
+      } );
 
-        select.find('select').on( 'change', function () {
+      if ( column.index() === 4 ) {
+        setTimeout(function() {
+          select.find('select').val('Active');
           column
-              .search( $(this).val() )
+              .search( 'Active' )
               .draw();
-        } );
-
-  	    column.data().unique().sort().each( function ( d, j ) {
-  	    	if (d) {
-	  	        select.find('select').append( '<option value="'+d+'">'+d+'</option>' );
-  	    	}
-  	    } );
-
-  	    if ( column.index() === 4 ) {
-          setTimeout(function() {
-	          select.find('select').val('Active');
-	          column
-	              .search( 'Active' )
-	              .draw();
 	      }, 1);
-  	    }
-  	} );
+  	  }
+  	});
   },
   "lengthMenu": [ 10, 25, 50, 100, 1000 ],
   "pageLength": <?php echo empty($GLOBALS['gbl_pt_list_page_size']) ? '10' : $GLOBALS['gbl_pt_list_page_size']; ?>,
     <?php // Bring in the translations ?>
     <?php $translationsDatatablesOverride = array('search'=>(xla('Search all columns') . ':')) ; ?>
     <?php require($GLOBALS['srcdir'] . '/js/xl/datatables-net.js.php'); ?>
- } );
+ });
 
  // This puts our custom HTML into the table header.
  $("div.mytopdiv").html("<form name='myform'><input type='checkbox' name='form_new_window' value='1'<?php
     if (!empty($GLOBALS['gbl_pt_list_new_window'])) {
-        echo ' checked';
+      echo ' checked';
     } ?> /><?php
   echo xlt('Open in New Window'); ?></form>");
 
@@ -135,19 +142,17 @@ $(document).ready(function() {
   // The row display for "No matching records found" has no valid ID, but is
   // otherwise clickable. (Matches this CSS selector).  This prevents an invalid
   // state for the PID to be set.
-  if (newpid.length===0)
-  {
-      return;
+  if (newpid.length===0 || <?php echo justSee(); ?>) {
+    return;
   }
   if (document.myform.form_new_window.checked) {
-   openNewTopWindow(newpid);
+    openNewTopWindow(newpid);
   }
   else {
-   top.restoreSession();
-   top.RTop.location = "../../patient_file/summary/demographics.php?set_pid=" + newpid;
+    top.restoreSession();
+    top.RTop.location = "../../patient_file/summary/demographics.php?set_pid=" + newpid;
   }
- } );
-
+ });
 });
 
 function openNewTopWindow(pid) {
@@ -189,4 +194,3 @@ function openNewTopWindow(pid) {
 
 </body>
 </html>
-

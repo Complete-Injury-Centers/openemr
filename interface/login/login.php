@@ -25,8 +25,6 @@
  * @link    http://www.open-emr.org
  */
 
-
-
 use OpenEMR\Core\Header;
 
 $ignoreAuth=true;

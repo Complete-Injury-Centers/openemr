@@ -809,6 +809,12 @@ foreach ($insurancei as $iid => $iname) {
  </tr>
 </table>
 
+<?php if(acl_check('admin', 'super')) :?>
+<span class='bold'>
+    <input type='checkbox' name='form_lop_request' id='form_lop_request'>
+    <label for="form_lop_request"><b>Send LOP Request to Law Firm</b></label>
+</span>
+<?php endif ?>
 </form>
 
 <!-- include support for the list-add selectbox feature -->

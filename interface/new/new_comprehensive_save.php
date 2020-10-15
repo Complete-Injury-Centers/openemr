@@ -23,6 +23,7 @@ if (!empty($_POST["form_pubpid"])) {
 require_once("$srcdir/pid.inc");
 require_once("$srcdir/patient.inc");
 require_once("$srcdir/options.inc.php");
+include_once("../sender.php");
 
 // here, we lock the patient data table while we find the most recent max PID
 // other interfaces can still read the data during this lock, however
@@ -182,6 +183,11 @@ newInsuranceData(
     $i3date,
     filter_input(INPUT_POST, 'i3accept_assignment')
 );
+
+if($_POST['form_lop_request']) {
+    // send email
+    sendLOPRequest($pid);
+}
 ?>
 <html>
 <body>

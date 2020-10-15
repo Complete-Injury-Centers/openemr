@@ -174,7 +174,7 @@ $result = getPnotesByDate(
 <script type="text/javascript">
 function submitform(attr) {
 if (attr="newnote")
-document.forms[0].submit();
+    document.forms[0].submit();
 }
 </script>
 </head>
@@ -199,22 +199,42 @@ $urlparms = "docid=$docid&orderid=$orderid";
 
 <form border='0' method='post' name='new_note' id="new_note" action='pnotes_full.php?<?php echo $urlparms; ?>'>
 
-    <div>
-        <div style='float:left; margin-right: 5px'>
-            <span class="title"><?php echo xlt('Patient Note') . $title_docname; ?></span>
+    <div style="margin: 5px 0; border:solid 2px; border-radius: 5px; padding: 5px; max-width: 1000px;">
+        <div style='display: inline-block; margin-right: 5px;'>
+            <span class="title"><?php echo xlt('ADD PROGRESS NOTES - UPDATES HERE') ?></span> <br />
+            <span><b><?php echo xlt('(back office adds updates here as well)') . $title_docname; ?></b></span>
         </div>
-        <div>
+        <div style='display: inline-block;'>
             <?php if ($noteid) { ?>
             <!-- existing note -->
             <a href="#" class="css_button" id="printnote"><span><?php echo xlt('View Printable Version'); ?></span></a>
             <?php } ?>
-            <a class="css_button large_button" id='cancel' href='javascript:;'>
-            <span class='css_button_span large_button_span'><?php echo htmlspecialchars(xl('Cancel'), ENT_NOQUOTES);?></span>
+            <?php
+                if($_GET['clean'] == 1) {
+                    echo "";
+                } else {
+                    echo "<a class='css_button large_button' id='cancel' href='javascript:;'>";
+                    echo "<span class='css_button_span large_button_span'>".htmlspecialchars(xl('Cancel'), ENT_NOQUOTES)."</span>";
+                }
+            ?>
             </a>
+        </div>
+        <div style='display: block;'>
+            <span class='text'>
+                <?php
+                if ($noteid) {
+                // Modified 6/2009 by BM to incorporate the patient notes into the list_options listings
+                    echo htmlspecialchars(xl('Amend Existing Note'), ENT_NOQUOTES) .
+                    "<b> &quot;" . generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $title) . "&quot;</b>\n";
+                } else {
+                    echo htmlspecialchars(xl('Ex. reason patient missed, patient not answering calls, update on case, etc.'), ENT_NOQUOTES) . "\n";
+                }
+                ?>
+            </span>
         </div>
     </div>
 
-    <br/>
+    <!-- <br/> -->
 
 <input type='hidden' name='mode' id="mode" value="new">
 <input type='hidden' name='trigger' id="trigger" value="add">
@@ -224,19 +244,6 @@ $urlparms = "docid=$docid&orderid=$orderid";
 <input type='hidden' name='noteid' id="noteid" value="<?php echo htmlspecialchars($noteid, ENT_QUOTES) ?>">
 <input type='hidden' name='form_doc_only' id="form_doc_only" value="<?php echo htmlspecialchars($form_doc_only, ENT_QUOTES) ?>">
 <table border='0' cellspacing='8'>
- <tr>
-  <td class='text'>
-    <?php
-    if ($noteid) {
-       // Modified 6/2009 by BM to incorporate the patient notes into the list_options listings
-        echo htmlspecialchars(xl('Amend Existing Note'), ENT_NOQUOTES) .
-        "<b> &quot;" . generate_display_field(array('data_type'=>'1','list_id'=>'note_type'), $title) . "&quot;</b>\n";
-    } else {
-        echo htmlspecialchars(xl('Add New Note'), ENT_NOQUOTES) . "\n";
-    }
-    ?>
-  </td>
- </tr>
  <tr style="display:none">
   <td class='text'>
     <br/>
@@ -280,21 +287,37 @@ if ($noteid) {
     echo "<div class='text'>".$body."</div>";
 }
 ?>
-    <br/>
-   <textarea name='note' id='note' rows='4' cols='58'></textarea>
+    <!--<br/>-->
+    <textarea name='note' id='note' rows='4' cols='58'></textarea>
 
     <?php if ($noteid) { ?>
+    <br />
     <!-- existing note -->
     <a href="#" class="css_button" id="newnote" title="<?php echo htmlspecialchars(xl('Add as a new note'), ENT_QUOTES); ?>" ><span><?php echo htmlspecialchars(xl('Save as new note'), ENT_NOQUOTES); ?></span></a>
     <a href="#" class="css_button" id="appendnote" title="<?php echo htmlspecialchars(xl('Append to the existing note'), ENT_QUOTES); ?>"><span><?php echo htmlspecialchars(xl('Append this note'), ENT_NOQUOTES); ?></span></a>
     <?php } else { ?>
+    <div>
+        <!-- important checkbox -->
+        <input type="checkbox" id="important" value='1' name="<?php echo xla('important'); ?>">
+        <label for="important" style="font-size:10pt;"><b><?php echo xlt('Important'); ?></b></label>
+    <?php if(acl_check('admin', 'super')) :?>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="note_lop_request" value='1' name="<?php echo xla('note_lop_request'); ?>">
+        <label for="note_lop_request" style="font-size:10pt;"><b><?php echo xlt('LOP Request'); ?></b></label>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_lawyer_mail" value='1' name="<?php echo xla('notify_lawyer_mail'); ?>">
+        <label for="notify_lawyer_mail" style="font-size:10pt;"><b><?php echo xlt('Notify Lawyer'); ?></b></label>
+    <?php endif ?>
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_back" value='1' name="<?php echo xla('notify_back'); ?>">
+        <label for="notify_back" style="font-size:10pt;"><b><?php echo xlt('Notify Back Office'); ?></b></label>
+    </div>
+
+    <br />
     <a href="#" class="css_button" id="newnote" title="<?php echo htmlspecialchars(xl('Add as a new note'), ENT_QUOTES); ?>" ><span><?php echo htmlspecialchars(xl('Save as new note'), ENT_NOQUOTES); ?></span></a>
     <?php } ?>
 
   </td>
  </tr>
 </table>
-<br>
+<!-- <br> -->
 </form>
 <form border='0' method='post' name='update_activity' id='update_activity'
  action="pnotes_full.php?<?php echo $urlparms; ?>">
@@ -400,7 +423,13 @@ $(document).ready(function(){
     }
 
     var NewNote = function () {
-        top.restoreSession();
+        <?php
+            if($_GET['clean'] == 1) {
+                echo "";
+            }else {
+                echo "top.restoreSession();";
+            }
+        ?>
         $("#noteid").val('');
         $("#new_note").submit();
     }
@@ -442,7 +471,13 @@ $(document).ready(function(){
             type: request_method,
             data: form_data
         }).done(function (r) { //
-            dlgclose('refreshme', false);
+            <?php
+                if($_GET['clean'] == 1) {
+                    echo "top.refreshPatient();";
+                } else {
+                    echo "dlgclose('refreshme', false);";
+                }
+            ?>
         });
     });
 });
