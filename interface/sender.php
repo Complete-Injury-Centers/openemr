@@ -225,7 +225,7 @@ function sendNoteEmail($pid, $note) {
 
 function notifyBack($pid, $note) {
     $patient = getPatient($pid);
-    $send_to = $_ENV['EMAIL_USER_SCH'];
+    $send_to = [$_ENV['EMAIL_USER_SCH']];
 
     $subject = "CIC Clinic to Back Office Note";
     if($patient['fname']) {$subject .= " / ".$patient['fname'];}
