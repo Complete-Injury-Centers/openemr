@@ -115,7 +115,6 @@ newInsuranceData(
     filter_input(INPUT_POST, 'i1accept_assignment')
 );
 
-
 $i2dob = DateToYYYYMMDD(filter_input(INPUT_POST, "i2subscriber_DOB"));
 $i2date = DateToYYYYMMDD(filter_input(INPUT_POST, "i2effective_date"));
 
@@ -187,6 +186,13 @@ newInsuranceData(
 if($_POST['form_lop_request']) {
     // send email
     sendLOPRequest($pid);
+}
+
+$res = sqlStatement("SELECT externalUser, username FROM users WHERE id=?", array($_SESSION['authUserID']));
+if($row = sqlFetchArray($res)) {
+    if($row['externalUser'] == '1') {
+        sqlStatement("UPDATE patient_data SET ext_doctor=? WHERE pid=?", array($row['username'], $pid));
+    }
 }
 ?>
 <html>
