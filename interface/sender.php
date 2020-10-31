@@ -232,7 +232,9 @@ function notifyBack($pid, $note) {
     if($patient['lname']) {$subject .= " ".$patient['lname'];}
     if($patient['DOB']) {$subject .= " / DOB: ".$patient['DOB'];}
 
-    $body = "<b>" . $note . "</b><br /><br />";
+    $body = $patient['fname'] . " " . $patient['lname'] . " / DOB: " . $patient['DOB'] . ",<br /><br />";
+
+    $body .= "<b>" . $note . "</b><br /><br />";
     $body .= "Please address this note from clinic ASAP.";
 
     sendMail($send_to, $subject, $body . signatureSchedule(), $_ENV['EMAIL_USER_SCH'], $_ENV['EMAIL_PASS_SCH'], 'CIC SCHEDULE');
