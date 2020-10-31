@@ -755,6 +755,9 @@ $menu_restrictions = $menuPatient->getMenu();
                         }
                         $first = false;
                         $link = ($children_value->pid != "true") ? $children_value->url : $children_value->url . attr($pid);
+                        if($children_value->label == "Documents") {
+                            $link = str_replace('list', 'upload', $link."&parent_id=1&");
+                        }
                         echo '<a href="' . $link . '" onclick="' . $children_value->on_click .'"> ' . text($children_value->label) . ' </a>';
                     }
                 } else {
@@ -763,6 +766,9 @@ $menu_restrictions = $menuPatient->getMenu();
                     }
                     $first = false;
                     $link = ($value->pid != "true") ? $value->url : $value->url . attr($pid);
+                    if($value->label == "Documents") {
+                        $link = str_replace('list', 'upload', $link."&parent_id=1&");
+                    }
                     echo '<a href="' . $link . '" onclick="' . $value->on_click .'"> ' . text($value->label) . ' </a>';
                 }
             }
