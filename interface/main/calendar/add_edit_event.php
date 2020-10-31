@@ -76,6 +76,9 @@ if(isset($eid) && $_POST['form_action'] == "save" && $eid != "") {
     if(isset($_POST['form_sms_alert']) && $_POST['changed']) {
         notifyPatient($eid);
     }
+    if(isset($_POST['form_sms_telemedical'])) {
+        telemedicalVisitSMS($eid);
+    }
     if(isset($_POST['form_lawyer_alert'])) {
         sendLawyerAppointmentAlert($eid);
     }
@@ -157,11 +160,6 @@ if (empty($collectthis)) {
 }?>
 
 <?php
-    function notifyPatient($eid) {
-        $patient = getInfoPatient($eid);
-        generateSMS($patient);
-    }
-
     function getInfoPatient($eid) {
         $query = 'SELECT '.
             'e.pc_eventDate, e.pc_endDate, e.pc_startTime, e.pc_endTime, e.pc_duration, e.pc_recurrtype, e.pc_recurrspec, e.pc_recurrfreq, e.pc_catid, e.pc_eid, e.pc_gid, '.
@@ -183,8 +181,10 @@ if (empty($collectthis)) {
         }
     }
 
-    function generateSMS($p) {
+    function notifyPatient($eid) {
+        $p = getInfoPatient($eid);
         if(!$p) return;
+
         $greeting = date("H") < 12 ? "Good Morning" : "Good Afternoon";
         $greeting = date("H") > 18 ? "Good Evening" : $greeting;
 
@@ -206,11 +206,44 @@ if (empty($collectthis)) {
                         ", with ".$p['ufname']." ".$p['ulname'].".";
         }
 
+        sendSMS($phoneNumber, $message);
+    }
+
+    function telemedicalVisitSMS($eid) {
+        $p = getInfoPatient($eid);
+        if(!$p) return;
+
+        $greeting = date("H") < 12 ? "Good Morning" : "Good Afternoon";
+        $greeting = date("H") > 18 ? "Good Evening" : $greeting;
+
+        if($p['phone_home']) {
+            if($p['hipaa_allowsms'] != "NO") {
+                $phoneNumber = $p['phone_home'];
+                $message = $greeting." ".$p['fname']." ".$p['lname'].
+                        "! A new appointment has been scheduled for you with Complete Injury Centers: PI Medical Solutions. ".
+                        "This is a telemedical/virtual visit. Please expect an invitation via email. If we do not have your ".
+                        "email yet or if you would like to update your email, then please reply here with that information. ".
+                        "Please join with the link provided there at the time of your visit, ".$p['pc_eventDate']." at ".
+                        $p['pc_startTime'].", with your doctor, Dr. ".$p['ufname']." ".$p['ulname'].". Please respond to ".
+                        "this text if you have any questions or need to reschedule your appointment.";
+            } else {
+                return "SMS couldn't been Sent";
+            }
+        } else {
+            $phoneNumber = $_ENV['PHONE'];
+            $message = $greeting.", ".$p['fname']." ".$p['lname'].
+                        " has not a phone registered for his telemedical/virtual appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
+                        ", with ".$p['ufname']." ".$p['ulname'].".";
+        }
+
+        sendSMS($phoneNumber, $message);
+    }
+    
+    function sendSMS($phoneNumber, $message) {
         $phoneNumber = $_ENV['DEBUG'] ? $_ENV['ADMIN_PHONE'] : $phoneNumber;
         $message = $_ENV['DEBUG'] ? "DEBUG => ".$message : $message;
 
         // echo "<script>console.log('sendSMS()');</script>";
-
         echo "<script>";
         echo "var data = JSON.stringify({".
                 '"to_numbers": ['.
@@ -225,7 +258,6 @@ if (empty($collectthis)) {
         // echo "console.log(data);";
 
         echo "var xhr = new XMLHttpRequest();";
-
         echo 'xhr.addEventListener("readystatechange", function () {'.
                 'if(this.readyState === this.DONE) {'.
                     // 'console.log(this.responseText);'.
@@ -538,6 +570,9 @@ if (empty($collectthis)) {
         if(isset($eid)) {
             if(isset($_POST['form_sms_alert'])) {
                 notifyPatient($eid);
+            }
+            if(isset($_POST['form_sms_telemedical'])) {
+                telemedicalVisitSMS($eid);
             }
             if(isset($_POST['form_lawyer_alert'])) {
                 sendLawyerAppointmentAlert($eid);
@@ -855,6 +890,9 @@ if (empty($collectthis)) {
             if(isset($eid)) {
                 if(isset($_POST['form_sms_alert'])) {
                     notifyPatient($eid);
+                }
+                if(isset($_POST['form_sms_telemedical'])) {
+                    telemedicalVisitSMS($eid);
                 }
                 if(isset($_POST['form_lawyer_alert'])) {
                     sendLawyerAppointmentAlert($eid);
@@ -1726,10 +1764,12 @@ if(acl_check('admin', 'super')): $large = 'style="padding: 20px 8px"'; endif
 
     <?php if($date >= date("Y-m-d")) :?>
       <td>
-        <input type='checkbox' name='form_sms_alert' id="form_sms_alert" value='1' checked />
+        <input type='checkbox' name='form_sms_alert' id="form_sms_alert" value='1' checked /><br/>
+        <input type='checkbox' name='form_sms_telemedical' id="form_sms_telemedical"/>
       </td>
       <td colspan="2">
-        <label for="form_sms_alert"><?php echo xlt('Patient Appointment Notification'); ?></label>
+        <label for="form_sms_alert"><?php echo xlt('Patient Appointment Notification'); ?></label><br/>
+        <label for="form_sms_telemedical"><?php echo xlt('Telemedical Visit Notification'); ?></label>
       </td>
     <?php endif ?>
 
@@ -2198,7 +2238,6 @@ if ($repeatexdate != "") {
 
 <script language="javascript">
 // jQuery stuff to make the page a little easier to use
-
 $(document).ready(function(){
     $("#form_save").click(function(e) { validateform(e,"save"); });
     $("#form_duplicate").click(function(e) { validateform(e,"duplicate"); });
@@ -2390,6 +2429,22 @@ function SubmitForm() {
     return true;
 }
 
-</script>
+<?php if($date >= date("Y-m-d")) { ?>
+    var check_alert = document.querySelector("input[name=form_sms_alert]");
+    var check_telem = document.querySelector("input[name=form_sms_telemedical]");
 
+    check_alert.addEventListener('change', function() {
+        if(this.checked) {
+            document.getElementById("form_sms_telemedical").checked = false;
+        }
+    });
+
+    check_telem.addEventListener('change', function() {
+        if(this.checked) {
+            document.getElementById("form_sms_alert").checked = false;
+        }
+    });
+<?php } ?>
+
+</script>
 </html>
