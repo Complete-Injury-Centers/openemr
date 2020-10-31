@@ -148,6 +148,26 @@ if (isset($mode)) {
         }
     } elseif ($mode == "new") {
         $note = $_POST['note'];
+
+        if(isset($_POST['important'])) {
+            $chks = "Important";
+        }
+        if(isset($_POST['note_lop_request'])) {
+            $chks = isset($chks) ? $chks . ", " : "";
+            $chks .= "LOP";
+        }
+        if(isset($_POST['notify_lawyer_mail']) && $_POST['note']) {
+            $chks = isset($chks) ? $chks . ", " : "";
+            $chks .= "Lawyer";
+        }
+        if(isset($_POST['notify_back']) && $_POST['note']) {
+            $chks = isset($chks) ? $chks . ", " : "";
+            $chks .= "Office";
+        }
+        if(isset($chks)) {
+            $note .= " - (" . $chks . ")";
+        }
+
         if ($noteid) {
             updatePnote($noteid, $note, $_POST['form_note_type'], $_POST['assigned_to']);
         } else {
