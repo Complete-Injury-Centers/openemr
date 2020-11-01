@@ -1184,7 +1184,7 @@ if ($insurance_count > 0) {
 <?php if (acl_check('patients', 'notes')) { ?>
         <tr>
             <td width='650px'>
-                <iframe src="./pnotes_full_add.php?docid=0&orderid=0&clean=1" frameborder="0" style="overflow:hidden;width:620px" scrolling="no" onload="resizeIframe(this)" ></iframe>
+                <iframe src="./pnotes_full_add.php?docid=0&orderid=0&clean=1" frameborder="0" style="overflow:hidden;width:664px" scrolling="no" onload="resizeIframe(this)" ></iframe>
 <?php
 // Notes expand collapse widget
 $widgetTitle = xl("Patient Update Section");

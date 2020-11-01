@@ -243,7 +243,7 @@ $urlparms = "docid=$docid&orderid=$orderid";
 <input type='hidden' name='form_inactive' id="form_inactive" value="<?php echo htmlspecialchars($form_inactive, ENT_QUOTES) ?>">
 <input type='hidden' name='noteid' id="noteid" value="<?php echo htmlspecialchars($noteid, ENT_QUOTES) ?>">
 <input type='hidden' name='form_doc_only' id="form_doc_only" value="<?php echo htmlspecialchars($form_doc_only, ENT_QUOTES) ?>">
-<table border='0' cellspacing='8'>
+<table border='0' cellspacing='8' style="width:100%;">
  <tr style="display:none">
   <td class='text'>
     <br/>
@@ -288,7 +288,7 @@ if ($noteid) {
 }
 ?>
     <!--<br/>-->
-    <textarea name='note' id='note' rows='4' cols='58'></textarea>
+    <textarea name='note' id='note' rows='4' style="width:100%;"></textarea>
 
     <?php if ($noteid) { ?>
     <br />
@@ -299,15 +299,15 @@ if ($noteid) {
     <div>
         <!-- important checkbox -->
         <input type="checkbox" id="important" value='1' name="<?php echo xla('important'); ?>">
-        <label for="important" style="font-size:10pt;"><b><?php echo xlt('Important'); ?></b></label>
+        <label for="important" style="font-size:9pt;"><b><?php echo xlt('Important - to clinic'); ?></b></label>
     <?php if(acl_check('admin', 'super')) :?>
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="note_lop_request" value='1' name="<?php echo xla('note_lop_request'); ?>">
-        <label for="note_lop_request" style="font-size:10pt;"><b><?php echo xlt('LOP Request'); ?></b></label>
+        <label for="note_lop_request" style="font-size:9pt;"><b><?php echo xlt('LOP Request'); ?></b></label>
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_lawyer_mail" value='1' name="<?php echo xla('notify_lawyer_mail'); ?>">
-        <label for="notify_lawyer_mail" style="font-size:10pt;"><b><?php echo xlt('Notify Lawyer'); ?></b></label>
+        <label for="notify_lawyer_mail" style="font-size:9pt;"><b><?php echo xlt('Notify Lawyer'); ?></b></label>
     <?php endif ?>
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_back" value='1' name="<?php echo xla('notify_back'); ?>">
-        <label for="notify_back" style="font-size:10pt;"><b><?php echo xlt('Notify Back Office'); ?></b></label>
+        <label for="notify_back" style="font-size:9pt;"><b><?php echo xlt('Notify Back Office'); ?></b></label>
     </div>
 
     <br />
