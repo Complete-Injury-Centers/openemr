@@ -203,7 +203,7 @@ function generate_select_list(
         if($optionValue==$past_data) {
             continue;
         }
-        $s .= "<option ".$i." value='$optionValue'";
+        $s .= "<option value='$optionValue'";
 
         if ((strlen($currvalue) == 0 && $lrow ['is_default']) || (strlen($currvalue) > 0 && in_array($lrow ['option_id'], $selectedValues))) {
             $s .= " selected";

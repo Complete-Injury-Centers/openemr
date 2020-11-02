@@ -146,6 +146,7 @@ foreach ($ISSUE_TYPES as $focustype => $focustitles) {
     ?>
   <tr class='head'>
     <th style='text-align:left'><?php echo xlt('Title'); ?></th>
+    <th style='text-align:left'><?php echo xlt('Delete'); ?></th>
     <th style='text-align:left'><?php echo xlt('Begin'); ?></th>
     <th style='text-align:left'><?php echo xlt('End'); ?></th>
     <th style='text-align:left'><?php echo xlt('Coding (click for education)'); ?></th>
@@ -237,6 +238,7 @@ foreach ($ISSUE_TYPES as $focustype => $focustitles) {
 
         echo " <tr class='$bgclass detail' $colorstyle>\n";
         echo "  <td style='text-align:left' class='$click_class' id='$rowid'>" . text($disptitle) . "</td>\n";
+        echo "  <td><input type='checkbox' name='del' class='deleteme' value='$rowid'>&nbsp;</td>\n";
         echo "  <td>" . text($row['begdate']) . "&nbsp;</td>\n";
         echo "  <td>" . text($row['enddate']) . "&nbsp;</td>\n";
         // both codetext and statusCompute have already been escaped above with htmlspecialchars)
@@ -272,35 +274,51 @@ echo "</table>";
 </body>
 
 <script language="javascript">
-// jQuery stuff to make the page a little easier to use
+    // jQuery stuff to make the page a little easier to use
+    $(document).ready(function(){
+        $(".statrow").mouseover(function() { $(this).toggleClass("highlight"); });
+        $(".statrow").mouseout(function() { $(this).toggleClass("highlight"); });
 
-$(document).ready(function(){
-    $(".statrow").mouseover(function() { $(this).toggleClass("highlight"); });
-    $(".statrow").mouseout(function() { $(this).toggleClass("highlight"); });
+        $(".statrow").click(function() { dopclick(this.id,0); });
+        $(".editenc").click(function(event) { doeclick(this.id); });
+        $("#newencounter").click(function() { newEncounter(); });
+        $("#history").click(function() { GotoHistory(); });
+        $("#back").click(function() { GoBack(); });
 
-    $(".statrow").click(function() { dopclick(this.id,0); });
-    $(".editenc").click(function(event) { doeclick(this.id); });
-    $("#newencounter").click(function() { newEncounter(); });
-    $("#history").click(function() { GotoHistory(); });
-    $("#back").click(function() { GoBack(); });
-
-    $(".noneCheck").click(function() {
-      top.restoreSession();
-      $.post( "../../../library/ajax/lists_touch.php", { type: this.name, patient_id: <?php echo htmlspecialchars($pid, ENT_QUOTES); ?> });
-      $(this).hide();
+        $(".noneCheck").click(function() {
+        top.restoreSession();
+        $.post( "../../../library/ajax/lists_touch.php", { type: this.name, patient_id: <?php echo htmlspecialchars($pid, ENT_QUOTES); ?> });
+        $(this).hide();
+        });
     });
-});
 
-var GotoHistory = function() {
-    top.restoreSession();
-    location.href='../history/history_full.php';
-}
+    var GotoHistory = function() {
+        top.restoreSession();
+        location.href='../history/history_full.php';
+    }
 
-var GoBack = function () {
-    top.restoreSession();
-    location.href='demographics.php';
-}
+    var GoBack = function () {
+        top.restoreSession();
+        location.href='demographics.php';
+    }
 
+    var checkboxElems = document.getElementsByClassName("deleteme");
+    for (var i = 0; i < checkboxElems.length; i++) {
+        checkboxElems[i].addEventListener("click", deleteme);
+    }
+
+    function deleteme(e) {
+        dlgopen('../deleter.php?issue='+e.target.value, '_blank', 500, 450);
+        e.target.checked = false;
+        return false;
+    }
+
+    // Called by the deleteme.php window on a successful delete.
+    function imdeleted() {
+        var myboss = opener ? opener : parent;
+        if(myboss.refreshIssue) myboss.refreshIssue();
+        else if(myboss.reloadIssues) myboss.reloadIssues();
+        else myboss.location.reload();
+    }
 </script>
-
 </html>
