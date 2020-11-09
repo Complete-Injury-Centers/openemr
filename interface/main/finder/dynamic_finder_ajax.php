@@ -144,6 +144,12 @@ if($rowz = sqlFetchArray($rez)) {
     $username = $rowz['username'];
 }
 
+$lawFirms = array();
+$rez = sqlStatement("SELECT lawyer_id FROM users_lawyer WHERE users_id=?", array($_SESSION['authUserID']));
+while($rowz = sqlFetchArray($rez)) {
+    $lawFirms[] = $rowz['lawyer_id'];
+}
+
 $query = "SELECT $sellist, lawyer, only_admin, ext_doctor FROM patient_data $where $orderby $limit";
 $res = sqlStatement($query);
 while ($row = sqlFetchArray($res)) {
@@ -153,11 +159,6 @@ while ($row = sqlFetchArray($res)) {
 
     if($row['only_admin'] == "YES" && !acl_check('admin', 'super')) continue;
 
-    $rez = sqlStatement("SELECT lawyer_id FROM users_lawyer WHERE users_id=?", array($_SESSION['authUserID']));
-    $lawFirms = array();
-    while($rowz = sqlFetchArray($rez)) {
-      $lawFirms[] = $rowz['lawyer_id'];
-    }
     if(!empty($lawFirms) && !in_array($row['lawyer'], $lawFirms)) continue;
 
   // Each <tr> will have an ID identifying the patient.
