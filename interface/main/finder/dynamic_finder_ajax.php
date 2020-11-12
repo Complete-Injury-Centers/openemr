@@ -159,7 +159,7 @@ while ($row = sqlFetchArray($res)) {
 
     if($row['only_admin'] == "YES" && !acl_check('admin', 'super')) continue;
 
-    if(!empty($lawFirms) && !in_array($row['lawyer'], $lawFirms)) continue;
+    if((externalUser() or !empty($lawFirms)) && !in_array($row['lawyer'], $lawFirms)) continue;
 
   // Each <tr> will have an ID identifying the patient.
     $arow = array('DT_RowId' => 'pid_' . $row['pid']);
@@ -265,4 +265,12 @@ function orderBySpecialItems(&$out,$specialItems,$iSortCol){
             });
         }
     }
+}
+
+function externalUser() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? true : false; // If it's an external user
+    }
+    return false;
 }
