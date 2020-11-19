@@ -157,6 +157,16 @@ $result = getPnotesByDate(
     $N,
     $offset
 );
+
+function permission() {
+    $res = sqlStatement("SELECT externalUser FROM users WHERE id=?", array($_SESSION['authUserID']));
+    if($row = sqlFetchArray($res)) {
+        return $row['externalUser'] == '1' ? false : true; // If it's an external user, permision set to false
+    }
+    else {
+        return true;
+    }
+}
 ?>
 
 <html>
@@ -297,10 +307,12 @@ if ($noteid) {
     <a href="#" class="css_button" id="appendnote" title="<?php echo htmlspecialchars(xl('Append to the existing note'), ENT_QUOTES); ?>"><span><?php echo htmlspecialchars(xl('Append this note'), ENT_NOQUOTES); ?></span></a>
     <?php } else { ?>
     <div>
+    <?php if(permission()) :?>
         <!-- important checkbox -->
         <input type="checkbox" id="important" value='1' name="<?php echo xla('important'); ?>">
         <label for="important" style="font-size:9pt;"><b><?php echo xlt('Important - to clinic'); ?></b></label>
-    <?php if(acl_check('admin', 'super')) :?>
+    <?php endif ?>
+    <?php if(acl_check('admin', 'super') and permission()) :?>
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="note_lop_request" value='1' name="<?php echo xla('note_lop_request'); ?>">
         <label for="note_lop_request" style="font-size:9pt;"><b><?php echo xlt('LOP Request'); ?></b></label>
         &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_lawyer_mail" value='1' name="<?php echo xla('notify_lawyer_mail'); ?>">
