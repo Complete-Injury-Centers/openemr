@@ -146,7 +146,7 @@ function remValues($value, $list_id, $encounter, $pid) {
             $cres = sqlStatement("SELECT codes FROM list_options WHERE option_id=? AND list_id=?",array($val[0],$list_id));
             if($crow = sqlFetchArray($cres)) {
                 $crow = explode(":", $crow['codes']);
-                $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' ORDER BY id DESC LIMIT 1",array($crow[0], $crow[1], $pid, $encounter));
+                $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' AND activity = 1 ORDER BY id DESC LIMIT 1",array($crow[0], $crow[1], $pid, $encounter));
                 if($dres = sqlFetchArray($drow)) {
                     sqlStatement("UPDATE billing SET activity=0 WHERE id=?", array($dres['id']));
                 }
@@ -383,7 +383,27 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
                 if($data_type == 25) {
                     addValues($value, $frow['list_id'], $encounter, $pid); //add treatments to the fee sheet
                 }
+            }
+        }
 
+        if($frow['data_type'] == 34 && $frow['field_id'] == "assessment" && $frow['form_id'] == "LBFSOAP" && $_POST['assessment_copy'] != $_POST['form_assessment']) {
+            $query = "SELECT cl_list_item_long FROM customlists AS cl
+                LEFT OUTER JOIN template_users AS tu ON cl.cl_list_slno=tu.tu_template_id
+                WHERE cl_list_type=4 AND cl_deleted=0 AND tu.tu_user_id=? ORDER BY tu.tu_template_order";
+            $res = sqlStatement($query, $_SESSION['authUserID']);
+            while($row = sqlFetchArray($res)) {
+                if(str_contains($_POST['form_assessment'], $row['cl_list_item_long'])) {
+                    echo "<script>console.log('entered!!!');</script>";
+                    $res = sqlStatement("SELECT fs_codes FROM fee_sheet_options WHERE fs_option LIKE '%Review Records'");
+                    if($row = sqlFetchArray($res)) {
+                        $codes = explode("|", $row['fs_codes']);
+                        $dres = sqlStatement("SELECT code,code_text,modifier,pr_price FROM prices RIGHT JOIN codes ON prices.pr_id=codes.id WHERE codes.code=?",array($codes[1]));
+                        if($drow = sqlFetchArray($dres)) {
+                            addBilling2($encounter, $codes[0], $drow['code'], $drow['code_text'], $pid, '1', '0', $drow['modifier'], '1', $drow['pr_price']);
+                        }
+                    }
+                    break;
+                }
             }
         }
     }
@@ -1262,6 +1282,10 @@ if (!empty($_POST['bn_save']) || !empty($_POST['bn_save_print']) || !empty($_POS
                         echo generate_display_field($frow, $currvalue);
                     } else {
                         generate_form_field($frow, $currvalue);
+
+                        if($frow['data_type'] == "34" && $frow['field_id'] == "assessment" && $frow['form_id'] == "LBFSOAP") {
+                            echo "<input type='hidden' name='assessment_copy' id='assessment_copy' value='".$currvalue."'>";
+                        }
                     }
                 }
 

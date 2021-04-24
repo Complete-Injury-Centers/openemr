@@ -53,7 +53,26 @@ class Form_Controller extends Abstract_Controller
         }
 
         $this->_view->form = $form;
-        $this->setViewScript('form/esign_form.php');
+
+        $res = sqlStatement("SELECT date FROM form_encounter WHERE encounter=?", array($form->encounterId));
+        $row = sqlFetchArray($res);
+        $enc_date = date('Y-m-d', strtotime($row['date']));
+        $today = date('Y-m-d');
+
+        $mins = (new \DateTime())->getOffset() / 60;
+        $sgn = ($mins < 0 ? "-" : "+");
+        $mins = abs($mins);
+        $hrs = floor($mins / 60);
+        $mins -= $hrs * 60;
+        $offset = sprintf('%s%02d:%02d', $sgn, $hrs, $mins);
+        $signInNote = sqlQuery("SELECT DATE_FORMAT(CONVERT_TZ(`date`, '+00:00', '". $offset ."'),'%I:%i %p') as `time` FROM forms WHERE formdir = 'LBFsignin' AND encounter = ". $GLOBALS['encounter'] . " ORDER BY id LIMIT 1");
+
+        if($signInNote and ($today > $enc_date or ($today == $enc_date and (time() - strtotime($enc_date . $signInNote['time']) > 3600 or time() - strtotime($enc_date . " 19:00:00") > 0)))) {
+            $this->setViewScript('form/esign_form.php');
+        } else {
+            $this->setViewScript('form/esign_error.php');
+        }
+
         $this->render();
     }
     

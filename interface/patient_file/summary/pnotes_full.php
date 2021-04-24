@@ -69,6 +69,10 @@ if(isset($_POST['notify_back']) && $_POST['note']) {
     notifyBack($patient_id, $_POST['note']);
 }
 
+if(isset($_POST['notify_clinic_director']) && $_POST['note']) {
+    notifyClinicDirector($patient_id, $_POST['note']);
+}
+
 // Check authorization.
 if (!acl_check('patients', 'notes', '', array('write','addonly'))) {
     die(htmlspecialchars(xl('Not authorized'), ENT_NOQUOTES));
@@ -163,6 +167,10 @@ if (isset($mode)) {
         if(isset($_POST['notify_back']) && $_POST['note']) {
             $chks = isset($chks) ? $chks . ", " : "";
             $chks .= "Office";
+        }
+        if(isset($_POST['notify_clinic_director'])) {
+            $chks = isset($chks) ? $chks . ", " : "";
+            $chks .= "Director";
         }
         if(isset($chks)) {
             $note .= " - (" . $chks . ")";

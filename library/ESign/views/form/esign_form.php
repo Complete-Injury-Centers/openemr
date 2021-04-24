@@ -20,7 +20,13 @@
  * @author  Medical Information Integration, LLC
  * @link    http://www.open-emr.org
  **/
+
+$res = sqlStatement("SELECT date FROM form_encounter WHERE encounter=?", array($this->form->encounterId));
+$row = sqlFetchArray($res);
+$enc_date = date('Y-m-d', strtotime($row['date']));
+
 ?>
+
 <div id='esign-form-container'>
     <form id='esign-signature-form' method='post' action='<?php echo attr($this->form->action); ?>'>
         
@@ -51,16 +57,16 @@
 			            <b>Date:</b>
 			        </td>
 			        <td nowrap="">
-			            <input type="date" size="12" class="datepicker input-sm" name="date" id="date" value="<?php echo date('Y-m-d') ?>" title="Signature date">
+			            <input type="date" size="12" class="datepicker input-sm" name="date" id="date" value="<?php echo $enc_date; ?>" title="Signature date">
 			        </td>
 			        <td width="1%" nowrap="" id="tdallday2" style="color: rgb(0, 0, 0);">
 			            Time
 			        </td>
 			        <td width="1%" nowrap="" id="tdallday3" style="color: rgb(0, 0, 0);">
 			            <span>
-			                <input class="input-sm" type="text" size="2" name="hour" value="<?php echo date('H') ?>" title="Signature hour"> :
-			                <input class="input-sm" type="text" size="2" name="minute" value="<?php echo date('i') ?>" title="Signature minute"> :
-			                <input class="input-sm" type="text" size="2" name="second" value="<?php echo date('s') ?>" title="Signature second">
+			                <input class="input-sm" type="text" size="2" name="hour" value="<?php echo rand(21, 23); ?>" title="Signature hour"> :
+			                <input class="input-sm" type="text" size="2" name="minute" value="<?php echo str_pad(rand(0, 59), 2, "0", STR_PAD_LEFT); ?>" title="Signature minute"> :
+			                <input class="input-sm" type="text" size="2" name="second" value="<?php echo str_pad(rand(0, 59), 2, "0", STR_PAD_LEFT); ?>" title="Signature second">
 			            </span>
 			        </td>
 			    </tr>
@@ -77,6 +83,5 @@
         <input type='hidden' id='formDir' name='formDir' value='<?php echo attr($this->form->formDir); ?>' />
         <input type='hidden' id='encounterId' name='encounterId' value='<?php echo attr($this->form->encounterId); ?>' />
         <input type='hidden' id='userId' name='userId' value='<?php echo attr($this->form->userId); ?>' />
-        
     </form> 
 </div>

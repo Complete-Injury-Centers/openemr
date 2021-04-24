@@ -144,11 +144,25 @@ function PrintEncHeader($dt, $rsn, $dr)
     echo "</tr>\n";
     $orow++;
 }
-function PrintEncFooter()
-{
+
+function PrintEncFooter($pid) {
     global $enc_units, $enc_chg, $enc_pmt, $enc_adj, $enc_bal;
+
+    $r = sqlStatement("SELECT casetype FROM patient_data WHERE pid = ?", $pid);
+    $status = sqlFetchArray($r)['casetype'];
+    
     echo "<tr bgcolor='#DDFFFF'>";
-    echo "<td colspan='4'>&nbsp;</td>";
+    echo "<td colspan='4'>";
+    if($status != "insurance") {
+        echo "&nbsp;";
+    } else {
+        echo "<b>Diagnoses:</b><br />";
+        $query = "SELECT title FROM lists WHERE pid = ? AND type = 'medical_problem' AND (enddate is null or enddate = '' or enddate = '0000-00-00') ORDER BY begdate";
+        $res = sqlStatement($query, $pid);
+        while($row = sqlFetchArray($res))
+            echo $row['title']."<br />";
+    }
+    echo "</td>";
     echo "<td class='detail'>". xlt('Encounter Balance').":</td>";
     echo "<td class='detail' style='text-align: center;'>".text($enc_units)."</td>";
     echo "<td class='detail' style='text-align: center;'>".text(oeFormatMoney($enc_chg))."</td>";
@@ -157,6 +171,7 @@ function PrintEncFooter()
     echo "<td class='detail' style='text-align: right;'>".text(oeFormatMoney($enc_bal))."</td>";
     echo "</tr>\n";
 }
+
 function PrintCreditDetail($detail, $pat, $unassigned = false)
 {
     global $enc_pmt, $total_pmt, $enc_adj, $total_adj, $enc_bal, $total_bal;
@@ -328,7 +343,7 @@ if (!isset($_REQUEST['$form_dob'])) {
 
 if (substr($GLOBALS['ledger_begin_date'], 0, 1) == 'Y') {
     $ledger_time = substr($GLOBALS['ledger_begin_date'], 1, 1);
-    $last_year = mktime(0, 0, 0, date('m'), date('d'), date('Y')-$ledger_time);
+    $last_year = mktime(0, 0, 0, date('m'), date('d'), date('Y')-($ledger_time * 4)); // Change begin date to 4 years
 } elseif (substr($GLOBALS['ledger_begin_date'], 0, 1) == 'M') {
     $ledger_time = substr($GLOBALS['ledger_begin_date'], 1, 1);
     $last_year = mktime(0, 0, 0, date('m')-$ledger_time, date('d'), date('Y'));
@@ -430,8 +445,8 @@ if ($_REQUEST['form_csvexport']) {
 
     <script language="JavaScript">
         $(document).ready(function() {
-            var win = top.printLogSetup ? top : opener.top;
-            win.printLogSetup(document.getElementById('printbutton'));
+            // var win = top.printLogSetup ? top : opener.top;
+            // win.printLogSetup(document.getElementById('printbutton'));
 
             $('.datepicker').datetimepicker({
                 <?php $datetimepicker_timepicker = false; ?>
@@ -441,6 +456,34 @@ if ($_REQUEST['form_csvexport']) {
                 <?php // can add any additional javascript settings to datetimepicker here; need to prepend first setting with a comma ?>
             });
         });
+
+        function printFile() {
+            <?php
+                $patient = sqlQuery("SELECT fname,lname,refer_facilities from patient_data WHERE pid=?", array($GLOBALS['pid']));
+        
+                $q_fac = "SELECT name FROM facility WHERE id=? AND id IN (SELECT id FROM facility WHERE name='PI Medical Solutions' OR name='Prime Integrated Health Clinics')";
+                $r_fac = sqlStatement($q_fac, array($patient['refer_facilities']));
+            
+                $filename = $patient['fname'] . " " . $patient['lname'] . " - ";
+                if(sqlNumRows($r_fac)) {
+                    $facility = sqlFetchArray($r_fac)['name'];
+                    if($facility == 'PI Medical Solutions') {
+                        $filename .= "PMS";
+                    }
+                    if($facility == 'Prime Integrated Health Clinics') {
+                        $filename .= "Prime";
+                    }
+                } else {
+                    $filename .= "CIC";
+                }
+                $filename .= " Bill";
+            ?>
+
+            let tempTitle = window.parent.document.title;
+            window.parent.document.title = '<?php echo $filename; ?>';
+            window.print();
+            window.parent.document.title = tempTitle;
+        }
     </script>
 </head>
 <body class="body_top">
@@ -523,21 +566,21 @@ if ($_REQUEST['form_csvexport']) {
         <tr>
             <td>
                 <div class="text-center">
-          <div class="btn-group" role="group">
-                      <a href='#' class='btn btn-default btn-save' onclick="checkSubmit();" >
-                        <?php echo xlt('Submit'); ?>
-            </a>
-                    <?php if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) { ?>
-              <a href='#' class='btn btn-default btn-print' id='printbutton'>
-                <?php echo xlt('Print Ledger'); ?>
-              </a>
-                <?php if ($type_form == '1') { ?>
-                <a href="../patient_file/summary/demographics.php" class="btn btn-default btn-transmit" onclick="top.restoreSession()">
-                    <?php echo xlt('Back To Patient');?>
-                </a>
-                <?php } ?>
-                    <?php } ?>
-          </div>
+                    <div class="btn-group" role="group">
+                        <a href='#' class='btn btn-default btn-save' onclick="checkSubmit();" >
+                            <?php echo xlt('Submit'); ?>
+                        </a>
+                        <?php if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) { ?>
+                            <a href='#' class='btn btn-default btn-print' id='printbutton' onclick='printFile()'>
+                                <?php echo xlt('Print Ledger'); ?>
+                            </a>
+                            <?php if ($type_form == '1') { ?>
+                                <a href="../patient_file/summary/demographics.php" class="btn btn-default btn-transmit" onclick="top.restoreSession()">
+                                    <?php echo xlt('Back To Patient');?>
+                                </a>
+                            <?php } ?>
+                        <?php } ?>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -596,11 +639,26 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
         $facility = $facilityService->getById($patient['refer_facilities']);
         $pat_dob = $patient['DOB'];
         $pat_name = $patient['fname']. ' ' . $patient['lname'];
+
+        $q_fac = "SELECT name FROM facility WHERE id=? AND id IN (SELECT id FROM facility WHERE name='PI Medical Solutions' OR name='Prime Integrated Health Clinics')";
+        $r_fac = sqlStatement($q_fac, array($patient['refer_facilities']));
+
+        $facility_title = "COMPLETE INJURY CENTERS";
+        $facility_tax_id = "83-4142739";
+        if(sqlNumRows($r_fac)) {
+            $facility_title = sqlFetchArray($r_fac)['name'];
+            if($facility_title == 'PI Medical Solutions') {
+                $facility_tax_id = "843358194";
+            }
+            if($facility_title == 'Prime Integrated Health Clinics') {
+                $facility_tax_id = "851105596";
+            }
+        }
 ?>
 <div id="report_header">
 <table width="98%"  border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td class="title" >COMPLETE INJURY CENTERS</td>
+    <td class="title"><?php echo $facility_title; ?></td>
   </tr>
   <?php
     if (isset($_ENV["STREET"]) && isset($_ENV["CITY"]) && isset($_ENV["STATE"]) && isset($_ENV["POSTAL"]) && isset($_ENV["PHONE"])) {
@@ -617,7 +675,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
 
   ?>
   <tr>
-    <td class="title" ><?php echo xlt('Tax Id').': ' .text($facility{'federal_ein'}); ?></td>
+    <td class="title" ><?php echo xlt('Tax Id').': '.$facility_tax_id; ?></td>
   </tr>
 </table>
 <br/>
@@ -690,7 +748,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
                 }
 
                 if ($hdr_printed) {
-                    PrintEncFooter();
+                    PrintEncFooter($pat_pid);
                 }
 
                 $hdr_printed = false;
@@ -766,7 +824,7 @@ if ($_REQUEST['form_refresh'] || $_REQUEST['form_csvexport']) {
         }
 
         if ($hdr_printed) {
-            PrintEncFooter();
+            PrintEncFooter($pat_pid);
         }
     }
 

@@ -25,7 +25,7 @@
  require_once("$srcdir/log.inc");
  use OpenEMR\Core\Header;
 
-function addColumn($field_id, $datatype, $tablename = 'users', $add = true) {
+function addColumn($field_id, $datatype, $oldfield = '', $tablename = 'users', $add = true) {
     // Check if the column currently exists.
     $tmp = sqlQuery("SHOW COLUMNS FROM `$tablename` LIKE '$field_id'");
     $column_exists = !empty($tmp);
@@ -39,26 +39,12 @@ function addColumn($field_id, $datatype, $tablename = 'users', $add = true) {
             1,
             "$tablename ADD $field_id"
         );
-    }
-}
 
-function duplicateColumn($field_id, $datatype, $oldfield, $tablename = 'users', $add = true) {
-    // Check if the column currently exists.
-    $tmp = sqlQuery("SHOW COLUMNS FROM `$tablename` LIKE '$field_id'");
-    $column_exists = !empty($tmp);
-
-    if($add && !$column_exists) {
-        sqlStatement("ALTER TABLE `$tablename` ADD `$field_id` $datatype");
-        newEvent(
-            "alter_table",
-            $_SESSION['authUser'],
-            $_SESSION['authProvider'],
-            1,
-            "$tablename ADD $field_id"
-        );
-        $res = sqlStatement("SELECT id,$oldfield FROM `$tablename` WHERE abook_type='lawyer_firm'");
-        while($row = sqlFetchArray($res)) {
-            sqlStatement("UPDATE `$tablename` SET `$field_id`=? WHERE id=?", array($row[$oldfield], $row['id']));
+        if($oldfield != '') {
+            $res = sqlStatement("SELECT id,$oldfield FROM `$tablename` WHERE abook_type='lawyer_firm'");
+            while($row = sqlFetchArray($res)) {
+                sqlStatement("UPDATE `$tablename` SET `$field_id`=? WHERE id=?", array($row[$oldfield], $row['id']));
+            }
         }
     }
 }
@@ -111,9 +97,10 @@ if ($popup) {
 // addColumn('mkt_info', 'longtext');
 // addColumn('attention_to', 'varchar(255)');
 // addColumn('closest_clinic', 'varchar(8)');
-// duplicateColumn('email_weekly', 'varchar(1000)', 'email');
-// duplicateColumn('email_visit_law', 'varchar(1000)', 'email_direct');
-// duplicateColumn('notify_lawyer', 'varchar(1000)', 'email_appoint');
+// addColumn('email_weekly', 'varchar(1000)', 'email');
+// addColumn('email_visit_law', 'varchar(1000)', 'email_direct');
+// addColumn('notify_lawyer', 'varchar(1000)', 'email_appoint');
+// addColumn('submit_notes', 'varchar(1000)', 'notify_lawyer');
 // fillAll();
 
  $form_fname = trim($_POST['form_fname']);

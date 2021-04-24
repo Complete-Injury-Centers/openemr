@@ -112,8 +112,8 @@ function permission() {
             </span>
             <!-- ko if:selectedEncounter() -->
             <span class="btn-group" style="margin-left: 40px;">
-                <a class="css_button" href="#" data-bind="click:previousEncounterEvent(encounterArray().indexOf(selectedEncounter()))">Previous</a>
-                <a class="css_button" href="#" data-bind="click:nextEncounterEvent(encounterArray().indexOf(selectedEncounter()))">Next</a>
+                <a class="css_button" href="#" data-bind="click:function(data, event) { previousEncounterEvent(encounterArray().indexOf(selectedEncounter())) }">Previous</a>
+                <a class="css_button" href="#" data-bind="click:function(data, event) { nextEncounterEvent(encounterArray().indexOf(selectedEncounter())) }">Next</a>
             </span>
             <!-- /ko -->
             <!-- /ko -->

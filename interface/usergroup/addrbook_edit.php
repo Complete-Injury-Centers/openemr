@@ -217,8 +217,9 @@ if ($_POST['form_save']) {
         "email_lop = "    . invalue('form_email_lop')    . ", " .
         "email_appoint = ". invalue('form_email_appoint'). ", " .
         "email_weekly = " . invalue('form_email_weekly') . ", " .
-        "email_visit_law = ".invalue('form_lawyer_notice').", " .
+        "email_visit_law=".invalue('form_lawyer_notice') . ", " .
         "notify_lawyer = ". invalue('form_notify_lawyer'). ", " .
+        "submit_notes = " . invalue('form_submit_notes'). ", " .
         "url = "          . invalue('form_url')          . ", " .
         "street = "       . invalue('form_street')       . ", " .
         "streetb = "      . invalue('form_streetb')      . ", " .
@@ -246,8 +247,8 @@ if ($_POST['form_save']) {
         "username, password, authorized, info, source, " .
         "title, fname, lname, mname, suffix, " .
         "federaltaxid, federaldrugid, upin, facility, see_auth, active, npi, taxonomy, cpoe, " .
-        "specialty, organization, valedictory, assistant, billname, email, email_direct, email_lop, email_appoint, email_weekly, email_visit_law, notify_lawyer, " .
-        "url, street, streetb, city, state, zip, " .
+        "specialty, organization, valedictory, assistant, billname, email, email_direct, email_lop, email_appoint, email_weekly, " .
+        "email_visit_law, notify_lawyer, submit_notes, url, street, streetb, city, state, zip, " .
         "street2, streetb2, city2, state2, zip2, " .
         "phone, phonew1, phonew2, phonecell, fax, notes, abook_type, last_contact, closest_clinic, attention_to "            .
         ") VALUES ( "                        .
@@ -282,6 +283,7 @@ if ($_POST['form_save']) {
         invalue('form_email_weekly')  . ", " .
         invalue('form_lawyer_notice') . ", " .
         invalue('form_notify_lawyer') . ", " .
+        invalue('form_submit_notes') . ", " .
         invalue('form_url')           . ", " .
         invalue('form_street')        . ", " .
         invalue('form_streetb')       . ", " .
@@ -462,6 +464,15 @@ if ($type) { // note this only happens when its new
   <td>
    <input type='text' size='40' name='form_notify_lawyer' maxlength='512'
     value='<?php echo attr($row['notify_lawyer']); ?>'
+    style='width:100%' class='inputtext' />
+  </td>
+ </tr>
+
+ <tr>
+  <td nowrap><b><?php echo xlt('Submit Notes to Lawyer'); ?>:</b></td>
+  <td>
+   <input type='text' size='40' name='form_submit_notes' maxlength='512'
+    value='<?php echo attr($row['submit_notes']); ?>'
     style='width:100%' class='inputtext' />
   </td>
  </tr>

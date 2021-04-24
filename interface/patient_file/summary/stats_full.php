@@ -96,6 +96,7 @@ function newEncounter() {
 <br>
 <div style="text-align:center" class="buttons">
   <a href='javascript:;' class='css_button' id='back'><span><?php echo htmlspecialchars(xl('Back'), ENT_NOQUOTES); ?></span></a>
+  <button class='css_button' id='delete' onclick="deleteme()"><?php echo htmlspecialchars(xl('Delete'), ENT_NOQUOTES); ?></button>
 </div>
 <br>
 <br>
@@ -302,14 +303,41 @@ echo "</table>";
         location.href='demographics.php';
     }
 
-    var checkboxElems = document.getElementsByClassName("deleteme");
-    for (var i = 0; i < checkboxElems.length; i++) {
-        checkboxElems[i].addEventListener("click", deleteme);
-    }
+    function deleteme() {
+        var checkboxElems = document.getElementsByClassName("deleteme");
+        let selected = false;
+        for (var i = 0; i < checkboxElems.length; i++) {
+            if(checkboxElems[i].checked) {
+                selected = true;
+                break;
+            }
+        }
 
-    function deleteme(e) {
-        dlgopen('../deleter.php?issue='+e.target.value, '_blank', 500, 450);
-        e.target.checked = false;
+        if(selected) {
+            if(confirm("The selected items will be deleted, are you sure?")) {
+                for(var i = 0; i < checkboxElems.length; i++) {
+                    if(checkboxElems[i].checked) {
+                        $.ajax({
+                            type: "POST",
+                            dataType: "text",
+                            url: '../deleter.php?issue=' + checkboxElems[i].value + "&special_acl=1",
+                            async: false,
+                            data: { form_submit : 'Yes, Delete and Log' },
+                            success: function(data) {
+                                if(data.includes("Not authorized!")) {
+                                    alert("Couldn't delete selected diagnoses, not authorized!");
+                                }
+                            },
+                            error: function(err) {
+                                alert("Couldn't delete selected diagnoses, not authorized!");
+                            }
+                        });
+                    }
+                }
+
+                imdeleted();
+            }
+        }
         return false;
     }
 

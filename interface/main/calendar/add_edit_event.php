@@ -200,10 +200,11 @@ if (empty($collectthis)) {
                 return "SMS couldn't been Sent";
             }
         } else {
-            $phoneNumber = $_ENV['PHONE'];
-            $message = $greeting.", ".$p['fname']." ".$p['lname'].
-                        " has not a phone registered for his appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
-                        ", with ".$p['ufname']." ".$p['ulname'].".";
+            return;
+            // $phoneNumber = $_ENV['PHONE'];
+            // $message = $greeting.", ".$p['fname']." ".$p['lname'].
+            //             " has not a phone registered for his appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
+            //             ", with ".$p['ufname']." ".$p['ulname'].".";
         }
 
         sendSMS($phoneNumber, $message);
@@ -230,10 +231,11 @@ if (empty($collectthis)) {
                 return "SMS couldn't been Sent";
             }
         } else {
-            $phoneNumber = $_ENV['PHONE'];
-            $message = $greeting.", ".$p['fname']." ".$p['lname'].
-                        " has not a phone registered for his telemedical/virtual appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
-                        ", with ".$p['ufname']." ".$p['ulname'].".";
+            return;
+            // $phoneNumber = $_ENV['PHONE'];
+            // $message = $greeting.", ".$p['fname']." ".$p['lname'].
+            //             " has not a phone registered for his telemedical/virtual appointment ".$p['pc_eventDate'].", ".$p['pc_startTime'].
+            //             ", with ".$p['ufname']." ".$p['ulname'].".";
         }
 
         sendSMS($phoneNumber, $message);
@@ -1543,10 +1545,130 @@ var weekDays = new Array(
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
+    <script>
+        function CustomConfirm() {
+            this.render = async function(dialog) {
+                var dlg_overlay = document.getElementById('dlg_overlay');
+                var dlg_box = document.getElementById('dlg_box');
+                dlg_overlay.style.display = "block";
+                dlg_overlay.style.height = (window.innerWidth)+"px";
+                dlg_box.style.left = ((window.innerHeight)/2) - (550 * .5)+"px";
+                dlg_box.style.top = "100px";
+                dlg_box.style.display = "block";
+                
+                document.getElementById('dlghead').innerHTML = "Confirm that action";
+                document.getElementById('dlgbody').innerHTML = dialog;
+                document.getElementById('dlgfoot').innerHTML = '<button class="button-form" onclick="Confirm.yes()">Remind Patient again</button>';
+                document.getElementById('dlgfoot').innerHTML += '&nbsp;<button class="button-form" onclick="Confirm.no()">DO NOT remind patient</button>';
+                
+                // return await customConfirm();
+                let flag = document.getElementById("change_flag");
+                return await new Promise(function(resolve, reject) {
+                    console.log("prmose");
+                    function handleUpload(event) {
+                        /* Removes the listeners */
+                        uploadInput.removeEventListener('change', handleUpload);
+                        resolve(event); // works just fine
+                    }
+                    flag.addEventListener('change', handleUpload);
+                }).then(function(result) {
+                    console.log(result)
+                    /* Adds the link */
+                }, function(err) {
+                    console.log(err)
+                    /* Handles errors */
+                });
+
+                console.log("exiting")
+                throw new Error("Pausing execution...");
+
+            }
+
+            this.no = function() {
+                document.getElementById("change_flag").value = "0";
+                document.getElementById('dlg_box').style.display = "none";
+                document.getElementById('dlg_overlay').style.display = "none";
+                console.log("No");
+                // dlgclose();
+            }
+
+            this.yes = function() {
+                // console.log(document.getElementById("changed_apptstatus").value);
+                document.getElementById("change_flag").value = "1";
+                document.getElementById('dlg_box').style.display = "none";
+                document.getElementById('dlg_overlay').style.display = "none";
+                console.log("Yes");
+                // console.log(document.getElementById("changed_apptstatus").value);
+                // dlgclose();
+            }
+        }
+
+        var Confirm = new CustomConfirm();
+        // async function customConfirm() {
+        //     console.log("entered");
+        //     let flag = document.getElementById("change_flag");
+        //     flag.addEventListener("change", item => {
+        //         console.log("here");
+        //         console.log(item);
+        //     }, false);
+        //     console.log("passed");
+        //     // return true;
+        //     return false;
+        // }
+    </script>
+    <style>
+        #dlg_overlay {
+            display: none;
+            opacity: .8;
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            background: #FFF;
+            width: 100%;
+            z-index: 10;
+        }
+        #dlg_box {
+            display: none;
+            position: fixed;
+            background: #000;
+            border-radius:7px;
+            width:550px;
+            z-index: 10;
+        }
+        #dlg_box > div{ background: #467AC2; margin: 2px; }
+        #dlg_box > div > #dlghead { background: #467ac2; font-size: 19px; padding: 10px; color: #000; }
+        #dlg_box > div > #dlgbody { background: #EFF4F9; padding: 20px; color: #000; }
+        #dlg_box > div > #dlgfoot { background: #EFF4F9; padding: 10px; text-align: right; }
+
+        .button-form {
+            font-size: 12px;
+            font-weight: 600;
+            color: #FFFFFF !Important;
+            line-height: 1.42857143;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            background: #38619B;
+            border: 1px solid transparent;
+            border-radius: 2px;
+        }
+    </style>
+
 </head>
 
 <body class="body_top main-calendar-add_edit_event">
 <div class="container-responsive">
+
+    <div id="dlg_overlay"></div>
+    <div id="dlg_box">
+        <div>
+            <div id="dlghead"></div>
+            <div id="dlgbody"></div>
+            <div id="dlgfoot"></div>
+        </div>
+    </div>
+    <input type="hidden" name="change_flag" id="change_flag" value="">
+
 <form class="form-inline" method='post' name='theform' id='theform' action='add_edit_event.php?eid=<?php echo attr($eid) ?>' />
 <!-- ViSolve : Requirement - Redirect to Create New Patient Page -->
 <input   type='hidden' size='2' name='resname' value='empty' />
@@ -2282,10 +2404,15 @@ function are_days_checked(){
 var collectvalidation = <?php echo($collectthis); ?>;
 function validateform(event,valu){
     $('#form_save').attr('disabled', true);
-    if(document.getElementById("last_apptstatus").value != document.getElementById("form_apptstatus").value) {
-        if(confirm('Do you want to remind patient of this appointment? If not needed, then click, Cancel')) {
+    if(document.getElementById("last_apptstatus").value != document.getElementById("form_apptstatus").value && document.getElementById("form_sms_alert").checked) {
+        if(Confirm.render('Do you want to remind patient of this appointment? If not needed, then click, Cancel')) {
             document.getElementById("changed_apptstatus").value = "1";
+            console.log("if")
         }
+        console.log("else")
+        // if(confirm('Do you want to remind patient of this appointment? If not needed, then click, Cancel')) {
+        //     document.getElementById("changed_apptstatus").value = "1";
+        // }
     }
 
     //Make sure if days_every_week is checked that at least one weekday is checked.

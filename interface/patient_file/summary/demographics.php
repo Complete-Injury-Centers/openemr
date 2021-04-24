@@ -12,7 +12,6 @@
  * @license https://github.com/openemr/openemr/blob/master/LICENSE GNU General Public License 3
  */
 
-
 require_once("../../globals.php");
 require_once("$srcdir/patient.inc");
 require_once("$srcdir/acl.inc");
@@ -34,8 +33,8 @@ if (isset($_GET['set_pid'])) {
     setpid($_GET['set_pid']);
 }
 
-  $active_reminders = false;
-  $all_allergy_alerts = false;
+$active_reminders = false;
+$all_allergy_alerts = false;
 if ($GLOBALS['enable_cdr']) {
     //CDR Engine stuff
     if ($GLOBALS['enable_allergy_check'] && $GLOBALS['enable_alert_log']) {
@@ -194,6 +193,12 @@ if ($result3['provider']) {   // Use provider in case there is an ins record w/ 
       type: 'iframe'
   });
   return false;
+ }
+
+ // Review Tools
+ function review() {
+    dlgopen('../review_tools.php', '_blank', 350, 200);
+    return false;
  }
 
  // Called by the deleteme.php window on a successful delete.
@@ -628,8 +633,7 @@ if (!$thisauth) {
     exit();
 }
 
-if ($thisauth) : ?>
-
+if($thisauth): ?>
 <table class="table_header">
     <tr>
         <td>
@@ -646,6 +650,9 @@ if ($thisauth) : ?>
             </a>
         </td>
         <?php endif; // Allow PT delete
+        if(acl_check('admin', 'super')): ?> 
+            <a class="css_button" style="float:right" href="#" onclick="review()"><?php echo xl('Review Tools')?></a>
+        <?php endif;
 if ($GLOBALS['erx_enable']) : ?>
         <td style="padding-left:1em;" class="erx">
             <a class="css_button" href="../../eRx.php?page=medentry" onclick="top.restoreSession()">
@@ -710,7 +717,7 @@ if (!($portalUserSetting)) : // Show that the patient has not authorized portal 
 
         // If patient is deceased, then show this (along with the number of days patient has been deceased for)
         $days_deceased = is_patient_deceased($pid);
-if ($days_deceased != null) : ?>
+        if ($days_deceased != null) : ?>
             <td class="deceased" style="padding-left:1em;font-weight:bold;color:red">
                 <?php
                 if ($days_deceased == 0) {
@@ -721,7 +728,7 @@ if ($days_deceased != null) : ?>
                     echo xlt("DECEASED") . " (" . text($days_deceased) . " " . xlt("days ago") . ")";
                 } ?>
             </td>
-<?php endif; ?>
+        <?php endif; ?>
     </tr>
 </table>
 
@@ -743,7 +750,6 @@ $menu_restrictions = $menuPatient->getMenu();
 <table cellspacing='0' cellpadding='0' border='0' class="subnav">
     <tr>
         <td class="small" colspan='4'>
-
             <?php
             $first = true;
             foreach ($menu_restrictions as $key => $value) {
@@ -772,6 +778,8 @@ $menu_restrictions = $menuPatient->getMenu();
                     echo '<a href="' . $link . '" onclick="' . $value->on_click .'"> ' . text($value->label) . ' </a>';
                 }
             }
+            if(acl_check('admin', 'super') || acl_role_check('Accounting', $_SESSION['authUser']))
+                echo '<a href="full_report.php">| Generate Full Report</a>';
             ?>
         </td>
     </tr>

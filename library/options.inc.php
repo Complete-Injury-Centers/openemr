@@ -1017,7 +1017,8 @@ function generate_form_field($frow, $currvalue)
             " size='$fldlength'" .
             " class='form-control' " .
             " $string_maxlength" .
-            " value='$resnote' $disabled /></td>";
+            " value='$resnote' $disabled " .
+            " oninput='document.getElementById(\"check_{$field_id_esc}[$option_id_esc]\").checked = this.value != \"\";' /></td>";
             echo "</tr>";
         }
 

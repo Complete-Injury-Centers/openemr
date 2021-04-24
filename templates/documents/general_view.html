@@ -127,6 +127,25 @@ function ImgProcedure() {literal}{{/literal}
     }
   });
  }{/literal}
+ // Send document to lawyer
+ function send2Lawyer(filepath) {literal}{
+  $.ajax({
+    type: "POST",
+    dataType: "html",
+    url: "interface/sender.php",
+    data: {
+      external_msg: 'yes',
+      send_type: 'send_file_to_lawyer',
+      file_path: filepath
+    },
+    success:function(data) {
+      console.log(data);
+    },
+    error:function(error) {
+      alert("Document couldn't been sent.");
+    }
+  });
+ }{/literal}
 </script>
 
 <table valign="top" width="100%">
@@ -138,6 +157,7 @@ function ImgProcedure() {literal}{{/literal}
                 <button class="btn btn-xs btn-default properties">{xl t='Properties'|escape:'html'}</button>
                 <button class="btn btn-xs btn-primary active">{xl t='Contents'|escape:'html'}</button>
               </div>
+              <button class="btn btn-xs btn-primary active" onclick="send2Lawyer('{$file->get_url_filepath()|escape:'html'}')">{xl t='Send to Lawyer'|escape:'html'}</button>
             <span style="float:right;">
             <a class="css_button" href='' onclick='return popoutcontent(this)' title="{xl t='Pop Out Full Screen.'|escape:'html'}">
                 <span class="glyphicon glyphicon-fullscreen"></span></a>

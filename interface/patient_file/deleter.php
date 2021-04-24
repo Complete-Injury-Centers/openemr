@@ -41,6 +41,8 @@ require_once($GLOBALS['srcdir'].'/sl_eob.inc.php');
  $transaction = $_REQUEST['transaction'];
  $signatureid = $_REQUEST['signatureid'];
 
+ $special_acl = $_REQUEST['special_acl'] ? true : false;
+
  $info_msg = "";
 
  // Delete rows, with logging, for the specified table using the
@@ -288,7 +290,7 @@ if ($_POST['form_submit']) {
         form_delete($formdir, $row['form_id'], $row['pid'], $row['encounter']);
         row_delete("forms", "id = '" . add_escape_custom($formid) . "'");
     } else if ($issue) {
-        if (!acl_check('admin', 'super')) {
+        if (!acl_check('admin', 'super') && !($special_acl && (acl_role_check('Physicians', $_SESSION['authUser']) || acl_role_check('Clinicians', $_SESSION['authUser'])))) {
             die("Not authorized!");
         }
 

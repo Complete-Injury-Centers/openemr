@@ -149,6 +149,11 @@ jQuery(document).ready( function($) {
         );
     });
 
+    // $("#addNote").on("click",function(){
+    //     dlgopen('../add_note.php','_blanck',500,220);
+    //     return false;
+    // });
+
     $("#provide_sum_pat_flag").click(function() {
         if ( $('#provide_sum_pat_flag').prop('checked') ) {
             var mode = "add";
@@ -663,6 +668,7 @@ if ($encounterLocked === false) {
         if (!$StringEcho) {
             $StringEcho= '<ul id="sddm">';
         }
+        // $StringEcho .= "<li><a href='JavaScript:void(0);' id='addNote'>Add Note</a></li>";
         $StringEcho.= "<li class=\"encounter-form-category-li\"><a href='JavaScript:void(0);' onClick=\"mopen('lbf');\" >" .
         xl('Visit Type') . "</a><div id='lbf' ><table border='0' cellspacing='0' cellpadding='0'>";
         while ($lrow = sqlFetchArray($lres)) {
@@ -825,7 +831,7 @@ if ($attendant_type == 'pid' && is_numeric($pid)) {
   }
 }
 ?>
-<?php if (acl_check('admin', 'super')) { ?>
+<?php if (acl_check('admin', 'super') || acl_role_check('Physicians', $_SESSION['authUser'])) { ?>
     <a href='#' class='css_button' onclick='return deleteme()'><span><?php echo xl('Delete') ?></span></a>
 <?php } ?>
 &nbsp;&nbsp;&nbsp;<a href="#" onClick='expandcollapse("expand");' style="font-size:80%;"><?php xl('Expand All', 'e'); ?></a>
@@ -1066,7 +1072,8 @@ foreach ($docs_list as $doc_iter) {
 <br>
 <a href="<?php echo $doc_url;?>" style="font-size:small;" onsubmit="return top.restoreSession()"><?php echo text(oeFormatShortDate($doc_iter[docdate])) . ": " . text(basename($doc_iter[url]));?></a>
 <?php if ($note != '') {?>
-            <a href="javascript:void(0);" title="<?php echo attr($note);?>"><img src="../../../images/info.png"/></a>
+        <!-- <h4>Notes</h4> -->
+        <a href="javascript:void(0);" title="<?php echo attr($note);?>"><img src="../../../images/info.png"/></a>
     <?php }?>
 <?php } ?>
 </div>
@@ -1209,7 +1216,6 @@ if ($pass_sens_squad &&
             }
         }
         echo "</div>\n"; // Added as bug fix.
-
         echo "</td>\n";
         echo "</tr>";
         echo "<tr>";
@@ -1251,20 +1257,93 @@ if ($pass_sens_squad &&
                 <th class='sheetcell'><?php echo xlt('Note Codes');?></th>
             </tr>
     <?php
-        $res = sqlStatement("SELECT code_type,code,code_text,modifier,fee,units,justify,notecodes FROM billing WHERE pid=? and encounter=? and activity='1'", array($pid,$encounter));
-        while ($row = sqlFetchArray($res)) {
-            echo "<tr class='feesheet-body'>";
-                echo "<td class='sheetcell'>".$row['code_type']."</td>";
-                echo "<td class='sheetcell'>".$row['code']."</td>";
-                echo "<td class='sheetcell'>".$row['code_text']."</td>";
-                echo "<td class='sheetcell'>".$row['modifier']."</td>";
-                echo "<td class='sheetcell' style='text-align: right;'>".$row['units']."</td>";
-                echo "<td class='sheetcell' style='text-align: right;'>$ ".$row['fee']."</td>";
-                echo "<td class='sheetcell'>".$row['justify']."</td>";
-                echo "<td class='sheetcell'>".$row['notecodes']."</td>";
-            echo "</tr>";
-        }
-    echo "</table></div></div>";
+    // function remValues($value, $list_id, $encounter, $pid) {
+    //     $values = explode('|', $value);
+    //     foreach($values as $val) {
+    //         $val = explode(":", $val);
+    //         if($val[1] == "1") {
+    //             $cres = sqlStatement("SELECT codes FROM list_options WHERE option_id=? AND list_id=?",array($val[0],$list_id));
+    //             if($crow = sqlFetchArray($cres)) {
+    //                 $crow = explode(":", $crow['codes']);
+    //                 $drow = sqlStatement("SELECT id FROM billing WHERE code_type=? AND code=? AND pid=? AND encounter=? AND units='1' AND activity = 1 ORDER BY id DESC LIMIT 1",array($crow[0], $crow[1], $pid, $encounter));
+    //                 if($dres = sqlFetchArray($drow)) {
+    //                     sqlStatement("UPDATE billing SET activity=0 WHERE id=?", array($dres['id']));
+    //                     echo "<script>console.log('Remove: ".$value."');</script>";
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // function findFormData($form_id, $formdir,$enc, $pid) {
+    //     $billing_statement = sqlStatement("SELECT * FROM billing WHERE encounter = ? AND activity = 1;",array($enc));
+    //     $bills = 0;
+    //     while($billing_statement and $count_billing = sqlFetchArray($billing_statement)) {
+    //         $bills++;
+    //     }
+
+    //     $data = sqlStatement("SELECT D.field_value, D.field_id FROM lbf_data D WHERE D.form_id = ?",array($form_id));
+    //     while($data and $values = sqlFetchArray($data)) {
+    //         $list_id = getListId($formdir, $values['field_id']);
+
+    //         $segment = explode("|",$values['field_value']);
+    //         $rep_0 = 0; $rep_1 = 0;
+
+    //         for($i = 0; $i < count($segment); $i++) {
+    //                 if($segment[$i] != ''){
+    //                     if(preg_match("/:0:/", $segment[$i])) {
+    //                         $rep_0++;
+    //                         // remValues($segment[$i],$list_id,$enc,$pid);
+    //                         echo "<script>console.log('1: " .$segment[$i]. " ". $list_id ." ". $enc ." ". $pid ."');</script>";
+                            
+    //                     } elseif(preg_match("/:1:/", $segment[$i])) {
+    //                         $rep_1++;
+    //                     }
+    //                 }
+    //         }
+    //         if($rep_0 != 0 or $rep_1 != 0) {
+    //             echo "<script>console.log('field_id: ". $values['field_id'] .", NO: ". $rep_0 ." SI:".  $rep_1 ."');</script>";
+    //         }
+    //     }
+    //     echo "<script>console.log('billing: " . $bills . "');</script>";
+    // }
+
+    // function getListId($formdir,$field_id) {
+    //     $list = sqlStatement("SELECT list_id FROM layout_options WHERE form_id = ? AND field_id = ?",array($formdir,$field_id));    
+    //     if ($list and $op = sqlFetchArray($list)) {
+    //         if($op['list_id'] != '')
+    //             return $op['list_id'];
+    //     }
+    // }
+
+    // function checkTreatmentsValues($pid, $encounter) {
+    //     $enc = sqlStatement("SELECT F.form_id, F.formdir
+    //     FROM forms F 
+    //     INNER JOIN form_encounter E 
+    //     ON F.encounter = E.encounter AND F.deleted = 0 AND F.authorized = 1 
+    //     AND F.pid = ? AND F.formdir != 'newpatient' AND E.encounter = ?", array($pid,$encounter));
+
+    //     while ($enc and $res = sqlFetchArray($enc)){
+    //         echo "<script>console.log('Form ". $res['formdir'] .":". $res['form_id'] ."');</script>";
+    //         findFormData($res['form_id'], $res['formdir'], $encounter, $pid);
+    //     }
+    // }
+    // checkTreatmentsValues($pid,$encounter);
+
+    $res = sqlStatement("SELECT code_type,code,code_text,modifier,fee,units,justify,notecodes FROM billing WHERE pid=? and encounter=? and activity='1'", array($pid,$encounter));
+    while ($row = sqlFetchArray($res)) {
+        echo "<tr class='feesheet-body'>";
+            echo "<td class='sheetcell'>".$row['code_type']."</td>";
+            echo "<td class='sheetcell'>".$row['code']."</td>";
+            echo "<td class='sheetcell'>".$row['code_text']."</td>";
+            echo "<td class='sheetcell'>".$row['modifier']."</td>";
+            echo "<td class='sheetcell' style='text-align: right;'>".$row['units']."</td>";
+            echo "<td class='sheetcell' style='text-align: right;'>$ ".$row['fee']."</td>";
+            echo "<td class='sheetcell'>".$row['justify']."</td>";
+            echo "<td class='sheetcell'>".$row['notecodes']."</td>";
+        echo "</tr>";
+    }
+echo "</table></div></div>";
 }
 if (!$pass_sens_squad) {
     echo xlt("Not authorized to view this encounter");

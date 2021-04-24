@@ -1917,6 +1917,27 @@ $GLOBALS_METADATA = array(
             xl('Email address, if any, to receive administrative notifications.')
         ),
 
+        'clinic_director_name' => array(
+            xl('Clinic Director Name'),
+            'text',                           // data type
+            '',                               // default
+            xl('Clinic Director Name.')
+        ),
+
+        'clinic_director_email' => array(
+            xl('Clinic Director Email'),
+            'text',                           // data type
+            '',                               // default
+            xl('Clinic Director Email address.')
+        ),
+
+        'clinic_director_phone' => array(
+            xl('Clinic Director Phone'),
+            'text',                           // data type
+            '',                               // default
+            xl('Clinic Director Phone Number.')
+        ),
+
         'EMAIL_METHOD' => array(
             xl('Email Transport Method'),
             array(

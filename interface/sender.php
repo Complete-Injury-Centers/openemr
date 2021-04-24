@@ -1,21 +1,45 @@
 <?php
+/**
+ * Email Sender for CIC OpenEMR
+ *
+ * Copyright (C) 2020 angeling <angel-na@hotmail.es>
+ *
+ * LICENSE: This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 3
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://opensource.org/licenses/gpl-license.php>;.
+ *
+ * @package OpenEMR
+ * @author  angeling <angel-na@hotmail.es>
+ * @link    http://www.open-emr.org
+ **/
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-// require_once("../interface/globals.php");
-require_once("$srcdir/PHPMailer/src/Exception.php");
-require_once("$srcdir/PHPMailer/src/PHPMailer.php");
-require_once("$srcdir/PHPMailer/src/SMTP.php");
+require_once(dirname(__FILE__) . "/globals.php");
+require_once($GLOBALS['srcdir']."/PHPMailer/src/Exception.php");
+require_once($GLOBALS['srcdir']."/PHPMailer/src/PHPMailer.php");
+require_once($GLOBALS['srcdir']."/PHPMailer/src/SMTP.php");
 
-function sendMail($send_to, $subject, $body, $email = "", $pass = "", $title = "EMR CIC", $replyto = "", $titleReply = "EMR CIC") {
+if($_REQUEST['external_msg']) {
+    if($_REQUEST['send_type'] == 'send_file_to_lawyer') {
+        sendFileToLawyer($_REQUEST['file_path'], $_SESSION['pid']);
+    }
+}
+
+function sendMail($send_to, $subject, $body, $email = "", $pass = "", $title = "EMR CIC", $attachment = "", $replyto = "", $titleReply = "EMR CIC") {
     // Instantiation and passing `true` enables exceptions
     $mail = new PHPMailer(true);
 
-    // $email = $email ? $email : $_ENV['EMAIL_USERNAME'];
-    // $pass  = $pass  ? $pass  : $_ENV['EMAIL_PASSWORD'];
-
-    if(isset($_ENV['DEBUG'])) {
+    if(isset($_ENV['DEBUG']) && $_ENV['DEBUG']) {
         echo '<script>console.log("original: '.implode(", ",$send_to).'")</script>';
         echo '<script>console.log("'.preg_replace('/\'/', ' ', $subject).'")</script>';
         echo '<script>console.log("'.preg_replace('/\'/', ' ', $body).'")</script>';
@@ -48,6 +72,10 @@ function sendMail($send_to, $subject, $body, $email = "", $pass = "", $title = "
         $mail->AddEmbeddedImage($GLOBALS['srcdir'].'/../interface/img/map.jpg', 'map');
         $mail->AddEmbeddedImage($GLOBALS['srcdir'].'/../interface/img/Logo-Small.png', 'logo');
 
+        if($attachment != "" && !$mail->addAttachment($attachment, basename($attachment))) {
+            throw new Exception('Couldn\'t attach file.');
+        }
+
         // Content
         $mail->isHTML(true);                                        // Set email format to HTML
         $mail->Subject = $subject;
@@ -56,8 +84,21 @@ function sendMail($send_to, $subject, $body, $email = "", $pass = "", $title = "
         $mail->send();
         echo "<script>console.log('Message has been sent')</script>";
     } catch (Exception $e) {
-        // echo "<script>console.log('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
+        echo "<script>console.log('Message could not be sent. Mailer Error: {$mail->ErrorInfo}')</script>";
     }
+}
+
+function sendFileNotify($pid) {
+    $send_to = findFacilityEmail($pid);
+
+    $subject = "Patient Report Notification";
+
+    $patient = getPatient($pid);
+    $patient_name = $patient['lname'] . ", ". $patient['fname'] . (isset($patient['mname']) ? " " . $patient['mname'] : "");
+
+    $body = "You have a report for <b>" . $patient_name . "</b> on CIC EMR.";
+
+    sendMail($send_to, $subject, $body . signatureSchedule(), $_ENV['EMAIL_USER_SCH'], $_ENV['EMAIL_PASS_SCH'], 'CIC SCHEDULE');
 }
 
 function sendLOPRequest($pid) {
@@ -87,7 +128,7 @@ function sendLOPRequest($pid) {
     $body .= "<br /><br />";
     $body .= "Please contact us with any issues. We are here to help.";
     
-    sendMail($send_to, $subject, $body . signatureRecords(), $_ENV['EMAIL_USER_REC'], $_ENV['EMAIL_PASS_REC'], 'CIC LOP REQUEST');
+    sendMail($send_to, $subject, $body . signatureRecords(), $_ENV['EMAIL_USER_REC'], $_ENV['EMAIL_PASS_REC'], 'CIC RECORDS');
 }
 
 function sendLawyerAppointmentAlert($eid) {
@@ -183,7 +224,7 @@ function sendClinicAppointmentNotice($eid) {
 }
 
 function sendImportantEmail($pid) {
-    $send_to = findDoctor($pid);
+    $send_to = findFacilityEmail($pid);
 
     $subject = "Patient Notification";
 
@@ -240,12 +281,52 @@ function notifyBack($pid, $note) {
     sendMail($send_to, $subject, $body . signatureSchedule(), $_ENV['EMAIL_USER_SCH'], $_ENV['EMAIL_PASS_SCH'], 'CIC SCHEDULE');
 }
 
-function findDoctor($pid) {
+function notifyClinicDirector($pid, $note) {
+    $patient = getPatient($pid);
+    $send_to = [$GLOBALS['clinic_director_email']];
+
+    $subject = "CIC - NOTICE OF PATIENT UPDATE to CLINIC DIRECTOR";
+    if($patient['fname']) {$subject .= " / ".$patient['fname'];}
+    if($patient['lname']) {$subject .= " ".$patient['lname'];}
+    if($patient['DOB']) {
+        $subject .= " / DOB: ".$patient['DOB'];
+    } elseif($patient['doi']) {
+        $subject .= " / DOI: ".$patient['doi'];
+    }
+
+    $body = "This email is to kindly notify you that <b>" . $patient['fname'] . " " . $patient['lname'] .
+        "</b> has an update that you may want to check for case management.<br /><br />";
+    $body .= "<b>" . $note . "</b><br /><br />";
+    $body .= "Thank you!";
+
+    sendMail($send_to, $subject, $body . signatureSchedule(), $_ENV['EMAIL_USER_SCH'], $_ENV['EMAIL_PASS_SCH'], 'CIC SCHEDULE');
+}
+
+function sendFileToLawyer($file, $pid) {
+    $patient = getPatient($pid);
+    $send_to = findLawyerNotes($pid);
+
+    $subject = "CIC RECORDS";
+    if($patient['fname']) {$subject .= " / ".$patient['fname'];}
+    if($patient['lname']) {$subject .= " ".$patient['lname'];}
+
+    $body = greeting();
+    $org = getOrganization($pid);
+    if($org['organization']) {$body .= " <b>".$org['organization']."</b>";}
+    $body .= "!<br /><br />";
+
+    $body .= "Below you will find patient records attached.<br /><br />";
+    $body .= "Please let us know if there is anything we can do yo help.";
+
+    sendMail($send_to, $subject, $body . signatureRecords(), $_ENV['EMAIL_USER_REC'], $_ENV['EMAIL_PASS_REC'], 'CIC RECORDS', $file);
+}
+
+function findFacilityEmail($pid) {
     $res = sqlStatement("SELECT f.email FROM facility AS f LEFT JOIN patient_data AS p ON p.refer_facilities=f.id WHERE p.pid=?", array($pid));
     if($row = sqlFetchArray($res)) {
         $email = preg_replace('/\s+/', '', $row['email']);
-        $email = explode(",", $email);
-        return [$email[0]];
+        $email = preg_replace('/:/', ',', $email);
+        return explode(",", $email);
     }
     return [];
 }
@@ -281,12 +362,22 @@ function findLawyerNotice($pid) {
     return [];
 }
 
+function findLawyerNotes($pid) {
+    $res = sqlStatement("SELECT u.submit_notes FROM users AS u LEFT JOIN patient_data AS p ON p.lawyer=u.id WHERE p.pid=?", array($pid));
+    if($row = sqlFetchArray($res)) {
+        $email = preg_replace('/\s+/', '', $row['submit_notes']);
+        $email = preg_replace('/:/', ',', $email);
+        return explode(",", $email);
+    }
+    return [];
+}
+
 function getPatient($pid) {
     $res = sqlStatement("SELECT fname,mname,lname,DOB,doi FROM patient_data WHERE pid=?", array($pid));
     if($row = sqlFetchArray($res)) {
         return $row;
     }
-    return "";
+    return [];
 }
 
 function getInfoAppointmentAll($eid) {

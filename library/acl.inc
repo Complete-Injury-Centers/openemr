@@ -273,6 +273,17 @@ function acl_check($section, $value, $user = '', $return_value = '')
     return 0;
 }
 
+function acl_role_check($role, $user) {
+    $query = "SELECT gm.group_id FROM gacl_groups_aro_map AS gm
+        LEFT JOIN gacl_aro AS ga ON gm.aro_id=ga.id
+        LEFT JOIN gacl_aro_groups AS gag ON gag.id=gm.group_id
+        WHERE gag.name=? AND ga.section_value='users' AND ga.value=?";
+    $res = sqlStatement($query, array($role, $user));
+    if(sqlNumRows($res) > 0)
+        return true;
+    return false;
+}
+
   // Get the ACO name/value pairs for a designated section.  Each value
   // is an array (section_value, value, order_value, name, hidden).
   //

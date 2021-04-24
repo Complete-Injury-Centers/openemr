@@ -21,6 +21,21 @@ $facilityService = new FacilityService();
 
 $alertmsg = '';
 
+if(isset($_POST['update_director'])) {
+    if(isset($_POST['director_name'])) {
+        updateGlobals('clinic_director_name', $_POST['director_name']);
+        $GLOBALS['clinic_director_name'] = $_POST['director_name'];
+    }
+    if(isset($_POST['director_email'])) {
+        updateGlobals('clinic_director_email', $_POST['director_email']);
+        $GLOBALS['clinic_director_email'] = $_POST['director_email'];
+    }
+    if(isset($_POST['director_phone'])) {
+        updateGlobals('clinic_director_phone', $_POST['director_phone']);
+        $GLOBALS['clinic_director_phone'] = $_POST['director_phone'];
+    }
+}
+
 /*		Inserting New facility					*/
 if (isset($_POST["mode"]) && $_POST["mode"] == "facility" && $_POST["newmode"] != "admin_facility") {
     $newFacility = array(
@@ -91,7 +106,11 @@ if (isset($_POST["mode"]) && $_POST["mode"] == "facility" && $_POST["newmode"] =
     exit(); // sjp 12/20/17 for ajax save
 }
 
+function updateGlobals($field, $value) {
+    sqlStatement('REPLACE INTO `globals` SET gl_name=?, gl_index=?, gl_value=?', array($field, 0, $value));
+}
 ?>
+
 <!DOCTYPE html >
 <html>
 <head>
@@ -134,14 +153,32 @@ $(document).ready(function(){
 </head>
 
 <body class="body_top">
-
     <div class="container-fluid">
         <div class="row">
             <div class="col-xs-12">
-            <div class="page-header clearfix">
-                <h2 class="clearfix"><?php echo xlt("Facilities") ; ?></h2>
-            </div>
-            <a href="facilities_add.php" class="addfac_modal btn btn-default btn-add"><span><?php echo xlt('Add Facility');?></span></a>
+                <div class="page-header clearfix">
+                    <h2 class="clearfix"><?php echo xlt("Facilities") ; ?></h2>
+                </div>
+
+                <h4 class="clearfix"><?php echo xlt("Clinic Director"); ?></h4>
+                <form name='facility-add' id='facility-add' method='post' action="">
+                    <table border=0 cellpadding=0 cellspacing=0>
+                        <tr>
+                            <td><span class="text bold"><?php xl('Name', 'e'); ?>: </span></td>
+                            <td colspan='4'><input type="text" name="director_name" size="36" value="<?php echo $GLOBALS['clinic_director_name']; ?>"></td>
+                        </tr>
+                        <tr>
+                            <td><span class="text bold"><?php xl('Email', 'e'); ?>: </span></td>
+                            <td><input type="text" name="director_email" size="24" value="<?php echo $GLOBALS['clinic_director_email']; ?>"></td>
+                            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                            <td><span class="text bold"><?php xl('Phone', 'e'); ?>: </span></td>
+                            <td><input type="text" name="director_phone" size="24" value="<?php echo $GLOBALS['clinic_director_phone']; ?>"></td>
+                        </tr>
+                    </table>
+                    <input type="submit" value="<?php xl('Save', 'e');?>" name="update_director">
+                </form>
+
+                <a href="facilities_add.php" class="addfac_modal btn btn-default btn-add" style="margin-top: 24px;"><span><?php echo xlt('Add Facility');?></span></a>
             </div>
         </div>
         <br>

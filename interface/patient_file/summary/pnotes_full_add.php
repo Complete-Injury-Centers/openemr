@@ -309,17 +309,29 @@ if ($noteid) {
     <div>
     <?php if(permission()) :?>
         <!-- important checkbox -->
-        <input type="checkbox" id="important" value='1' name="<?php echo xla('important'); ?>">
-        <label for="important" style="font-size:9pt;"><b><?php echo xlt('Important - to clinic'); ?></b></label>
+        <span style="display: inline-block;"><input type="checkbox" id="important" value='1' name="<?php echo xla('important'); ?>">
+        <label for="important" style="font-size:9pt;"><b><?php echo xlt('Important - to clinic'); ?></b></label></span>
     <?php endif ?>
     <?php if(acl_check('admin', 'super') and permission()) :?>
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="note_lop_request" value='1' name="<?php echo xla('note_lop_request'); ?>">
-        <label for="note_lop_request" style="font-size:9pt;"><b><?php echo xlt('LOP Request'); ?></b></label>
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_lawyer_mail" value='1' name="<?php echo xla('notify_lawyer_mail'); ?>">
-        <label for="notify_lawyer_mail" style="font-size:9pt;"><b><?php echo xlt('Notify Lawyer'); ?></b></label>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <!-- lop checkbox -->
+        <span style="display: inline-block;"><input type="checkbox" id="note_lop_request" value='1' name="<?php echo xla('note_lop_request'); ?>">
+        <label for="note_lop_request" style="font-size:9pt;"><b><?php echo xlt('LOP Request'); ?></b></label></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <!-- lawyer checkbox -->
+        <span style="display: inline-block;"><input type="checkbox" id="notify_lawyer_mail" value='1' name="<?php echo xla('notify_lawyer_mail'); ?>">
+        <label for="notify_lawyer_mail" style="font-size:9pt;"><b><?php echo xlt('Notify Lawyer'); ?></b></label></span>
     <?php endif ?>
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="notify_back" value='1' name="<?php echo xla('notify_back'); ?>">
-        <label for="notify_back" style="font-size:9pt;"><b><?php echo xlt('Notify Back Office'); ?></b></label>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <!-- office checkbox -->
+        <span style="display: inline-block;"><input type="checkbox" id="notify_back" value='1' name="<?php echo xla('notify_back'); ?>">
+        <label for="notify_back" style="font-size:9pt;"><b><?php echo xlt('Notify Back Office'); ?></b></label></span>
+    <?php if(acl_check('admin', 'super')) :?>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <!-- director checkbox -->
+        <span style="display: inline-block;"><input type="checkbox" id="notify_clinic_director" value='1' name="<?php echo xla('notify_clinic_director'); ?>">
+        <label for="notify_clinic_director" style="font-size:9pt;"><b><?php echo xlt('Notify Clinic Director'); ?></b></label></span>
+    <?php endif ?>
     </div>
 
     <br />
@@ -414,7 +426,13 @@ if ($noteid /* && $title == 'New Document' */) {
 
 $(document).ready(function(){
     $("#appendnote").click(function() { AppendNote(); });
-    $("#newnote").click(function() { NewNote(); });
+    $("#newnote").click(function() {
+        if($("#note").val() != '') {
+            NewNote();
+        } else {
+            alert("No content in progress note");
+        }
+    });
     $("#printnote").click(function() { PrintNote(); });
 
     $(".change_activity").click(function() { top.restoreSession(); $("#update_activity").submit(); });
